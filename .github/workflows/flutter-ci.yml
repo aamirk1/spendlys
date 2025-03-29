@@ -50,7 +50,7 @@ jobs:
       - name: Debug APK
         run: ls -la build/app/outputs/flutter-apk/
 
-      # Step 8: Upload the APK as an artifact
+      # Step 8: Upload the APK as an artifac
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
