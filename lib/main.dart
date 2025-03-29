@@ -12,8 +12,8 @@ void main() async {
   await Firebase.initializeApp();
 
   await GetStorage.init(); // ✅ Initialize GetStorage
-  // Get.put(ExpenseController());
-  // Get.put(IncomeController());
+  Get.put(ExpenseController());
+  Get.put(IncomeController());
 
   runApp(MyApp());
 }

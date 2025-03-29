@@ -19,8 +19,6 @@ class _MyChartState extends State<MyChart> {
   @override
   void initState() {
     super.initState();
-
-    // Ensure fetchChartExpenseTotals runs after the first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchChartExpenseTotals(selectedFilter.value);
     });
@@ -40,7 +38,7 @@ class _MyChartState extends State<MyChart> {
         ),
         const SizedBox(height: 5),
 
-        // 🔹 Legend at the Top Right - Only categories with income
+        // 🔹 Legend at the Top Right - Only categories with expenses
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
@@ -52,9 +50,8 @@ class _MyChartState extends State<MyChart> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      controller.getIconForCode(category['icon'] as int),
-                      color: Color(int.parse(
-                          "0x" + category['color'].replaceAll("#", ""))),
+                      category['icon'] as IconData,
+                      color: Colors.white,
                     ),
                     const SizedBox(width: 4),
                     Text(category['name'],
@@ -141,7 +138,7 @@ class _MyChartState extends State<MyChart> {
   }
 
   List<Map<String, dynamic>> _getNonZeroExpenseCategories() {
-    // Filter the categories that have expenses
+    // Filter categories that have expenses
     return controller.expenseCategories.where((category) {
       String categoryName = category['name'];
       double total = controller.categoryTotals[categoryName] ?? 0;
@@ -183,25 +180,28 @@ class _MyChartState extends State<MyChart> {
     if (value.toInt() >= categories.length) return Container();
 
     String category = categories[value.toInt()];
-    Icon icon = _getCategoryIcon(category);
     Color color = _getCategoryColor(category);
 
     return Padding(
       padding: const EdgeInsets.only(top: 5.0),
-      child: Icon(icon as IconData?,
-          color: color, size: 20), // 🔹 Icon now has a category color
+      child: Icon(
+        _getCategoryIconData(category),
+        color: color,
+        size: 20,
+      ),
     );
   }
 
-  Icon _getCategoryIcon(String category) {
+  /// ✅ Fixed `_getCategoryIcon` to return `IconData` (not an `Icon`)
+  IconData _getCategoryIconData(String category) {
     final categoryData = controller.expenseCategories.firstWhere(
       (element) => element['name'] == category,
-      orElse: () => {'icon': CupertinoIcons.question_circle_fill},
+      orElse: () =>
+          {'icon': CupertinoIcons.question_circle_fill}, // Default fallback
     );
-    return Icon(
-  controller.getIconForCode(categoryData['icon'] as int),
-  color: Color(int.parse("0x" + categoryData['color'].replaceAll("#", ""))),
-);
+
+    return categoryData['icon'] as IconData? ??
+        CupertinoIcons.question_circle_fill;
   }
 
   Widget leftTitles(double value, TitleMeta meta) {
@@ -221,6 +221,6 @@ class _MyChartState extends State<MyChart> {
       (element) => element['name'] == category,
       orElse: () => {'color': Colors.grey},
     );
-    return Color(int.parse("0x" + categoryData['color'].replaceAll("#", "")));
+    return categoryData['color'] as Color? ?? Colors.grey;
   }
 }

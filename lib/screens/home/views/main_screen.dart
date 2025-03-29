@@ -323,24 +323,14 @@ class MainScreen extends StatelessWidget {
                               contentPadding:
                                   EdgeInsets.zero, // Removes default padding
                               leading: CircleAvatar(
-                                radius: 25, // Equivalent to 50x50 Container
-                                backgroundColor: Color(
-                                  int.parse(
-                                    "0x" +
-                                        categoryData['color']
-                                            .replaceAll("#", ""),
-                                  ),
-                                ),
+                                radius: 25,
+                                backgroundColor: categoryData['color'] as Color,
                                 child: Icon(
-                                  expenseController.getIconForCode(
-                                      categoryData['icon'] as int),
-                                  // ignore: prefer_interpolation_to_compose_strings
-                                  
-                                  color: Color(int.parse("0x" +
-                                      categoryData['color']
-                                          .replaceAll("#", ""))),
+                                  categoryData['icon'] as IconData,
+                                  color: Colors.white,
                                 ),
                               ),
+
                               title: Text(
                                 category,
                                 style: TextStyle(

@@ -12,10 +12,11 @@ class ViewAllExpense extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          foregroundColor: Colors.white,
-          backgroundColor: Color(0xFFFF8D6C),
-          automaticallyImplyLeading: false,
-          title: Center(child: const Text("All Expenses"))),
+        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFF8D6C),
+        automaticallyImplyLeading: false,
+        title: const Center(child: Text("All Expenses")),
+      ),
       body: Obx(() {
         final expenses = expenseController.expensesList;
 
@@ -32,27 +33,24 @@ class ViewAllExpense extends StatelessWidget {
             double amount = expense['amount'];
             DateTime date = expense['date'];
 
-            // Get category icon & color
+            // ✅ Fix: Provide proper fallback (icon: int, color: String)
             var categoryData = expenseController.expenseCategories.firstWhere(
               (c) => c['name'] == category,
-              orElse: () => {'icon': Icons.category, 'color': Colors.grey},
+              orElse: () => {
+                'icon': 0xe14c,
+                'color': '#808080'
+              }, // 0xe14c = Icons.category code
             );
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  radius: 25, // Equivalent to 50x50 Container
-                  backgroundColor: Color(
-                    int.parse(
-                      "0x" + categoryData['color'].replaceAll("#", ""),
-                    ),
-                  ),
+                  radius: 25,
+                  backgroundColor: categoryData['color'] as Color,
                   child: Icon(
-                    expenseController
-                        .getIconForCode(categoryData['icon'] as int),
-                    color: Color(int.parse(
-                        "0x" + categoryData['color'].replaceAll("#", ""))),
+                    categoryData['icon'] as IconData,
+                    color: Colors.white,
                   ),
                 ),
                 title: Text('₹$amount',
@@ -85,7 +83,6 @@ class ViewAllExpense extends StatelessWidget {
     );
   }
 
-  // ✅ EDIT EXPENSE FUNCTION
   void _editExpense(BuildContext context, Map<String, dynamic> expense) {
     TextEditingController amountController =
         TextEditingController(text: expense['amount'].toString());
@@ -135,7 +132,6 @@ class ViewAllExpense extends StatelessWidget {
     );
   }
 
-  // ✅ DELETE CONFIRMATION FUNCTION
   void _confirmDelete(BuildContext context, Map<String, dynamic> expense) {
     Get.defaultDialog(
       title: "Delete Expense?",

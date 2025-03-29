@@ -15,7 +15,7 @@ class SplashController extends GetxController {
   }
 
   void _checkLoginStatus() async {
-    await Future.delayed(const Duration(seconds: 3)); // Simulate splash delay
+    await Future.delayed(const Duration(seconds: 5)); // Simulate splash delay
 
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user != null) {

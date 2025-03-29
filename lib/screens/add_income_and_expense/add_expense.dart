@@ -86,10 +86,8 @@ class AddExpense extends StatelessWidget {
                             children: [
                               // Use dynamic IconData from code
                               Icon(
-                                controller
-                                    .getIconForCode(category['icon'] as int),
-                                color: Color(int.parse("0x" +
-                                    category['color'].replaceAll("#", ""))),
+                                category['icon'] as IconData,
+                                color: category['color'] as Color,
                               ),
                               SizedBox(width: 10),
                               Text(category['name']
@@ -207,16 +205,11 @@ class AddExpense extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Color(
-                          int.parse(
-                            "0x" + categoryData['color'].replaceAll("#", ""),
-                          ),
-                        ),
+                        radius: 25,
+                        backgroundColor: categoryData['color'] as Color,
                         child: Icon(
-                          controller
-                              .getIconForCode(categoryData['icon'] as int),
-                          color: Color(int.parse("0x" +
-                              categoryData['color'].replaceAll("#", ""))),
+                          categoryData['icon'] as IconData,
+                          color: Colors.white,
                         ),
                       ),
                       title: Text(
