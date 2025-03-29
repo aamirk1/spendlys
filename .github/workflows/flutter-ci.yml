@@ -1,5 +1,3 @@
-name: Flutter CI
-
 # Trigger the workflow on push or pull request to the main branch
 on:
   push:
@@ -23,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'  # Add this: specifies the Java distribution
+          distribution: 'temurin'  # Specifies the Java distribution
 
       # Step 3: Set up Flutter
       - name: Setup Flutter
@@ -46,7 +44,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
         env:
-          JAVA_HOME: ${{ env.JAVA_HOME }
+          JAVA_HOME: ${{ env.JAVA_HOME }}
 
       # Step 7: Debug APK existence
       - name: Debug APK

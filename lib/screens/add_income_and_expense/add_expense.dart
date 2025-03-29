@@ -71,12 +71,12 @@ class AddExpense extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            Get.to(() => ManageCategoriesScreen());
-                          },
-                          icon: Icon(Icons.add),
-                        ),
+                        // suffixIcon: IconButton(
+                        //   onPressed: () {
+                        //     Get.to(() => ManageCategoriesScreen());
+                        //   },
+                        //   icon: Icon(Icons.add),
+                        // ),
                       ),
                       items: controller.expenseCategories
                           .map<DropdownMenuItem<String>>((category) {
