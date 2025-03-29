@@ -1,4 +1,3 @@
-# Trigger the workflow on push or pull request to the main branch
 on:
   push:
     branches:
@@ -21,13 +20,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'  # Specifies the Java distribution
+          distribution: 'temurin'
 
       # Step 3: Set up Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'  # Adjust to your app’s compatible version
+          flutter-version: '3.27.4'
           channel: 'stable'
           cache: true
 
@@ -40,20 +39,23 @@ jobs:
         run: flutter test
         continue-on-error: true
 
-      # Step 6: Build the APK (for Android)
-      - name: Build APK
-        run: |
-          echo "org.gradle.java.home=${JAVA_HOME}" >> gradle.properties
-          flutter build apk --release
+      # Step 6: Force correct Java home for Gradle
+      - name: Set Gradle Java Home
+        run: echo "org.gradle.java.home=${JAVA_HOME}" >> android/gradle.properties
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
 
+      # Step 7: Build the APK (for Android)
+      - name: Build APK
+        run: flutter build apk --release
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
 
-      # Step 7: Debug APK existence
+      # Step 8: Debug APK existence
       - name: Debug APK
         run: ls -la build/app/outputs/flutter-apk/
 
-      # Step 8: Upload the APK as an artifac
+      # Step 9: Upload the APK as an artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
