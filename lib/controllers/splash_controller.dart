@@ -14,7 +14,7 @@ class SplashController extends GetxController {
     _checkLoginStatus();
   }
 
-  void _checkLoginStatus() async {
+  Future<void> _checkLoginStatus() async {
     await Future.delayed(const Duration(seconds: 5)); // Simulate splash delay
 
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
@@ -24,8 +24,7 @@ class SplashController extends GetxController {
         if (!hasSeenOnboarding) {
           Get.offAllNamed(RoutesName.onboardingView);
         } else {
-          MyUser myUser = await _getUserData(
-              user.uid); // Modified: Fetch MyUser instead of passing User
+          MyUser myUser = await _getUserData(user.uid);
           Get.offAllNamed(RoutesName.homeView,
               arguments: myUser); // Passing MyUser now
         }
