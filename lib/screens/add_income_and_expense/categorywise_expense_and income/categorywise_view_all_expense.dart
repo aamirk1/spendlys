@@ -34,16 +34,21 @@ class CategorywiseViewAllExpense extends StatelessWidget {
           itemCount: expenses.length,
           itemBuilder: (context, index) {
             var expense = expenses[index];
+            String category = expense['category'];
             String description = expense['description'];
             double amount = expense['amount'];
             DateTime date = expense['date'];
+            var categoryData = expenseController.expenseCategories.firstWhere(
+              (c) => c['name'] == category,
+              orElse: () => {'icon': Icons.category, 'color': Colors.grey},
+            );
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.blueAccent, // Can be dynamic
-                  child: Icon(Icons.money, color: Colors.white),
+                  backgroundColor: categoryData['color'],
+                  child: Icon(categoryData['icon'], color: Colors.white),
                 ),
                 title: Text(
                   "₹${amount.toStringAsFixed(2)}",

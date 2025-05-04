@@ -38,25 +38,37 @@ class _MyChartState extends State<MyChart> {
         ),
         const SizedBox(height: 5),
 
-        // 🔹 Legend at the Top Right - Only categories with expenses
+        // 🔹 Updated Legend at the Top Right
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
             padding: const EdgeInsets.only(right: 20),
             child: Wrap(
               spacing: 12,
+              runSpacing: 6,
               children: _getNonZeroExpenseCategories().map((category) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      category['icon'] as IconData,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(category['name'],
-                        style: const TextStyle(fontSize: 12)),
-                  ],
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        category['icon'] as IconData,
+                        color: category['color'] as Color? ?? Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        category['name'],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ),
@@ -87,16 +99,15 @@ class _MyChartState extends State<MyChart> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: selectedFilter.value == label
-                  ? Colors.blue.shade700 // Selected color
-                  : Colors.grey.shade300, // Unselected color
-              foregroundColor: selectedFilter.value == label
-                  ? Colors.white
-                  : Colors.black87, // Text color
+                  ? Colors.blue.shade700
+                  : Colors.grey.shade300,
+              foregroundColor:
+                  selectedFilter.value == label ? Colors.white : Colors.black87,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // Rounded corners
+                borderRadius: BorderRadius.circular(10),
               ),
-              elevation: selectedFilter.value == label ? 4 : 0, // Slight shadow
+              elevation: selectedFilter.value == label ? 4 : 0,
             ),
             child: Text(
               label,
@@ -138,7 +149,6 @@ class _MyChartState extends State<MyChart> {
   }
 
   List<Map<String, dynamic>> _getNonZeroExpenseCategories() {
-    // Filter categories that have expenses
     return controller.expenseCategories.where((category) {
       String categoryName = category['name'];
       double total = controller.categoryTotals[categoryName] ?? 0;
@@ -192,12 +202,10 @@ class _MyChartState extends State<MyChart> {
     );
   }
 
-  /// ✅ Fixed `_getCategoryIcon` to return `IconData` (not an `Icon`)
   IconData _getCategoryIconData(String category) {
     final categoryData = controller.expenseCategories.firstWhere(
       (element) => element['name'] == category,
-      orElse: () =>
-          {'icon': CupertinoIcons.question_circle_fill}, // Default fallback
+      orElse: () => {'icon': CupertinoIcons.question_circle_fill},
     );
 
     return categoryData['icon'] as IconData? ??
@@ -209,11 +217,21 @@ class _MyChartState extends State<MyChart> {
       space: 0,
       meta: meta,
       child: Text(
-        "${value.toInt()}K",
+        _formatValue(value),
         style: const TextStyle(
             color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
+  }
+
+  String _formatValue(double value) {
+    if (value == 0) {
+      return '0';
+    } else if (value % 2000 == 0) {
+      return '${(value ~/ 1000)}K';
+    } else {
+      return '';
+    }
   }
 
   Color _getCategoryColor(String category) {

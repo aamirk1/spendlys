@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:spendly/controllers/expenseController.dart';
+import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
@@ -19,14 +21,15 @@ class SplashController extends GetxController {
 
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user != null) {
+        MyUser myUser = await _getUserData(user.uid); // Fetch user first
         bool hasSeenOnboarding = box.read('hasSeenOnboarding') ?? false;
 
         if (!hasSeenOnboarding) {
-          Get.offAllNamed(RoutesName.onboardingView);
+          Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
         } else {
-          MyUser myUser = await _getUserData(user.uid);
-          Get.offAllNamed(RoutesName.homeView,
-              arguments: myUser); // Passing MyUser now
+          Get.put(ExpenseController());
+          Get.put(IncomeController());
+          Get.offAllNamed(RoutesName.homeView, arguments: myUser);
         }
       } else {
         Get.offAllNamed(RoutesName.welcomeView);

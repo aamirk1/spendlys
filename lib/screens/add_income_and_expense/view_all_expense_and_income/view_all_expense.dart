@@ -33,25 +33,17 @@ class ViewAllExpense extends StatelessWidget {
             double amount = expense['amount'];
             DateTime date = expense['date'];
 
-            // ✅ Fix: Provide proper fallback (icon: int, color: String)
+          
             var categoryData = expenseController.expenseCategories.firstWhere(
               (c) => c['name'] == category,
-              orElse: () => {
-                'icon': 0xe14c,
-                'color': '#808080'
-              }, // 0xe14c = Icons.category code
+              orElse: () => {'icon': Icons.category, 'color': Colors.grey},
             );
-
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  radius: 25,
-                  backgroundColor: categoryData['color'] as Color,
-                  child: Icon(
-                    categoryData['icon'] as IconData,
-                    color: Colors.white,
-                  ),
+                  backgroundColor: categoryData['color'],
+                  child: Icon(categoryData['icon'], color: Colors.white),
                 ),
                 title: Text('₹$amount',
                     style: const TextStyle(fontWeight: FontWeight.bold)),

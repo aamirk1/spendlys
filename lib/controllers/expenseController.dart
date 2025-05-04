@@ -14,43 +14,120 @@ class ExpenseController extends GetxController {
   final descriptionController = TextEditingController();
   var selectedCategory = ''.obs;
   final formKey = GlobalKey<FormState>();
+  final RxList<Map<String, dynamic>> filteredExpenseCategories =
+      <Map<String, dynamic>>[].obs;
 
   final RxList<Map<String, dynamic>> expenseCategories = <Map<String, dynamic>>[
+    {'name': 'Food', 'icon': Icons.fastfood, 'color': Color(0xFFFFA500)},
     {
-      'name': 'Food',
-      'icon': CupertinoIcons.cart_fill,
-      'color': Colors.redAccent,
+      'name': 'Transport',
+      'icon': Icons.directions_car,
+      'color': Color(0xFF0000FF)
     },
     {
-      'name': 'Transportation',
-      'icon': CupertinoIcons.car_fill,
-      'color': Colors.blueAccent,
+      'name': 'Travel',
+      'icon': Icons.airplanemode_active,
+      'color': Color(0xFF008080)
     },
     {
-      'name': 'Shopping',
-      'icon': CupertinoIcons.bag_fill,
-      'color': Colors.purpleAccent,
+      'name': 'Groceries',
+      'icon': Icons.shopping_cart,
+      'color': Color(0xFF00FF00)
     },
+    {'name': 'Bills', 'icon': Icons.receipt, 'color': Color(0xFFFFC0CB)},
+    {'name': 'Rent', 'icon': Icons.home, 'color': Color(0xFFFFD700)},
+    {'name': 'Utilities', 'icon': Icons.lightbulb, 'color': Color(0xFF808080)},
+    {'name': 'Insurance', 'icon': Icons.security, 'color': Color(0xFF800000)},
     {
-      'name': 'Health',
-      'icon': CupertinoIcons.heart_fill,
-      'color': Colors.greenAccent,
+      'name': 'Subscriptions',
+      'icon': Icons.subscriptions,
+      'color': Color(0xFF000080)
     },
-    {
-      'name': 'Education',
-      'icon': CupertinoIcons.book_fill,
-      'color': Colors.orangeAccent,
-    },
+    {'name': 'Gifts', 'icon': Icons.card_giftcard, 'color': Color(0xFFFF69B4)},
     {
       'name': 'Entertainment',
-      'icon': CupertinoIcons.tv_fill,
-      'color': Colors.tealAccent,
+      'icon': Icons.videogame_asset,
+      'color': Color(0xFF00FFFF)
     },
     {
-      'name': 'Other',
-      'icon': CupertinoIcons.question_circle_fill,
-      'color': Colors.grey,
+      'name': 'Dining Out',
+      'icon': Icons.restaurant,
+      'color': Color(0xFFADFF2F)
     },
+    {'name': 'Clothing', 'icon': Icons.checkroom, 'color': Color(0xFFFF4500)},
+    {
+      'name': 'Hobbies',
+      'icon': Icons.sports_baseball,
+      'color': Color(0xFF8A2BE2)
+    },
+    {'name': 'Pets', 'icon': Icons.pets, 'color': Color(0xFF7FFF00)},
+    {
+      'name': 'Home Improvement',
+      'icon': Icons.build,
+      'color': Color(0xFFB22222)
+    },
+    {'name': 'Personal Care', 'icon': Icons.face, 'color': Color(0xFFDAA520)},
+    {
+      'name': 'Fitness',
+      'icon': Icons.fitness_center,
+      'color': Color(0xFF32CD32)
+    },
+    {'name': 'Childcare', 'icon': Icons.child_care, 'color': Color(0xFF4169E1)},
+    {'name': 'Charity', 'icon': Icons.favorite, 'color': Color(0xFFFF6347)},
+    {
+      'name': 'Medical',
+      'icon': Icons.local_hospital,
+      'color': Color(0xFF8B0000)
+    },
+    {
+      'name': 'Miscellaneous',
+      'icon': Icons.category,
+      'color': Color(0xFF808000)
+    },
+    {
+      'name': 'Electronics',
+      'icon': Icons.electrical_services,
+      'color': Color(0xFF7B68EE)
+    },
+    {'name': 'Sports', 'icon': Icons.sports, 'color': Color(0xFF4682B4)},
+    {'name': 'Beauty', 'icon': Icons.brush, 'color': Color(0xFFFF1493)},
+    {'name': 'Books', 'icon': Icons.book, 'color': Color(0xFF8B4513)},
+    {'name': 'Gardening', 'icon': Icons.grass, 'color': Color(0xFF228B22)},
+    {
+      'name': 'Photography',
+      'icon': Icons.camera_alt,
+      'color': Color(0xFFDC143C)
+    },
+    {'name': 'Music', 'icon': Icons.music_note, 'color': Color(0xFF00FA9A)},
+    {'name': 'Events', 'icon': Icons.event, 'color': Color(0xFFB8860B)},
+    {'name': 'Streaming', 'icon': Icons.tv, 'color': Color(0xFFADFF2F)},
+    {'name': 'Social', 'icon': Icons.people, 'color': Color(0xFF6495ED)},
+    {
+      'name': 'Dining',
+      'icon': Icons.restaurant_menu,
+      'color': Color(0xFFB22222)
+    },
+    {
+      'name': 'Wellness',
+      'icon': Icons.self_improvement,
+      'color': Color(0xFF8B0000)
+    },
+    {'name': 'Home', 'icon': Icons.home_work, 'color': Color(0xFF8B4513)},
+    {
+      'name': 'Family',
+      'icon': Icons.family_restroom,
+      'color': Color(0xFF228B22)
+    },
+    {'name': 'Friends', 'icon': Icons.group, 'color': Color(0xFFDC143C)},
+    {'name': 'Work', 'icon': Icons.work, 'color': Color(0xFF00FA9A)},
+    {'name': 'Shopping', 'icon': Icons.local_mall, 'color': Color(0xFF008000)},
+    {
+      'name': 'Health',
+      'icon': Icons.medical_services,
+      'color': Color(0xFFFF0000)
+    },
+    {'name': 'Education', 'icon': Icons.school, 'color': Color(0xFF008080)},
+    {'name': 'Other', 'icon': Icons.more_horiz, 'color': Color(0xFF808080)},
   ].obs;
 
   var errorMsg = Rx<String?>(null);
@@ -125,29 +202,26 @@ class ExpenseController extends GetxController {
     categoryTotals.clear();
 
     try {
+      // Fetch expense data from Firestore based on the selected filter (Weekly, Monthly, or Yearly)
       var snapshot = await _firestore
           .collection('expenses')
           .where('userId', isEqualTo: userId)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .orderBy('date', descending: true)
           .get();
 
       Map<String, double> tempTotals = {};
 
       for (var doc in snapshot.docs) {
-        Map<String, dynamic> data = doc.data();
-        String category = data['category'] ?? "Unknown";
-        double amount = (data['amount'] as num).toDouble();
-        DateTime expenseDate = (data['date'] as Timestamp).toDate();
+        String category = doc['category'] ?? 'Unknown';
+        double amount = (doc['amount'] as num).toDouble();
 
-        if (expenseDate.isAfter(startDate) ||
-            expenseDate.isAtSameMomentAs(startDate)) {
-          tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-        }
+        // Add the amount to the category total
+        tempTotals[category] = (tempTotals[category] ?? 0) + amount;
       }
 
+      // Update categoryTotals with the new data
       categoryTotals.assignAll(tempTotals);
-      categoryTotals.refresh();
-      update();
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch chart expense totals: $e');
     }

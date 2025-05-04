@@ -1,4 +1,4 @@
-package com.example.spendly
+package com.technosolz.dailybachat
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -9,21 +9,22 @@ import 'package:spendly/res/routes/routes_name.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final OnboardingController controller = Get.put(OnboardingController());
-  final MyUser myUser = Get.arguments;
+  final MyUser myUser = Get.arguments ?? MyUser.empty;
+
   final List<Map<String, String>> onboardingData = [
     {
-      'animation': 'assets/animations/finance1.json',
+      'animation': 'assets/animations/s_animation.json',
       'title': 'Track Your Expenses',
       'description':
           'Keep an eye on your spending and manage your budget effectively.'
     },
     {
-      'animation': 'assets/animations/finance2.json',
+      'animation': 'assets/animations/t_animation.json',
       'title': 'Set Budget Goals',
       'description': 'Plan and set limits to ensure you never overspend.'
     },
     {
-      'animation': 'assets/animations/finance3.json',
+      'animation': 'assets/animations/g_animation.json',
       'title': 'Gain Financial Insights',
       'description':
           'Analyze your expenses and make smarter financial decisions.'
@@ -69,6 +70,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
           ),
           SmoothPageIndicator(
+            
             controller: controller.pageController,
             count: onboardingData.length,
             effect: ExpandingDotsEffect(activeDotColor: Colors.blueAccent),

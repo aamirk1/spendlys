@@ -1,16 +1,20 @@
 plugins {
     id "com.android.application"
-    id "com.google.gms.google-services" // Add this if missing
+    id "com.google.gms.google-services"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
 android {
-    namespace = "com.example.spendly"
-    compileSdk = 35  // Explicitly set to 35
+    namespace = "com.technosolz.dailybachat"
+    compileSdk = 35
     ndkVersion = "25.1.8937393"
-    // ndkVersion = flutter.ndkVersion
+
+    def keyProperties = new Properties()
+    def keyPropertiesFile = rootProject.file("key.properties")
+    if (keyPropertiesFile.exists()) {
+        keyProperties.load(new FileInputStream(keyPropertiesFile))
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -22,17 +26,32 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.spendly"
+        applicationId = "com.technosolz.dailybachat"
         minSdk = 23
-        targetSdk = 35  // Explicitly set to 35
-        // versionCode = flutter.versionCode
-        versionCode = 2
-        versionName = flutter.versionName
+        targetSdk = 35
+        versionCode = 3
+        versionName = "1.0.3"
+
+        // versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        release {
+            if (keyPropertiesFile.exists()) {
+                keyAlias keyProperties['keyAlias']
+                keyPassword keyProperties['keyPassword']
+                storeFile file(keyProperties['storeFile'])
+                storePassword keyProperties['storePassword']
+            }
+        }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

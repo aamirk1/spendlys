@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/incomeController.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/auth/components/my_text_field.dart';
 
 class AddIncome extends StatelessWidget {
@@ -141,22 +142,34 @@ class AddIncome extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 15.0),
-                child: Text(
-                  'Last Ten Expenses',
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Last Ten Incomes',
                   style: TextStyle(
                       fontSize: 16,
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
+                GestureDetector(
+                  onTap: () {
+                    Get.toNamed(RoutesName.viewAllIncome);
+                  },
+                  child: Text(
+                    'All Incomes',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.outline,
+                        fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
+          // const SizedBox(height: 5),
 // Show Last 10 Incomes
           Obx(() {
             final incomes = controller.incomeList;
@@ -193,7 +206,7 @@ class AddIncome extends StatelessWidget {
                   return Card(
                     elevation: 2,
                     margin:
-                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                     child: ListTile(

@@ -10,7 +10,7 @@ class MyAppView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Expense Tracker",
+      title: "DailyBachat",
       theme: ThemeData(
         colorScheme: ColorScheme.light(
           surface: Colors.grey.shade100,
