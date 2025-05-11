@@ -17,7 +17,7 @@ class MainScreen extends StatelessWidget {
   final ExpenseController expenseController = Get.put(ExpenseController());
   final IncomeController incomeController = Get.put(IncomeController());
 
-  final controller = Get.put(SignInController());
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +31,29 @@ class MainScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.yellow[700]),
-                        ),
-                        Icon(
-                          CupertinoIcons.person_fill,
-                          color: Colors.yellow[800],
-                        )
-                      ],
+                    InkWell(
+                      onTap: () {
+                        Get.toNamed(RoutesName.profileView, arguments: myUser);
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.yellow[700]),
+                          ),
+                          Text(
+                            myUser.name[0].toUpperCase(),
+                            style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          )
+                        ],
+                      ),
                     ),
                     const SizedBox(
                       width: 8,
@@ -73,9 +81,9 @@ class MainScreen extends StatelessWidget {
                 ),
                 IconButton(
                     onPressed: () {
-                      controller.logout();
+                      
                     },
-                    icon: const Icon(CupertinoIcons.settings))
+                    icon: const Icon(CupertinoIcons.power))
               ],
             ),
             const SizedBox(

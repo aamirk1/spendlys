@@ -48,6 +48,7 @@ class SplashController extends GetxController {
       name: userData['name'] ?? '',
       email: userData['email'] ?? '',
       phoneNumber: userData['phoneNumber'] ?? '',
+      lastLogin: userData['lastLogin'] ?? Timestamp.now(),
     );
   }
 }

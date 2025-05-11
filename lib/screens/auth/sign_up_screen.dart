@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/components/customBotton.dart';
 import 'components/my_text_field.dart';
 import 'package:spendly/controllers/sign_up_controller.dart';
 
@@ -101,27 +102,34 @@ class SignUpScreen extends StatelessWidget {
                   ? const CircularProgressIndicator()
                   : SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
-                      child: TextButton(
+                      child: CustomButton(
+                        text: 'Sign Up',
                         onPressed: controller.signUp,
-                        style: TextButton.styleFrom(
-                          elevation: 3.0,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(60)),
-                        ),
-                        child: const Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                          child: Text(
-                            'Sign Up',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        isLoading: controller.signUpRequired.value,
+                      )
+
+                      // TextButton(
+                      //   onPressed: controller.signUp,
+                      //   style: TextButton.styleFrom(
+                      //     elevation: 3.0,
+                      //     backgroundColor:
+                      //         Theme.of(context).colorScheme.primary,
+                      //     foregroundColor: Colors.white,
+                      //     shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(60)),
+                      //   ),
+                      //   child: const Padding(
+                      //     padding:
+                      //         EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+                      //     child: Text(
+                      //       'Sign Up',
+                      //       style: TextStyle(
+                      //           fontSize: 16, fontWeight: FontWeight.w600),
+                      //     ),
+                      //   ),
+                      // ),
                       ),
-                    ),
             ],
           ),
         ),

@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/splash_controller.dart';
+import 'package:spendly/res/utils/colors.dart';
 
 class SplashScreen extends StatelessWidget {
   SplashScreen({super.key});
 
   final SplashController controller = Get.put(SplashController());
-
-  // Define color constants
-  static const Color primaryColor = Color(0xFF00B2E7);
-  static const Color secondaryColor = Color(0xFFE064F7);
-  static const Color tertiaryColor = Color(0xFFFF8D6C);
 
   @override
   Widget build(BuildContext context) {
@@ -73,22 +69,22 @@ class SplashScreen extends StatelessWidget {
                     if (value < 0.33) {
                       // Transition from primaryColor to secondaryColor
                       textColor = Color.lerp(
-                        primaryColor,
-                        secondaryColor,
+                        AppColors.primary,
+                        AppColors.secondary,
                         value / 0.33,
                       )!;
                     } else if (value < 0.66) {
                       // Transition from secondaryColor to tertiaryColor
                       textColor = Color.lerp(
-                        secondaryColor,
-                        tertiaryColor,
+                        AppColors.secondary,
+                        AppColors.tertiary,
                         (value - 0.33) / 0.33,
                       )!;
                     } else {
                       // Transition from tertiaryColor back to primaryColor
                       textColor = Color.lerp(
-                        tertiaryColor,
-                        primaryColor,
+                        AppColors.tertiary,
+                        AppColors.primary,
                         (value - 0.66) / 0.34,
                       )!;
                     }
@@ -105,7 +101,8 @@ class SplashScreen extends StatelessWidget {
                             color: textColor,
                             shadows: [
                               Shadow(
-                                color: tertiaryColor.withOpacity(0.5),
+                                // ignore: deprecated_member_use
+                                color: AppColors.tertiary.withOpacity(0.5),
                                 offset: const Offset(2, 2),
                                 blurRadius: 4,
                               ),
@@ -128,6 +125,7 @@ class SplashScreen extends StatelessWidget {
                         'Track Your Expenses Smartly',
                         style: TextStyle(
                           fontSize: 18,
+                          // ignore: deprecated_member_use
                           color: Colors.white.withOpacity(0.9),
                           fontWeight: FontWeight.w400,
                         ),
@@ -139,7 +137,7 @@ class SplashScreen extends StatelessWidget {
                 // Loading indicator
                 CircularProgressIndicator(
                   valueColor:
-                      const AlwaysStoppedAnimation<Color>(tertiaryColor),
+                      const AlwaysStoppedAnimation<Color>(AppColors.tertiary),
                   strokeWidth: 3,
                 ),
               ],

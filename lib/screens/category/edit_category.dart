@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/categoryController.dart';
-import 'package:spendly/res/routes/utils/colors.dart';
+import 'package:spendly/res/utils/colors.dart';
 import 'package:spendly/screens/auth/components/my_text_field.dart';
 
 class EditCategoryScreen extends StatelessWidget {

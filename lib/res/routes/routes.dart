@@ -1,16 +1,6 @@
 import 'package:get/get.dart';
-import 'package:spendly/screens/add_income_and_expense/categorywise_expense_and%20income/categorywise_view_all_expense.dart';
-import 'package:spendly/screens/auth/welcome_screen.dart';
-import 'package:spendly/res/routes/routes_name.dart';
-import 'package:spendly/screens/add_income_and_expense/add_expense.dart';
-import 'package:spendly/screens/add_income_and_expense/add_income.dart';
-import 'package:spendly/screens/add_income_and_expense/view_all_expense_and_income/view_all_expense.dart';
-import 'package:spendly/screens/add_income_and_expense/view_all_expense_and_income/view_all_income.dart';
-import 'package:spendly/screens/auth/sign_in_screen.dart';
-import 'package:spendly/screens/auth/sign_up_screen.dart';
-import 'package:spendly/screens/home/views/home_screen.dart';
-import 'package:spendly/screens/setup_screen/onboarding_screen.dart';
-import 'package:spendly/screens/splash_screen/splash_screen.dart';
+import 'package:spendly/res/routes/views_routes.dart';
+import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
 
 class AppRoutes {
   static appRoutes() => [
@@ -39,11 +29,22 @@ class AppRoutes {
             page: () => SignUpScreen(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+
+// ---------------------------------------------------------------------------------
         GetPage(
             name: RoutesName.homeView,
             page: () => HomeScreen(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.profileView,
+            page: () => ProfileScreen(
+                  myUser: Get.arguments,
+                ),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+
+// ---------------------------------------------------------------------------------
         GetPage(
             name: RoutesName.expenseView,
             page: () => AddExpense(),
@@ -67,6 +68,15 @@ class AppRoutes {
         GetPage(
             name: RoutesName.viewAllIncome,
             page: () => ViewAllIncome(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+
+// ---------------------------------------------------------------------------------
+        GetPage(
+            name: RoutesName.addLendBorrowView,
+            page: () => LoansScreen(
+                  myUser: Get.arguments,
+                ),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
       ];

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -12,6 +14,7 @@ import 'package:spendly/res/routes/routes_name.dart';
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
   final nameController = TextEditingController();
@@ -40,7 +43,6 @@ class SignUpController extends GetxController {
   }
 
   bool isPhoneNumberValid(String phoneNumber) {
-    // Ensure phone number is 10 digits
     return phoneNumber.length == 10 &&
         RegExp(r'^[0-9]{10}$').hasMatch(phoneNumber);
   }
@@ -55,7 +57,6 @@ class SignUpController extends GetxController {
       return;
     }
 
-    // Validate phone number
     if (!isPhoneNumberValid(phoneNumberController.text.trim())) {
       Get.snackbar('Error', 'Phone number must be 10 digits.',
           snackPosition: SnackPosition.BOTTOM);
@@ -84,16 +85,17 @@ class SignUpController extends GetxController {
         name: nameController.text.trim(),
       );
 
-      await setUserData(myUser);
-      await addDefaultCategories(user.uid); // ✅ Add default categories
+      String deviceInfo = await getDeviceInfo();
+      String? fcmToken = await getFcmToken();
 
-      // ✅ Save user details and login status in GetStorage
+      await setUserData(myUser, deviceInfo, fcmToken);
       final box = GetStorage();
       box.write("isLoggedIn", true);
       box.write("userId", myUser.userId);
       box.write("name", myUser.name);
       box.write("email", myUser.email);
       box.write("phoneNumber", myUser.phoneNumber);
+      box.write("fcmToken", fcmToken);
 
       signUpRequired.value = false;
       Get.snackbar('Success', 'Account created successfully',
@@ -109,8 +111,7 @@ class SignUpController extends GetxController {
           snackPosition: SnackPosition.BOTTOM);
     } on SocketException {
       signUpRequired.value = false;
-      Get.snackbar(
-          'Network Error', 'No internet connection. Please check your network.',
+      Get.snackbar('Network Error', 'No internet connection.',
           snackPosition: SnackPosition.BOTTOM);
     } on TimeoutException {
       signUpRequired.value = false;
@@ -123,23 +124,26 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<void> setUserData(MyUser myUser) async {
+  Future<void> setUserData(
+      MyUser myUser, String deviceInfo, String? fcmToken) async {
     try {
       await _firestore.collection('users').doc(myUser.userId).set({
         'userId': myUser.userId,
         'name': myUser.name,
         'email': myUser.email,
         'phoneNumber': myUser.phoneNumber,
+        'deviceInfo': deviceInfo,
+        'fcmToken': fcmToken,
+        'createdAt': FieldValue.serverTimestamp(),
       }).timeout(const Duration(seconds: 10));
     } on FirebaseException catch (e) {
       Get.snackbar('Error', 'Failed to save user data: ${e.message}',
           snackPosition: SnackPosition.BOTTOM);
     } on SocketException {
-      Get.snackbar(
-          'Network Error', 'No internet connection. Please check your network.',
+      Get.snackbar('Network Error', 'No internet connection.',
           snackPosition: SnackPosition.BOTTOM);
     } on TimeoutException {
-      Get.snackbar('Timeout', 'Database request timed out. Please try again.',
+      Get.snackbar('Timeout', 'Database request timed out.',
           snackPosition: SnackPosition.BOTTOM);
     } catch (e) {
       Get.snackbar('Error', 'Unexpected error while saving user data: $e',
@@ -147,79 +151,58 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<void> addDefaultCategories(String userId) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Future<String> getDeviceInfo() async {
+    final deviceInfo = DeviceInfoPlugin();
+    String deviceData = 'Unknown Device';
 
-    // List of default categories with name, icon as IconData, and color as HEX
-    final List<Map<String, dynamic>> defaultCategories = [
-      {'name': 'Food', 'icon': Icons.fastfood.codePoint, 'color': 'FFFFA500'},
-      {
-        'name': 'Transport',
-        'icon': Icons.directions_car.codePoint,
-        'color': 'FF0000FF'
-      },
-      {
-        'name': 'Entertainment',
-        'icon': Icons.movie.codePoint,
-        'color': 'FF800080'
-      },
-      {
-        'name': 'Shopping',
-        'icon': Icons.local_mall.codePoint,
-        'color': 'FF008000'
-      },
-      {
-        'name': 'Health',
-        'icon': Icons.medical_services.codePoint,
-        'color': 'FFFF0000'
-      },
-      {
-        'name': 'Education',
-        'icon': Icons.school.codePoint,
-        'color': 'FF008080'
-      },
-      {
-        'name': 'Bills',
-        'icon': Icons.account_balance_wallet.codePoint,
-        'color': 'FF4B0082'
-      },
-      {
-        'name': 'Other',
-        'icon': Icons.more_horiz.codePoint,
-        'color': 'FF808080'
-      },
-    ];
-
-    for (var category in defaultCategories) {
-      await firestore.collection('categories').add({
-        'userId': userId,
-        'name': category['name'],
-        'icon': category['icon'], // Storing codePoint instead of asset path
-        'color': category['color'], // Storing color as HEX string
-      });
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      deviceData =
+          'Android - ${androidInfo.model} (SDK ${androidInfo.version.sdkInt})';
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      deviceData =
+          'iOS - ${iosInfo.utsname.machine} (${iosInfo.systemVersion})';
     }
+    return deviceData;
   }
 
-  /// **🔥 FIXED: Added missing _getFirebaseAuthError method**
+  Future<String?> getFcmToken() async {
+    final fcm = FirebaseMessaging.instance;
+    return await fcm.getToken();
+  }
+
   String _getFirebaseAuthError(String code) {
     switch (code) {
       case 'invalid-email':
         return 'Invalid email format.';
       case 'weak-password':
-        return 'Password is too weak. Use a stronger password.';
+        return 'Password is too weak.';
       case 'email-already-in-use':
-        return 'An account already exists for this email.';
+        return 'Email already exists.';
       case 'operation-not-allowed':
-        return 'Sign-up is currently disabled. Contact support.';
+        return 'Sign-up currently disabled.';
       case 'user-creation-failed':
-        return 'Failed to create user. Please try again.';
+        return 'User creation failed.';
       case 'network-request-failed':
-        return 'Network error. Please check your internet connection.';
+        return 'Network error.';
       default:
-        return 'Sign-up failed. Please try again.';
+        return 'Sign-up failed. Try again.';
     }
   }
 }
+
+
+// import 'dart:async';
+// import 'dart:io';
+
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:get_storage/get_storage.dart';
+// import 'package:spendly/models/myuser.dart';
+// import 'package:spendly/res/routes/routes_name.dart';
 
 // class SignUpController extends GetxController {
 //   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -251,74 +234,25 @@ class SignUpController extends GetxController {
 //     contains8Length.value = val.length >= 8;
 //   }
 
-//   // Future<void> signUp() async {
-//   //   if (nameController.text.isEmpty ||
-//   //       emailController.text.isEmpty ||
-//   //       phoneNumberController.text.isEmpty ||
-//   //       passwordController.text.isEmpty) {
-//   //     Get.snackbar('Error', 'Please fill all fields',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //     return;
-//   //   }
+//   bool isPhoneNumberValid(String phoneNumber) {
+//     // Ensure phone number is 10 digits
+//     return phoneNumber.length == 10 &&
+//         RegExp(r'^[0-9]{10}$').hasMatch(phoneNumber);
+//   }
 
-//   //   signUpRequired.value = true;
-
-//   //   try {
-//   //     UserCredential userCredential = await _auth
-//   //         .createUserWithEmailAndPassword(
-//   //           email: emailController.text.trim(),
-//   //           password: passwordController.text.trim(),
-//   //         )
-//   //         .timeout(const Duration(seconds: 10));
-
-//   //     User? user = userCredential.user;
-//   //     if (user == null) {
-//   //       throw FirebaseAuthException(code: "user-creation-failed");
-//   //     }
-
-//   //     MyUser myUser = MyUser.empty.copyWith(
-//   //       userId: user.uid,
-//   //       phoneNumber: phoneNumberController.text.trim(),
-//   //       email: emailController.text.trim(),
-//   //       name: nameController.text.trim(),
-//   //     );
-
-//   //     await setUserData(myUser);
-//   //     await addDefaultCategories(user.uid); // ✅ Add default categories
-
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar('Success', 'Account created successfully',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //     Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
-//   //   } on FirebaseAuthException catch (e) {
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar('Error', _getFirebaseAuthError(e.code),
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //   } on FirebaseException catch (e) {
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar('Error', 'Firestore error: ${e.message}',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //   } on SocketException {
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar(
-//   //         'Network Error', 'No internet connection. Please check your network.',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //   } on TimeoutException {
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar('Timeout', 'Network timeout. Please try again.',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //   } catch (e) {
-//   //     signUpRequired.value = false;
-//   //     Get.snackbar('Error', 'Unexpected Error: $e',
-//   //         snackPosition: SnackPosition.BOTTOM);
-//   //   }
-//   // }
 //   Future<void> signUp() async {
 //     if (nameController.text.isEmpty ||
 //         emailController.text.isEmpty ||
 //         phoneNumberController.text.isEmpty ||
 //         passwordController.text.isEmpty) {
 //       Get.snackbar('Error', 'Please fill all fields',
+//           snackPosition: SnackPosition.BOTTOM);
+//       return;
+//     }
+
+//     // Validate phone number
+//     if (!isPhoneNumberValid(phoneNumberController.text.trim())) {
+//       Get.snackbar('Error', 'Phone number must be 10 digits.',
 //           snackPosition: SnackPosition.BOTTOM);
 //       return;
 //     }

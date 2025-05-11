@@ -4,7 +4,12 @@ class RoutesName {
   static const String welcomeView = '/welcome_view';
   static const String loginView = '/login_view';
   static const String signupView = '/signup_view';
+
+// ---------------------------------------------------------------
   static const String homeView = '/home_view';
+  static const String profileView = '/profile_view';
+
+// ----------------------------------------------------------------
   static const String expenseView = '/expense_view';
   static const String incomeView = '/income_view';
   static const String viewAllExpenses = '/view_all_expenses';
@@ -13,4 +18,8 @@ class RoutesName {
   static const String viewAllIncome = '/view_all_income';
   static const String categorywiseviewAllIncome =
       '/categorywise_view_all_income';
+
+// ----------------------------------------------------------------
+
+  static const String addLendBorrowView = '/add_lend_borrow_view';
 }

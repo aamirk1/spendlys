@@ -245,6 +245,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/expenseController.dart';
+import 'package:spendly/res/components/customBotton.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/auth/components/my_text_field.dart';
 
@@ -366,33 +367,46 @@ class AddExpense extends StatelessWidget {
                       ? const CircularProgressIndicator()
                       : SizedBox(
                           width: MediaQuery.of(context).size.width * 0.5,
-                          child: TextButton(
+                          child: CustomButton(
+                            borderRadius: 60,
+                            text: 'Add Expense',
                             onPressed: () {
                               if (controller.formKey.currentState!.validate()) {
                                 controller.addExpense();
                               }
                             },
-                            style: TextButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(60),
-                              ),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 25, vertical: 5),
-                              child: Text(
-                                'Add Expense',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            isLoading: controller.isLoading.value,
+                          )
+
+                          //  TextButton(
+                          //   onPressed: () {
+                          //     if (controller.formKey.currentState!.validate()) {
+                          //       controller.addExpense();
+                          //     }
+                          //   },
+                          //   style: TextButton.styleFrom(
+                          //     backgroundColor:
+                          //         Theme.of(context).colorScheme.primary,
+                          //     foregroundColor: Colors.white,
+                          //     shape: RoundedRectangleBorder(
+                          //       borderRadius: BorderRadius.circular(60),
+                          //     ),
+                          //   ),
+                          //   child: const Padding(
+                          //     padding: EdgeInsets.symmetric(
+                          //         horizontal: 25, vertical: 5),
+                          //     child: Text(
+                          //       'Add Expense',
+                          //       style: TextStyle(
+                          //         fontSize: 16,
+                          //         fontWeight: FontWeight.w600,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          )),
                 ],
               ),
             ),

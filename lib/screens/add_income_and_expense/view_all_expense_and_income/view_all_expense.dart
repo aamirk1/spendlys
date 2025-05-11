@@ -33,7 +33,6 @@ class ViewAllExpense extends StatelessWidget {
             double amount = expense['amount'];
             DateTime date = expense['date'];
 
-          
             var categoryData = expenseController.expenseCategories.firstWhere(
               (c) => c['name'] == category,
               orElse: () => {'icon': Icons.category, 'color': Colors.grey},

@@ -15,7 +15,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.8.0
   fl_chart: ^0.70.1
-  intl: ^0.20.1
+  intl: ^0.20.2
   flutter_colorpicker: ^1.1.0
   cloud_firestore: 
   firebase_core:
@@ -31,6 +31,15 @@ dependencies:
   get_storage: ^2.1.1
   smooth_page_indicator: ^1.2.1
   connectivity_plus: 
+  device_info_plus: 
+  firebase_messaging:
+  image_picker:
+  google_mlkit_face_detection:
+  camera:
+  google_mlkit_commons:
+  # google_ml_kit:
+  permission_handler:
+  # flutter_local_notifications: 
   # emoji_picker_flutter: ^4.3.0
   # rive: 
   # shared_preferences: 
