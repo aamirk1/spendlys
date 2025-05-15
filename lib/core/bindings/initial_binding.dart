@@ -3,6 +3,7 @@ import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/core/services/network_service.dart';
 import 'package:spendly/core/services/network_service.dart';
+import 'package:spendly/controllers/loan_controller.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -10,5 +11,6 @@ class InitialBinding extends Bindings {
     Get.put(NetworkService());
     Get.put(ExpenseController());
     Get.put(IncomeController());
+    // Get.put(LoanController());
   }
 }

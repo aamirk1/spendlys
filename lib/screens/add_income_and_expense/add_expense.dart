@@ -378,35 +378,7 @@ class AddExpense extends StatelessWidget {
                             backgroundColor:
                                 Theme.of(context).colorScheme.primary,
                             isLoading: controller.isLoading.value,
-                          )
-
-                          //  TextButton(
-                          //   onPressed: () {
-                          //     if (controller.formKey.currentState!.validate()) {
-                          //       controller.addExpense();
-                          //     }
-                          //   },
-                          //   style: TextButton.styleFrom(
-                          //     backgroundColor:
-                          //         Theme.of(context).colorScheme.primary,
-                          //     foregroundColor: Colors.white,
-                          //     shape: RoundedRectangleBorder(
-                          //       borderRadius: BorderRadius.circular(60),
-                          //     ),
-                          //   ),
-                          //   child: const Padding(
-                          //     padding: EdgeInsets.symmetric(
-                          //         horizontal: 25, vertical: 5),
-                          //     child: Text(
-                          //       'Add Expense',
-                          //       style: TextStyle(
-                          //         fontSize: 16,
-                          //         fontWeight: FontWeight.w600,
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
-                          )),
+                          ))),
                 ],
               ),
             ),

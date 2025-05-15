@@ -1,10 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/components/custom_list_tile.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/home/views/profile_screens/change_password_dialog.dart';
-import 'package:spendly/screens/home/views/profile_screens/widgets/customTextButton.dart';
 
 class LinksCard extends StatelessWidget {
   const LinksCard({super.key, required this.myUser});
@@ -25,13 +24,14 @@ class LinksCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                CustomListTile(
-                    icon: Icon(Icons.contact_emergency_outlined),
-                    title: "Borrow/Lend Money",
-                    onPressed: () {
-                      Get.toNamed(RoutesName.addLendBorrowView,
-                          arguments: myUser);
-                    }),
+                // CustomListTile(
+                //     icon: Icon(Icons.contact_emergency_outlined),
+                //     title: "Borrow/Lend Money",
+                //     onPressed: () {
+                //       Get.toNamed(
+                //         RoutesName.addLendBorrowView,
+                //       );
+                //     }),
                 CustomListTile(
                     icon: Icon(Icons.person),
                     title: "Customer Profile Updation",

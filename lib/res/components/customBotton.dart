@@ -11,6 +11,8 @@ class CustomButton extends StatelessWidget {
   final double elevation;
   final bool isLoading;
   final Widget? icon;
+  final double width;
+  final double height;
 
   const CustomButton({
     super.key,
@@ -24,6 +26,8 @@ class CustomButton extends StatelessWidget {
     this.elevation = 4,
     this.isLoading = false,
     this.icon,
+    this.width = 100,
+    this.height = 40,
   });
 
   @override
@@ -31,6 +35,7 @@ class CustomButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
+        minimumSize: Size(width, height),
         backgroundColor: backgroundColor,
         padding: padding,
         shape: RoundedRectangleBorder(

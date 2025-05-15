@@ -34,4 +34,12 @@ class AppColors {
   static const Color brown = Color(0xFF795548);
   static const Color indigo = Color(0xFF3F51B5);
   static const Color cyan = Color(0xFF00BCD4);
+
+  // // Add more colors as needed
+
+  static const Color accent = Color(0xFFC06C84);
+  static const Color textPrimary = Color(0xFF333333);
+  static const Color textSecondary = Color(0xFF777777);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color warning = Color(0xFFFFC107);
 }

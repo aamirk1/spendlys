@@ -1,9 +1,13 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/models/myuser.dart';
-import 'package:spendly/screens/home/views/profile_screens/widgets/face_camera_screen.dart';
+import 'dart:io';
 
 // ignore: must_be_immutable
 class UserInfoSection extends StatelessWidget {
@@ -12,6 +16,29 @@ class UserInfoSection extends StatelessWidget {
 
   final ImagePicker _picker = ImagePicker();
   DateTime? newLastLogin;
+
+  Future<void> uploadProfilePicture(File imageFile) async {
+    try {
+      // Read the image as bytes
+      List<int> imageBytes = await imageFile.readAsBytes();
+
+      // Encode the image bytes to a Base64 string
+      String base64Image = base64Encode(imageBytes);
+
+      // Store the Base64 string in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(myUser.userId)
+          .update({
+        'profilePicture': base64Image,
+      });
+
+      print("Profile Picture uploaded successfully.");
+    } catch (e) {
+      print("Error uploading profile picture: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     DateTime lastLoginDateTime = (myUser.lastLogin).toDate();
@@ -59,7 +86,6 @@ class UserInfoSection extends StatelessWidget {
                           'Last Login: $formattedDate',
                           style: TextStyle(
                               fontSize: 12,
-                              // fontWeight: FontWeight.w500,
                               color: Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
@@ -100,7 +126,6 @@ class UserInfoSection extends StatelessWidget {
                                   child: Wrap(
                                     children: [
                                       ListTile(
-                                        // leading: Icon(Icons.camera_alt),
                                         title: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text('Select Profile Picture',
@@ -118,22 +143,38 @@ class UserInfoSection extends StatelessWidget {
                                       ListTile(
                                         leading: Icon(Icons.camera_alt),
                                         title: Text('Capture from Camera'),
-                                        onTap: () {
-                                          // Get.to(() => FaceCameraScreen());
+                                        onTap: () async {
+                                          final XFile? image =
+                                              await _picker.pickImage(
+                                            source: ImageSource.camera,
+                                            imageQuality:
+                                                50, // Optional: Adjust image quality (0-100)
+                                            preferredCameraDevice: CameraDevice
+                                                .rear, // Use rear camera (can be front as well)
+                                          );
+
+                                          if (image != null) {
+                                            // Convert the XFile to File
+                                            File imageFile = File(image.path);
+
+                                            // Call the method to upload the image and store URL in Firestore
+                                            await uploadProfilePicture(
+                                                imageFile);
+                                          }
+                                          Get.back(); // Close the modal bottom sheet
                                         },
                                       ),
                                       ListTile(
                                         leading: Icon(Icons.photo_library),
                                         title: Text('Select from Gallery'),
                                         onTap: () async {
-                                          print('gallary clicked');
                                           final XFile? image =
                                               await _picker.pickImage(
                                                   source: ImageSource.gallery);
                                           if (image != null) {
-                                            // handle selected image here
-                                            print(
-                                                "Gallery image path: ${image.path}");
+                                            File imageFile = File(image.path);
+                                            await uploadProfilePicture(
+                                                imageFile);
                                           }
                                           Get.back();
                                         },

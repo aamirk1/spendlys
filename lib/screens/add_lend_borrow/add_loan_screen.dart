@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/screens/add_lend_borrow/loan_modal.dart';
-import 'loan_controller.dart';
+import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/components/customAppBar.dart';
+import 'package:spendly/res/components/customBotton.dart';
+import '../../models/loan_modal.dart';
+import '../../controllers/loan_controller.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 
 class AddLoanScreen extends StatefulWidget {
   final LoanController controller;
-
-  AddLoanScreen({required this.controller});
+  final MyUser myUser;
+  AddLoanScreen({required this.myUser, Key? key, required this.controller})
+      : super(key: key);
 
   @override
   State<AddLoanScreen> createState() => _AddLoanScreenState();
@@ -18,144 +23,98 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   final personController = TextEditingController();
   final amountController = TextEditingController();
   final reasonController = TextEditingController();
-  String type = 'borrowed'; // Default to borrowed
+  String type = 'borrowed'; // Default
   DateTime? expectedReturnDate;
-  DateTime dateBorrowed = DateTime.now(); // Default to current date
+  DateTime date = DateTime.now();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blueGrey[50],
-      appBar: AppBar(
-        title: Text("Add Loan",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.deepPurpleAccent,
-        elevation: 10,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Person Name Input
-                _buildTextField(
-                    personController, 'Person Name', 'Please enter a name',
-                    icon: Icons.person),
-
-                SizedBox(height: 20),
-
-                // Amount Input
-                _buildTextField(
-                    amountController, 'Amount', 'Please enter an amount',
-                    isNumber: true, icon: Icons.attach_money),
-
-                SizedBox(height: 20),
-
-                // Reason Input (Optional)
-                _buildTextField(reasonController, 'Reason (Optional)', null,
-                    icon: Icons.note_alt),
-
-                SizedBox(height: 20),
-
-                // Loan Type Selection
-                _buildLoanTypeSelector(),
-
-                SizedBox(height: 20),
-
-                // Expected Return Date Picker
-                _buildDatePickerButton(),
-
-                SizedBox(height: 30),
-
-                // Save Button
-                Center(child: _buildSaveButton()),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Helper function for text fields
-  Widget _buildTextField(TextEditingController controller, String labelText,
-      String? validationMessage,
-      {bool isNumber = false, IconData? icon}) {
+  Widget _buildInputField(
+    TextEditingController controller,
+    String label,
+    String? hint,
+    IconData? prefixIcon,
+    TextInputType keyboardType,
+    String? Function(String?)? validator,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 15,
-              offset: Offset(0, 5))
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
+        validator: validator,
+        style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent),
-          prefixIcon:
-              icon != null ? Icon(icon, color: Colors.deepPurpleAccent) : null,
+          labelText: label,
+          hintText: hint,
+          labelStyle: TextStyle(color: Colors.blueGrey.shade400),
+          prefixIcon: prefixIcon != null
+              ? Icon(prefixIcon, color: Colors.blueGrey.shade400)
+              : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: (value) {
-          if (value!.isEmpty && validationMessage != null) {
-            return validationMessage;
-          }
-          return null;
-        },
       ),
     );
   }
 
-  // Loan Type Selector
   Widget _buildLoanTypeSelector() {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 15,
-              offset: Offset(0, 5))
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text("Loan Type",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blueGrey.shade700)),
           Row(
             children: [
               Expanded(
-                child: ListTile(
+                child: RadioListTile<String>(
                   title: Text("Borrowed",
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.deepPurpleAccent)),
-                  leading: Radio<String>(
-                    value: 'borrowed',
-                    groupValue: type,
-                    onChanged: (val) => setState(() => type = val!),
-                  ),
+                      style: TextStyle(color: Colors.indigo.shade500)),
+                  value: 'borrowed',
+                  groupValue: type,
+                  onChanged: (value) => setState(() => type = value!),
+                  activeColor: Colors.indigo.shade500,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
                 ),
               ),
               Expanded(
-                child: ListTile(
+                child: RadioListTile<String>(
                   title: Text("Lent",
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.deepPurpleAccent)),
-                  leading: Radio<String>(
-                    value: 'lent',
-                    groupValue: type,
-                    onChanged: (val) => setState(() => type = val!),
-                  ),
+                      style: TextStyle(color: Colors.indigo.shade500)),
+                  value: 'lent',
+                  groupValue: type,
+                  onChanged: (value) => setState(() => type = value!),
+                  activeColor: Colors.indigo.shade500,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
                 ),
               ),
             ],
@@ -165,68 +124,204 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     );
   }
 
-  // Expected Return Date Picker
-  Widget _buildDatePickerButton() {
-    return ElevatedButton(
-      onPressed: () async {
-        // Date picker for expected return date
-        expectedReturnDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2023),
-          lastDate: DateTime(2030),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurpleAccent,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        shadowColor: Colors.deepPurple.withOpacity(0.3),
-        elevation: 6,
-        side: BorderSide(color: Colors.deepPurpleAccent, width: 2),
+  Widget _buildDatePickerButton(BuildContext context) {
+    final formattedDate = expectedReturnDate != null
+        ? DateFormat('dd MMM yyyy').format(expectedReturnDate!)
+        : 'Select Due Date';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () async {
+          final pickedDate = await showDatePicker(
+            context: context,
+            initialDate: expectedReturnDate ?? DateTime.now(),
+            firstDate: DateTime(2023),
+            lastDate: DateTime(2030),
+            builder: (BuildContext context, Widget? child) {
+              return Theme(
+                data: ThemeData.light().copyWith(
+                  primaryColor: Colors.indigo.shade500,
+                  hintColor: Colors.indigo.shade500,
+                  colorScheme:
+                      ColorScheme.light(primary: Colors.indigo.shade500),
+                  buttonTheme:
+                      const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                ),
+                child: child!,
+              );
+            },
+          );
+          if (pickedDate != null) {
+            setState(() {
+              expectedReturnDate = pickedDate;
+            });
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.calendar_today_outlined,
+                  color: Colors.indigo.shade500),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(formattedDate,
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.blueGrey.shade700)),
+              ),
+            ],
+          ),
+        ),
       ),
-      child:
-          Text("Select Expected Return Date", style: TextStyle(fontSize: 16)),
     );
   }
 
-  // Save Button
   Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: () {
-        if (_formKey.currentState!.validate()) {
-          // Create a Loan object from the form data
-          final loan = Loan(
-            id: Uuid().v4(), // Generate a unique ID for the loan
-            userId: widget.controller.myUser.userId, // Set user ID
-            personName: personController.text,
-            amount: double.parse(amountController.text),
-            type: type,
-            reason:
-                reasonController.text.isEmpty ? null : reasonController.text,
-            dateBorrowed: dateBorrowed, // Set current date
-            expectedReturnDate: expectedReturnDate!,
-            status: 'pending', // Set status as 'pending' initially
-            paidAmount: 0.0, // Add initial paid amount
-          );
+    return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [Colors.indigo.shade500, Colors.purple.shade400],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.deepPurple.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: CustomButton(
+          text: 'Save Loan',
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              if (expectedReturnDate == null) {
+                Get.snackbar(
+                  "Warning",
+                  "Please select the expected return date.",
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.orange.shade100,
+                  colorText: Colors.orange.shade800,
+                  borderRadius: 10,
+                  margin: const EdgeInsets.all(15),
+                );
+                return;
+              }
+              final loan = Loan(
+                userId: widget.myUser.userId,
+                id: const Uuid().v4(),
+                personName: personController.text,
+                amount: double.parse(amountController.text),
+                paidAmount: 0.0.obs,
+                expectedReturnDate: expectedReturnDate!,
+                reason: reasonController.text.isEmpty
+                    ? null
+                    : reasonController.text,
+                type: type,
+                date: date,
+                status: 'pending'.obs,
+              );
+              widget.controller.addLoan(loan);
+              Get.back();
+            }
+          },
+        ));
+  }
 
-          // Call the controller method to add the loan
-          widget.controller.addLoan(loan);
-
-          // Go back to the previous screen
-          Get.back();
-        }
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurpleAccent,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        shadowColor: Colors.deepPurple.withOpacity(0.3),
-        elevation: 6,
-        side: BorderSide(color: Colors.deepPurpleAccent, width: 2),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: 'Add Loan',
       ),
-      child: Text("Save",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      // AppBar(
+      //   title: const Text("Add Loan",
+      //       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+      //   backgroundColor: Colors.indigo.shade600,
+      //   elevation: 8,
+      //   centerTitle: true,
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      //   shape: const RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      //   ),
+      // ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.indigo.shade50, Colors.blueGrey.shade50],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text("Record a New Transaction",
+                    style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo.shade700)),
+                const SizedBox(height: 30),
+                _buildInputField(
+                  personController,
+                  'Person Name',
+                  'Enter name of lender/borrower',
+                  Icons.person_outline,
+                  TextInputType.text,
+                  (value) =>
+                      value!.isEmpty ? 'Please enter the person\'s name' : null,
+                ),
+                const SizedBox(height: 20),
+                _buildInputField(
+                  amountController,
+                  'Amount',
+                  'Enter the loan amount',
+                  Icons.currency_rupee_outlined,
+                  TextInputType.number,
+                  (value) =>
+                      value!.isEmpty ? 'Please enter the loan amount' : null,
+                ),
+                const SizedBox(height: 20),
+                _buildInputField(
+                  reasonController,
+                  'Reason (Optional)',
+                  'Brief description (optional)',
+                  Icons.note_alt_outlined,
+                  TextInputType.text,
+                  null,
+                ),
+                const SizedBox(height: 24),
+                _buildLoanTypeSelector(),
+                const SizedBox(height: 24),
+                _buildDatePickerButton(context),
+                const SizedBox(height: 40),
+                _buildSaveButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

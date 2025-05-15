@@ -1,15 +1,18 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomListTile extends StatelessWidget {
-  const CustomListTile(
-      {super.key,
-      required this.title,
-      required this.onPressed,
-      required this.icon});
   final String title;
   final VoidCallback onPressed;
   final Icon icon;
+  final Color? trailingIconColor;
+
+  const CustomListTile({
+    super.key,
+    required this.title,
+    required this.onPressed,
+    required this.icon,
+    this.trailingIconColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,8 @@ class CustomListTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios),
+      trailing: Icon(Icons.arrow_forward_ios,
+          color: trailingIconColor ?? Colors.grey),
       onTap: onPressed,
     );
   }

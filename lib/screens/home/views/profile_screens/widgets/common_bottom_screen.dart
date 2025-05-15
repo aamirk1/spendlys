@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
-import 'package:spendly/res/utils/colors.dart';
+import 'package:spendly/utils/colors.dart';
 
 class CommonBottomScreen extends StatelessWidget {
   CommonBottomScreen({super.key});
