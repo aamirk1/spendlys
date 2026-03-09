@@ -1,0 +1,6 @@
+class AppConstants {
+  static const String firestoreChatrooms = "chatrooms";
+  static const String founderfirestoreChatrooms = "founderChatrooms";
+  static const String firestoreAllUsers = "users";
+  static const String firebaseSlashEscape = "%**%";
+}

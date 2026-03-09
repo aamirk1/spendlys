@@ -9,9 +9,14 @@ class NetworkChecker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isOnline = Get.find<NetworkService>().isOnline.value;
-      return isOnline ? child : const NoInternetScreen();
-    });
+    return Stack(
+      children: [
+        child,
+        Obx(() {
+          final isOnline = Get.find<NetworkService>().isOnline.value;
+          return isOnline ? const SizedBox.shrink() : const NoInternetScreen();
+        }),
+      ],
+    );
   }
 }

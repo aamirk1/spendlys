@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/utils/colors.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class CommonBottomScreen extends StatelessWidget {
   CommonBottomScreen({super.key});
@@ -20,7 +21,9 @@ class CommonBottomScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  Get.toNamed(RoutesName.notificationsScreen);
+                },
                 child: Column(
                   children: [
                     Icon(
@@ -28,7 +31,7 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    Text(
+                    const Text(
                       'Notifications',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -37,7 +40,9 @@ class CommonBottomScreen extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  Get.toNamed(RoutesName.appSettingScreen);
+                },
                 child: Column(
                   children: [
                     Icon(
@@ -45,7 +50,7 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    Text(
+                    const Text(
                       'App Settings',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -54,7 +59,9 @@ class CommonBottomScreen extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  Get.toNamed(RoutesName.needHelpScreen);
+                },
                 child: Column(
                   children: [
                     Icon(
@@ -62,7 +69,7 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    Text(
+                    const Text(
                       'Need Help',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),

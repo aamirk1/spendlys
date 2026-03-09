@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class SidebarController extends GetxController {
   var isExpanded = false.obs;
@@ -30,25 +31,29 @@ class AnimatedSidebar extends StatelessWidget {
                 onPressed: controller.toggleSidebar,
               ),
               SizedBox(height: 20),
-              sidebarButton(Icons.category, "Category"),
-              sidebarButton(Icons.settings, "Settings"),
-              sidebarButton(Icons.logout, "Logout"),
+              sidebarButton(Icons.category, "Category", onTap: () {}),
+              sidebarButton(Icons.message, "Messages", onTap: () => Get.toNamed(RoutesName.chatListView)),
+              sidebarButton(Icons.settings, "Settings", onTap: () {}),
+              sidebarButton(Icons.logout, "Logout", onTap: () {}),
             ],
           ),
         ));
   }
 
-  Widget sidebarButton(IconData icon, String label) {
-    return Obx(() => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          child: Row(
-            children: [
-              Icon(icon, color: Colors.white, size: 30),
-              if (controller.isExpanded.value) SizedBox(width: 10),
-              if (controller.isExpanded.value)
-                Text(label,
-                    style: TextStyle(color: Colors.white, fontSize: 18)),
-            ],
+  Widget sidebarButton(IconData icon, String label, {required VoidCallback onTap}) {
+    return Obx(() => InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.white, size: 30),
+                if (controller.isExpanded.value) const SizedBox(width: 10),
+                if (controller.isExpanded.value)
+                  Text(label,
+                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+              ],
+            ),
           ),
         ));
   }

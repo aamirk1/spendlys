@@ -22,4 +22,11 @@ class RoutesName {
 // ----------------------------------------------------------------
 
   static const String addLendBorrowView = '/add_lend_borrow_view';
+  
+  static const String chatListView = '/chat_list_view';
+  static const String messageView = '/message_view';
+
+  static const String appSettingScreen = '/app_setting_screen';
+  static const String notificationsScreen = '/notifications_screen';
+  static const String needHelpScreen = '/need_help_screen';
 }

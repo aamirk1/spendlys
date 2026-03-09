@@ -14,27 +14,27 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.8.0
-  fl_chart: ^0.70.1
+  fl_chart: ^1.1.1
   intl: ^0.20.2
   flutter_colorpicker: ^1.1.0
-  cloud_firestore: 
-  firebase_core:
+  cloud_firestore: ^6.1.3
+  firebase_core: ^4.5.0
   uuid: ^4.5.1
   get: ^4.7.2
   
-  firebase_auth: 
-  firebase_storage:
-  lottie:
+  firebase_auth: ^6.2.0
+  firebase_storage: ^13.1.0
+  lottie: ^3.3.1
   get_storage: ^2.1.1
-  smooth_page_indicator: ^1.2.1
-  connectivity_plus: 
-  device_info_plus: 
-  firebase_messaging:
-  image_picker:
-  camera:
-  image_cropper:
+  smooth_page_indicator: ^2.0.1
+  connectivity_plus: ^7.0.0
+  device_info_plus: ^12.3.0
+  firebase_messaging: ^16.1.2
+  image_picker: ^1.1.2
+  camera: ^0.12.0
+  image_cropper: ^11.0.0
   # google_ml_kit:
-  permission_handler:
+  permission_handler: ^12.0.1
   percent_indicator: ^4.2.5
   animations: ^2.0.11
   convert: ^3.1.2
@@ -50,8 +50,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter_icons:
   android: true
