@@ -7,7 +7,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  await GetStorage.init(); // ✅ Initialize GetStorage
+  await GetStorage.init(); // 
   // Get.put(ExpenseController());
   // Get.put(IncomeController());
 

@@ -10,10 +10,16 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/core/network/api_client.dart';
+import 'package:spendly/core/network/api_constants.dart';
+import 'package:spendly/core/storage/secure_storage_service.dart';
 
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final ApiClient _apiClient = Get.find<ApiClient>();
+  final SecureStorageService _secureStorage = Get.find<SecureStorageService>();
 
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
@@ -66,62 +72,130 @@ class SignUpController extends GetxController {
     signUpRequired.value = true;
 
     try {
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      User? user = userCredential.user;
-      if (user == null) {
-        throw FirebaseAuthException(code: "user-creation-failed");
-      }
-
-      MyUser myUser = MyUser.empty.copyWith(
-        userId: user.uid,
-        phoneNumber: phoneNumberController.text.trim(),
-        email: emailController.text.trim(),
-        name: nameController.text.trim(),
+      // Step 1: Request Registration & OTP from Backend
+      final response = await _apiClient.post(
+        ApiConstants.registerRequest,
+        data: {
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'phone': phoneNumberController.text.trim(),
+          'password': passwordController.text.trim(),
+        },
       );
 
-      String deviceInfo = await getDeviceInfo();
-      String? fcmToken = await getFcmToken();
-
-      await setUserData(myUser, deviceInfo, fcmToken);
-      final box = GetStorage();
-      box.write("isLoggedIn", true);
-      box.write("userId", myUser.userId);
-      box.write("name", myUser.name);
-      box.write("email", myUser.email);
-      box.write("phoneNumber", myUser.phoneNumber);
-      box.write("fcmToken", fcmToken);
-
-      signUpRequired.value = false;
-      Get.snackbar('Success', 'Account created successfully',
-          snackPosition: SnackPosition.BOTTOM);
-      Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
-    } on FirebaseAuthException catch (e) {
-      signUpRequired.value = false;
-      Get.snackbar('Error', _getFirebaseAuthError(e.code),
-          snackPosition: SnackPosition.BOTTOM);
-    } on FirebaseException catch (e) {
-      signUpRequired.value = false;
-      Get.snackbar('Error', 'Firestore error: ${e.message}',
-          snackPosition: SnackPosition.BOTTOM);
-    } on SocketException {
-      signUpRequired.value = false;
-      Get.snackbar('Network Error', 'No internet connection.',
-          snackPosition: SnackPosition.BOTTOM);
-    } on TimeoutException {
-      signUpRequired.value = false;
-      Get.snackbar('Timeout', 'Network timeout. Please try again.',
-          snackPosition: SnackPosition.BOTTOM);
+      if (response.statusCode == 200) {
+        signUpRequired.value = false;
+        // Step 2: Show OTP Dialog
+        _showOtpDialog(emailController.text.trim());
+      } else {
+        throw Exception(
+            response.data['detail'] ?? 'Registration request failed');
+      }
     } catch (e) {
       signUpRequired.value = false;
-      Get.snackbar('Error', 'Unexpected Error: $e',
+      Get.snackbar('Error', 'Failed to start registration: $e',
           snackPosition: SnackPosition.BOTTOM);
     }
+  }
+
+  void _showOtpDialog(String email) {
+    final otpController = TextEditingController();
+    Get.defaultDialog(
+      title: 'Verify OTP',
+      content: Column(
+        children: [
+          Text('Enter the 6-digit code sent to $email'),
+          const SizedBox(height: 10),
+          TextField(
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: const InputDecoration(
+              hintText: '123456',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      textConfirm: 'Verify',
+      onConfirm: () {
+        if (otpController.text.length == 6) {
+          verifyOtp(email, otpController.text);
+        } else {
+          Get.snackbar('Error', 'Please enter a valid 6-digit OTP');
+        }
+      },
+      barrierDismissible: false,
+    );
+  }
+
+  Future<void> verifyOtp(String email, String otp) async {
+    signUpRequired.value = true;
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.registerVerify,
+        data: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Step 3: Registration Complete on Backend
+        // For Chat, we still use Firebase, so let's also create the user in Firebase for Chat module
+        await _completeFirebaseRegistration(
+            email, passwordController.text.trim());
+
+        Get.back(); // Close dialog
+        Get.snackbar('Success', 'Account verified successfully',
+            snackPosition: SnackPosition.BOTTOM);
+        Get.offAllNamed(RoutesName.onboardingView);
+      } else {
+        throw Exception(response.data['detail'] ?? 'OTP verification failed');
+      }
+    } catch (e) {
+      signUpRequired.value = false;
+      Get.snackbar('Error', 'Verification failed: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  Future<void> _completeFirebaseRegistration(
+      String email, String password) async {
+    try {
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      User? user = userCredential.user;
+      if (user != null) {
+        MyUser myUser = MyUser.empty.copyWith(
+          userId: user.uid,
+          phoneNumber: phoneNumberController.text.trim(),
+          email: email,
+          name: nameController.text.trim(),
+        );
+
+        String deviceInfo = await getDeviceInfo();
+        String? fcmToken = await getFcmToken();
+        await setUserData(myUser, deviceInfo, fcmToken);
+
+        // Save locally
+        final box = GetStorage();
+        box.write("isLoggedIn", true);
+        box.write("userId", myUser.userId);
+        box.write("email", myUser.email);
+
+        // Save credentials securely for future API calls
+        await _secureStorage.saveCredentials(email, password);
+      }
+    } catch (e) {
+      print("Firebase shadow registration failed: $e");
+      // Not failing the whole process as backend registration is the source of truth now
+    }
+    signUpRequired.value = false;
   }
 
   Future<void> setUserData(
