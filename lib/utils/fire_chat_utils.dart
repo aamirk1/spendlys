@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import 'package:spendly/res/app_constants.dart';
+import 'package:spendly/models/myuser.dart';
 
 class FireChatUtils {
   static final fireStoreInstance = FirebaseFirestore.instance;
@@ -128,9 +129,12 @@ class FireChatUtils {
         .update({'dot': false});
   }
 
-  static Future<Map<String, dynamic>?> fetchUserData(String userId) async {
+  static Future<MyUser?> fetchUserData(String userId) async {
     final doc = await fireStoreInstance.collection(AppConstants.firestoreAllUsers).doc(userId).get();
-    return doc.data();
+    if (doc.exists && doc.data() != null) {
+      return MyUser.fromMap(doc.data()!);
+    }
+    return null;
   }
 
   static Future<void> deleteMessage({
@@ -142,5 +146,30 @@ class FireChatUtils {
         .collection('${getChatroomsCollection(receiverId)}/$chatroomId/messages')
         .doc(docId)
         .delete();
+  }
+
+  static Future<List<MyUser>> getAllUsers() async {
+    final snapshot = await fireStoreInstance
+        .collection(AppConstants.firestoreAllUsers)
+        .get();
+    return snapshot.docs.map((doc) => MyUser.fromMap(doc.data())).toList();
+  }
+
+  static Future<List<MyUser>> searchUsers(String query) async {
+    if (query.isEmpty) return [];
+    
+    // Fetch all and filter locally for simplicity and flexibility with name/phone
+    // or use Filter.or if query is exact or prefix.
+    // For "name or phoneNumber", local filtering is often better for small-mid size datasets
+    final snapshot = await fireStoreInstance
+        .collection(AppConstants.firestoreAllUsers)
+        .get();
+    
+    return snapshot.docs
+        .map((doc) => MyUser.fromMap(doc.data()))
+        .where((user) => 
+            user.name.toLowerCase().contains(query.toLowerCase()) || 
+            user.phoneNumber.contains(query))
+        .toList();
   }
 }

@@ -46,9 +46,9 @@ class ChatController extends GetxController {
         String otherUserId = members.firstWhere((id) => id != currentUserId, orElse: () => "");
         
         if (otherUserId.isNotEmpty) {
-          var userData = await FireChatUtils.fetchUserData(otherUserId);
-          String title = userData?['name'] ?? "User";
-          String? image = userData?['image'];
+          var user = await FireChatUtils.fetchUserData(otherUserId);
+          String title = user?.name ?? "User";
+          String? image = user?.image;
           
           tempConnections.add(ChatConnectionModel(
             title: title,
@@ -79,28 +79,11 @@ class ChatController extends GetxController {
 
     isSearching.value = true;
     try {
-      var snapshot = await FirebaseFirestore.instance
-          .collection(AppConstants.firestoreAllUsers)
-          .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
-          .get();
-
-      List<MyUser> users = [];
-      for (var doc in snapshot.docs) {
-        if (doc.id != currentUserId) {
-          var data = doc.data();
-          users.add(MyUser(
-            userId: doc.id,
-            name: data['name'] ?? "",
-            email: data['email'] ?? "",
-            phoneNumber: data['phoneNumber'] ?? "",
-            lastLogin: data['lastLogin'] ?? Timestamp.now(),
-          ));
-        }
-      }
-      searchUserList.value = users;
+      List<MyUser> users = await FireChatUtils.searchUsers(query);
+      // Exclude current user from search results
+      searchUserList.value = users.where((user) => user.userId != currentUserId).toList();
     } catch (e) {
-      print("Search Error: $e");
+      debugPrint("Search Error: $e");
     } finally {
       isSearching.value = false;
     }

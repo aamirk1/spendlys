@@ -24,7 +24,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
       _isChecking = false;
     });
 
-    if (result != ConnectivityResult.none) {
+    if (result.isNotEmpty && !result.contains(ConnectivityResult.none)) {
       // Pop this screen if internet is back
       if (mounted) Navigator.of(context).pop();
     } else {

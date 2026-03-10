@@ -6,13 +6,15 @@ class MyUser {
   final String email;
   final String phoneNumber;
   final Timestamp lastLogin;
+  final String? image;
 
   MyUser(
       {required this.userId,
       required this.name,
       required this.email,
       required this.phoneNumber,
-      required this.lastLogin});
+      required this.lastLogin,
+      this.image});
 
   // Empty factory constructor
   static final empty = MyUser(
@@ -20,7 +22,8 @@ class MyUser {
       name: '',
       email: '',
       phoneNumber: '',
-      lastLogin: Timestamp.now());
+      lastLogin: Timestamp.now(),
+      image: null);
 
   // copyWith method
   MyUser copyWith(
@@ -28,12 +31,38 @@ class MyUser {
       String? name,
       String? email,
       String? phoneNumber,
-      Timestamp? lastLogin}) {
+      Timestamp? lastLogin,
+      String? image}) {
     return MyUser(
         userId: userId ?? this.userId,
         name: name ?? this.name,
         email: email ?? this.email,
         phoneNumber: phoneNumber ?? this.phoneNumber,
-        lastLogin: lastLogin ?? this.lastLogin);
+        lastLogin: lastLogin ?? this.lastLogin,
+        image: image ?? this.image);
+  }
+
+  // fromMap method
+  factory MyUser.fromMap(Map<String, dynamic> map) {
+    return MyUser(
+      userId: map['userId'] ?? '',
+      name: map['name'] ?? '',
+      email: map['email'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
+      lastLogin: map['lastLogin'] ?? Timestamp.now(),
+      image: map['image'],
+    );
+  }
+
+  // toMap method
+  Map<String, dynamic> toMap() {
+    return {
+      'userId': userId,
+      'name': name,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'lastLogin': lastLogin,
+      'image': image,
+    };
   }
 }
