@@ -349,23 +349,24 @@
 // }
 // ignore_for_file: empty_catches
 
-import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/utils/colors.dart';
 
+
 class LoanController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   var loans = <Loan>[].obs;
   var isLoading = false.obs;
   var errorMsg = Rx<String?>(null);
 
-  StreamSubscription? _loanSubscription;
+
 
   @override
   void onInit() {
@@ -375,29 +376,36 @@ class LoanController extends GetxController {
 
   Future<void> fetchLoans() async {
     final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
 
+    isLoading.value = true;
     try {
-      final querySnapshot = await _firestore
-          .collection('loans')
-          .where('userId', isEqualTo: userId)
-          .get();
+      final response = await ApiService.get('/loans/?user_id=$userId');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        final fetchedLoans = data
+            .map((item) => Loan.fromMap(item as Map<String, dynamic>, item['id'].toString()))
+            .toList();
 
-      final fetchedLoans = querySnapshot.docs
-          .map((doc) => Loan.fromMap(doc.data(), doc.id))
-          .toList();
+        // Sort by date descending (latest first)
+        fetchedLoans.sort((a, b) {
+          return b.date.compareTo(a.date);
+        });
 
-      // ✅ Sort by date descending (latest first)
-      fetchedLoans.sort((a, b) => b.date.compareTo(a.date));
 
-      loans.value = fetchedLoans;
-      loans.refresh();
-      errorMsg.value = null;
-      isLoading.value = false;
+
+        loans.value = fetchedLoans;
+        errorMsg.value = null;
+      } else {
+        errorMsg.value = 'Failed to fetch loans: ${response.body}';
+      }
     } catch (e) {
-      isLoading.value = false;
       errorMsg.value = 'Error fetching loans: $e';
+    } finally {
+      isLoading.value = false;
     }
   }
+
 
   List<Loan> get borrowed =>
       loans.where((loan) => loan.type == 'borrowed').toList();
@@ -414,67 +422,40 @@ class LoanController extends GetxController {
 
     isLoading.value = true;
     try {
-      final data = loan.toMap();
-      data['userId'] = userId;
-      // data['date'] = Timestamp.now();
+      final response = await ApiService.post('/loans/', body: {
+        'user_id': userId,
+        'person_name': loan.personName,
+        'amount': loan.amount,
+        'type': loan.type,
+        'reason': loan.reason,
+        'expected_return_date': loan.expectedReturnDate?.toIso8601String(),
+        'date': DateTime.now().toIso8601String(),
+        'paid_amount': loan.paidAmount.value,
+        'status': loan.status.value,
+        'payment_history': loan.paymentHistory.map((e) => {
+          'amount': e['amount'],
+          'timestamp': (e['timestamp'] as DateTime).toIso8601String(),
+        }).toList(),
+      });
 
-      // Add to Firestore
-      final docRef = await _firestore.collection('loans').add(data);
-
-      // Update the Firestore doc with its generated ID
-      await docRef.update({'id': docRef.id});
-
-      // Create a Loan object with the doc ID and add to local list
-      final addedLoan = Loan(
-        id: docRef.id,
-        userId: userId,
-        personName: loan.personName,
-        amount: loan.amount,
-        paidAmount: loan.paidAmount,
-        status: loan.status,
-        date: DateTime.now(),
-        expectedReturnDate: loan.expectedReturnDate,
-        type: loan.type,
-        reason: loan.reason,
-        paymentHistory: loan.paymentHistory,
-      );
-
-      loans.insert(0, addedLoan);
-      loans.refresh();
-
-      Get.snackbar(
-        'Success',
-        'Loan added successfully',
-        backgroundColor: Colors.green[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Loan added successfully!');
+        fetchLoans(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to add loan: ${response.body}');
+      }
     } catch (e) {
       errorMsg.value = 'Error adding loan: $e';
-      Get.snackbar(
-        'Error',
-        errorMsg.value ?? 'Unknown error occurred',
-        backgroundColor: AppColors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.error_outline, color: AppColors.white),
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     } finally {
       isLoading.value = false;
     }
   }
 
+
   /// Update payment status
   Future<void> updatePayment(String loanId, double paymentAmount) async {
     try {
-      final loanDoc = _firestore.collection('loans').doc(loanId);
       final loan = loans.firstWhere((loan) => loan.id == loanId);
 
       // Update in-memory values
@@ -482,7 +463,7 @@ class LoanController extends GetxController {
 
       final paymentRecord = {
         'amount': paymentAmount,
-        'timestamp': DateTime.now(),
+        'timestamp': DateTime.now().toIso8601String(),
       };
       loan.paymentHistory.add(paymentRecord);
 
@@ -492,81 +473,46 @@ class LoanController extends GetxController {
         loan.status.value = 'partially paid';
       }
 
-      loans.refresh();
-
-      // Sync to Firestore
-      await loanDoc.update({
-        'paidAmount': loan.paidAmount.value,
+      final response = await ApiService.put('/loans/$loanId', body: {
+        'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'paymentHistory': FieldValue.arrayUnion([
-          {
-            'amount': paymentAmount,
-            'timestamp': Timestamp.fromDate(DateTime.now()),
-          }
-        ]),
+        'payment_history': loan.paymentHistory.map((e) => {
+          'amount': e['amount'],
+          'timestamp': e['timestamp'] is DateTime 
+              ? (e['timestamp'] as DateTime).toIso8601String() 
+              : e['timestamp'].toString(),
+        }).toList(),
       });
 
-      Get.snackbar(
-        'Success',
-        'Payment updated successfully',
-        backgroundColor: Colors.green[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Payment updated successfully');
+        fetchLoans(); // Refresh list to be sure
+      } else {
+        Get.snackbar('Error', 'Failed to update payment: ${response.body}');
+      }
     } catch (e) {
       errorMsg.value = 'Error updating payment: $e';
-      Get.snackbar(
-        'Error',
-        errorMsg.value ?? 'Unknown error occurred',
-        backgroundColor: Colors.red[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.error_outline, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
+
 
   /// Delete loan from Firestore and local list
   Future<void> deleteLoan(String loanId) async {
     try {
-      await _firestore.collection('loans').doc(loanId).delete();
-
-      loans.removeWhere((loan) => loan.id == loanId);
-      loans.refresh();
-
-      Get.snackbar(
-        'Loan Deleted',
-        'The loan was removed successfully',
-        backgroundColor: Colors.green[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      final response = await ApiService.delete('/loans/$loanId');
+      if (response.statusCode == 200) {
+        Get.snackbar('Loan Deleted', 'The loan was removed successfully');
+        fetchLoans(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to delete loan: ${response.body}');
+      }
     } catch (e) {
       errorMsg.value = 'Error deleting loan: $e';
-      Get.snackbar(
-        'Error',
-        errorMsg.value ?? 'Unknown error occurred',
-        backgroundColor: Colors.red[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.error_outline, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
+
 
   /// Edit payment
   Future<void> editPayment(
@@ -590,47 +536,29 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      // Sync to Firestore
-      await _firestore.collection('loans').doc(loanId).update({
-        'paidAmount': loan.paidAmount.value,
+      final response = await ApiService.put('/loans/$loanId', body: {
+        'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'paymentHistory': loan.paymentHistory
-            .map((e) => {
-                  'amount': e['amount'],
-                  'timestamp': e['timestamp'] is DateTime
-                      ? Timestamp.fromDate(e['timestamp'])
-                      : e['timestamp'],
-                })
-            .toList(),
+        'payment_history': loan.paymentHistory.map((e) => {
+          'amount': e['amount'],
+          'timestamp': e['timestamp'] is DateTime 
+              ? (e['timestamp'] as DateTime).toIso8601String() 
+              : e['timestamp'].toString(),
+        }).toList(),
       });
 
-      loans.refresh();
-      Get.snackbar(
-        'Success',
-        'Payment updated successfully',
-        backgroundColor: Colors.green[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Payment updated successfully');
+        fetchLoans(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to update payment: ${response.body}');
+      }
     } catch (e) {
       errorMsg.value = 'Error editing payment: $e';
-      Get.snackbar(
-        'Error',
-        errorMsg.value ?? 'Unknown error occurred',
-        backgroundColor: Colors.red[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.error_outline, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
+
 
   /// Delete payment
   Future<void> deletePayment(String loanId, int paymentIndex) async {
@@ -653,51 +581,33 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      // Sync to Firestore
-      await _firestore.collection('loans').doc(loanId).update({
-        'paidAmount': loan.paidAmount.value,
+      final response = await ApiService.put('/loans/$loanId', body: {
+        'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'paymentHistory': loan.paymentHistory
-            .map((e) => {
-                  'amount': e['amount'],
-                  'timestamp': e['timestamp'] is DateTime
-                      ? Timestamp.fromDate(e['timestamp'])
-                      : e['timestamp'],
-                })
-            .toList(),
+        'payment_history': loan.paymentHistory.map((e) => {
+          'amount': e['amount'],
+          'timestamp': e['timestamp'] is DateTime 
+              ? (e['timestamp'] as DateTime).toIso8601String() 
+              : e['timestamp'].toString(),
+        }).toList(),
       });
 
-      loans.refresh();
-      Get.snackbar(
-        'Success',
-        'Payment deleted successfully',
-        backgroundColor: Colors.green[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Payment deleted successfully');
+        fetchLoans(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to delete payment: ${response.body}');
+      }
     } catch (e) {
       errorMsg.value = 'Error deleting payment: $e';
-      Get.snackbar(
-        'Error',
-        errorMsg.value ?? 'Unknown error occurred',
-        backgroundColor: Colors.red[600],
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: EdgeInsets.all(12),
-        borderRadius: 12,
-        icon: const Icon(Icons.error_outline, color: Colors.white),
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
 
+
   @override
   void onClose() {
-    _loanSubscription?.cancel();
     super.onClose();
   }
+
 }
