@@ -29,4 +29,13 @@ class RoutesName {
   static const String appSettingScreen = '/app_setting_screen';
   static const String notificationsScreen = '/notifications_screen';
   static const String needHelpScreen = '/need_help_screen';
+
+  // Business Module Routes
+  static const String businessHome = '/business_home';
+  static const String businessProfile = '/business_profile';
+  static const String customersList = '/customers_list';
+  static const String invoiceList = '/invoice_list';
+  static const String createInvoice = '/create_invoice';
+  static const String viewInvoice = '/view_invoice';
+  static const String createQuotation = '/create_quotation';
 }

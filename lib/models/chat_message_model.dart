@@ -12,6 +12,13 @@ class ChatMessageModel {
   String time;
   String messageId;
   String createdAt;
+  
+  // New fields for Business Module
+  String type; // 'text', 'invoice', 'quotation'
+  String? invoiceId;
+  String? quotationId;
+  String? pdfUrl;
+  String? shareLink;
 
   ChatMessageModel({
     required this.message,
@@ -24,6 +31,11 @@ class ChatMessageModel {
     required this.time,
     required this.messageId,
     required this.createdAt,
+    this.type = 'text',
+    this.invoiceId,
+    this.quotationId,
+    this.pdfUrl,
+    this.shareLink,
   });
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) => ChatMessageModel(
@@ -39,6 +51,11 @@ class ChatMessageModel {
             : '',
         messageId: json['messageId'] as String? ?? '',
         createdAt: json['createdAt']?.toString() ?? ' ',
+        type: json['type'] as String? ?? 'text',
+        invoiceId: json['invoice_id'] as String?,
+        quotationId: json['quotation_id'] as String?,
+        pdfUrl: json['pdf_url'] as String?,
+        shareLink: json['share_link'] as String?,
       );
 
   Map<String, dynamic> toJson() {
@@ -53,6 +70,11 @@ class ChatMessageModel {
       'messageId': messageId,
       'createdAt': createdAt,
       'mainMessage': replyOn,
+      'type': type,
+      'invoice_id': invoiceId,
+      'quotation_id': quotationId,
+      'pdf_url': pdfUrl,
+      'share_link': shareLink,
     };
   }
 }

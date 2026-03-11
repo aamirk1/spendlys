@@ -6,6 +6,9 @@ import 'package:spendly/screens/chat/message_view.dart';
 import 'package:spendly/screens/home/views/profile_screens/app_settings_screen.dart';
 import 'package:spendly/screens/home/views/profile_screens/notifications_screen.dart';
 import 'package:spendly/screens/home/views/profile_screens/need_help_screen.dart';
+import 'package:spendly/screens/business/business_home_view.dart';
+import 'package:spendly/screens/business/business_profile_view.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class AppRoutes {
   static appRoutes() => [
@@ -107,6 +110,18 @@ class AppRoutes {
         GetPage(
             name: RoutesName.needHelpScreen,
             page: () => const NeedHelpScreen(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+
+        // Business Module
+        GetPage(
+            name: RoutesName.businessHome,
+            page: () => const BusinessHomeView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.businessProfile,
+            page: () => const BusinessProfileView(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
       ];

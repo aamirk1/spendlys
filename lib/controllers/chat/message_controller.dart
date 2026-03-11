@@ -8,6 +8,7 @@ import 'package:spendly/models/chat_message_model.dart';
 import 'package:spendly/utils/fire_chat_utils.dart';
 import 'package:spendly/widgets/chat/message_bubbles.dart';
 import 'package:spendly/widgets/chat/swipe_to.dart';
+import 'package:spendly/widgets/chat/business_message_card.dart';
 
 class MessageController extends GetxController {
   TextEditingController messageController = TextEditingController();
@@ -124,45 +125,45 @@ class MessageController extends GetxController {
       );
     }
 
-    if (isMe) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: SwipeTo(
-          onRightSwipe: (_) {
-            isReplying.value = true;
-            replyMessage.value = model.message;
-            replyMessageSender.value = "You";
-          },
-          child: SenderContainer(
-            message: model.message,
-            isRead: model.isSeen,
-            time: model.time,
-            isReply: model.isReply,
-            replyOn: model.replyOn,
-            onLongPress: () => _deleteMessage(model.messageId),
-          ),
-        ),
-      );
+    Widget content;
+    if (model.type == 'invoice' || model.type == 'quotation') {
+      content = BusinessMessageCard(message: model, isSender: isMe);
     } else {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: SwipeTo(
-          onRightSwipe: (_) {
-            isReplying.value = true;
-            replyMessage.value = model.message;
-            replyMessageSender.value = chatConnectionModel.title;
-          },
-          child: ReciverContainer(
-            message: model.message,
-            time: model.time,
-            name: chatConnectionModel.title,
-            isReply: model.isReply,
-            replyOn: model.replyOn,
-            onLongPress: () => _deleteMessage(model.messageId),
-          ),
-        ),
-      );
+      if (isMe) {
+        content = SenderContainer(
+          message: model.message,
+          isRead: model.isSeen,
+          time: model.time,
+          isReply: model.isReply,
+          replyOn: model.replyOn,
+          onLongPress: () => _deleteMessage(model.messageId),
+        );
+      } else {
+        content = ReciverContainer(
+          message: model.message,
+          time: model.time,
+          name: chatConnectionModel.title,
+          isReply: model.isReply,
+          replyOn: model.replyOn,
+          onLongPress: () => _deleteMessage(model.messageId),
+        );
+      }
     }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: SwipeTo(
+        onRightSwipe: (_) {
+          isReplying.value = true;
+          replyMessage.value = model.message;
+          replyMessageSender.value = isMe ? "You" : chatConnectionModel.title;
+        },
+        child: Align(
+          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: content,
+        ),
+      ),
+    );
   }
 
   void _deleteMessage(String docId) {
