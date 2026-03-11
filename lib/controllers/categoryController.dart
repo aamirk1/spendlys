@@ -1,11 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CategoryController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   var categories = <Map<String, dynamic>>[].obs;
   final nameController = TextEditingController();
@@ -37,25 +39,26 @@ class CategoryController extends GetxController {
     fetchCategories();
   }
 
-  void fetchCategories() {
+  Future<void> fetchCategories() async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
 
-    _firestore
-        .collection('categories')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .listen((snapshot) {
-      categories.value = snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          'name': doc['name'],
-          'icon': doc['icon'], // Now stores icon name instead of emoji
-          'color': doc['color'],
-        };
-      }).toList();
-    });
+    isLoading.value = true;
+    try {
+      final response = await ApiService.get('/categories/?user_id=$userId');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        categories.value = data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        Get.snackbar('Error', 'Failed to fetch categories: ${response.body}');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'An error occurred: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
+
 
   Future<void> addCategory() async {
     String? userId = _auth.currentUser?.uid;
@@ -69,25 +72,29 @@ class CategoryController extends GetxController {
     isLoading.value = true;
 
     try {
-      await _firestore.collection('categories').add({
-        'userId': userId,
+      final response = await ApiService.post('/categories/', body: {
+        'user_id': userId,
         'name': nameController.text.trim(),
-        'icon': selectedIcon.value.codePoint, // Store as integer
-        'color':
-            // ignore: deprecated_member_use
-            selectedColor.value.value.toRadixString(16), // Store as HEX string
+        'icon': selectedIcon.value.codePoint,
+        'color': selectedColor.value.value.toRadixString(16),
       });
 
-      Get.snackbar('Success', 'Category added successfully!');
-      nameController.clear();
-      selectedIcon.value = Icons.shopping_cart; // Reset
-      selectedColor.value = Color(0xFFFFA500); // Reset
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Category added successfully!');
+        nameController.clear();
+        selectedIcon.value = Icons.shopping_cart;
+        selectedColor.value = Color(0xFFFFA500);
+        fetchCategories(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to add category: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to add category: $e');
     } finally {
       isLoading.value = false;
     }
   }
+
 
   Future<void> editCategory(String categoryId) async {
     String? userId = _auth.currentUser?.uid;
@@ -101,18 +108,21 @@ class CategoryController extends GetxController {
     isLoading.value = true;
 
     try {
-      await _firestore.collection('categories').doc(categoryId).update({
+      final response = await ApiService.put('/categories/$categoryId', body: {
         'name': nameController.text.trim(),
-        'icon': selectedIcon.value.codePoint, // Store as integer (codePoint)
-        'color':
-            // ignore: deprecated_member_use
-            selectedColor.value.value.toRadixString(16), // Store as HEX string
+        'icon': selectedIcon.value.codePoint,
+        'color': selectedColor.value.value.toRadixString(16),
       });
 
-      Get.snackbar('Success', 'Category updated successfully!');
-      nameController.clear();
-      selectedIcon.value = Icons.shopping_cart; // Reset icon
-      selectedColor.value = Color(0xFFFFA500); // Reset color
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Category updated successfully!');
+        nameController.clear();
+        selectedIcon.value = Icons.shopping_cart;
+        selectedColor.value = Color(0xFFFFA500);
+        fetchCategories(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to update category: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to update category: $e');
     } finally {
@@ -120,12 +130,19 @@ class CategoryController extends GetxController {
     }
   }
 
+
   Future<void> deleteCategory(String categoryId) async {
     try {
-      await _firestore.collection('categories').doc(categoryId).delete();
-      Get.snackbar('Deleted', 'Category removed successfully');
+      final response = await ApiService.delete('/categories/$categoryId');
+      if (response.statusCode == 200) {
+        Get.snackbar('Deleted', 'Category removed successfully');
+        fetchCategories(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to delete category: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete category: $e');
     }
   }
+
 }

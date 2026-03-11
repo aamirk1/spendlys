@@ -1,14 +1,17 @@
 // ignore_for_file: file_names
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
 
 class ExpenseController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -138,94 +141,63 @@ class ExpenseController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _listenToExpenseUpdates(); // Start real-time listener
+    fetchExpenses(); // Start fetching expenses
   }
 
+
   // Real-time listener for expense updates
-  void _listenToExpenseUpdates() {
+  Future<void> fetchExpenses() async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
 
-    _firestore
-        .collection('expenses')
-        .where('userId', isEqualTo: userId)
-        .snapshots() // Real-time listener
-        .listen((snapshot) {
-      Map<String, double> tempTotals = {};
-      List<Map<String, dynamic>> tempExpenses = [];
+    isLoading.value = true;
+    try {
+      final response = await ApiService.get('/transactions/?user_id=$userId&type=expense');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        Map<String, double> tempTotals = {};
+        List<Map<String, dynamic>> tempExpenses = [];
 
-      for (var doc in snapshot.docs) {
-        String id = doc.id;
-        Map<String, dynamic> data = doc.data();
+        for (var item in data) {
+          String category = item['category'] ?? "Unknown";
+          double amount = (item['amount'] as num).toDouble();
+          DateTime date = DateTime.parse(item['date']);
 
-        String category = data['category'] ?? "Unknown";
-        String description = data['description'] ?? "";
-        double amount = (data['amount'] as num).toDouble();
-        DateTime date = (data['date'] as Timestamp).toDate();
+          tempTotals[category] = (tempTotals[category] ?? 0) + amount;
 
-        tempTotals[category] = (tempTotals[category] ?? 0) + amount;
+          tempExpenses.add({
+            'id': item['id'].toString(),
+            'description': item['description'] ?? "",
+            'category': category,
+            'amount': amount,
+            'date': date,
+          });
+        }
 
-        tempExpenses.add({
-          'id': id,
-          'description': description,
-          'category': category,
-          'amount': amount,
-          'date': date,
-        });
+        categoryTotals.assignAll(tempTotals);
+        expensesList.assignAll(tempExpenses);
+      } else {
+        Get.snackbar('Error', 'Failed to fetch expenses: ${response.body}');
       }
-
-      // Update reactive variables
-      categoryTotals.assignAll(tempTotals);
-      expensesList.assignAll(tempExpenses);
-    }, onError: (e) {
-      Get.snackbar('Error', 'Failed to listen to expenses: $e');
-    });
+    } catch (e) {
+      Get.snackbar('Error', 'An error occurred: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
+
 
   // Fetch filtered expense totals for charts (non-real-time)
   Future<void> fetchChartExpenseTotals(String filter) async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
 
-    DateTime now = DateTime.now();
-    DateTime startDate;
-
-    if (filter == 'Weekly') {
-      startDate =
-          now.subtract(Duration(days: now.weekday - 1)); // Start of week
-    } else if (filter == 'Monthly') {
-      startDate = DateTime(now.year, now.month, 1); // Start of month
-    } else {
-      startDate = DateTime(now.year, 1, 1); // Start of year
-    }
-
-    categoryTotals.clear();
-
-    try {
-      // Fetch expense data from Firestore based on the selected filter (Weekly, Monthly, or Yearly)
-      var snapshot = await _firestore
-          .collection('expenses')
-          .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .orderBy('date', descending: true)
-          .get();
-
-      Map<String, double> tempTotals = {};
-
-      for (var doc in snapshot.docs) {
-        String category = doc['category'] ?? 'Unknown';
-        double amount = (doc['amount'] as num).toDouble();
-
-        // Add the amount to the category total
-        tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-      }
-
-      // Update categoryTotals with the new data
-      categoryTotals.assignAll(tempTotals);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch chart expense totals: $e');
-    }
+    // For now, we fetch all and filter in app, or you can add filter params to API
+    await fetchExpenses();
+    
+    // Filtering logic can be more specific if needed
   }
+
 
   // Add a new expense
   Future<void> addExpense() async {
@@ -238,22 +210,24 @@ class ExpenseController extends GetxController {
     isLoading.value = true;
 
     try {
-      DocumentReference expenseRef =
-          await _firestore.collection('expenses').add({
-        'userId': userId,
+      final response = await ApiService.post('/transactions/', body: {
+        'user_id': userId,
         'amount': double.parse(amountController.text.trim()),
         'description': descriptionController.text.trim(),
         'category': selectedCategory.value,
-        'date': Timestamp.now(),
+        'type': 'expense',
+        'date': DateTime.now().toIso8601String(),
       });
 
-      await expenseRef.update({'id': expenseRef.id});
-
-      Get.snackbar('Success', 'Expense added successfully!');
-
-      amountController.clear();
-      descriptionController.clear();
-      selectedCategory.value = '';
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Expense added successfully!');
+        amountController.clear();
+        descriptionController.clear();
+        selectedCategory.value = '';
+        fetchExpenses(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to add expense: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to add expense: $e');
     } finally {
@@ -261,26 +235,39 @@ class ExpenseController extends GetxController {
     }
   }
 
+
   // Update an existing expense
   Future<void> updateExpense(
       String docId, Map<String, dynamic> updatedData) async {
     try {
-      await _firestore.collection('expenses').doc(docId).update(updatedData);
-      Get.snackbar('Success', 'Expense updated successfully');
+      final response = await ApiService.put('/transactions/$docId', body: updatedData);
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Expense updated successfully');
+        fetchExpenses(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to update expense: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to update expense: $e');
     }
   }
 
+
   // Delete an expense
   Future<void> deleteExpense(String docId) async {
     try {
-      await _firestore.collection('expenses').doc(docId).delete();
-      Get.snackbar('Deleted', 'Expense removed successfully');
+      final response = await ApiService.delete('/transactions/$docId');
+      if (response.statusCode == 200) {
+        Get.snackbar('Deleted', 'Expense removed successfully');
+        fetchExpenses(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to delete expense: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete expense: $e');
     }
   }
+
 
   @override
   void onClose() {

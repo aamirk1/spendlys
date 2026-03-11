@@ -1,14 +1,16 @@
 // // ignore_for_file: file_names
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+
 class IncomeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -102,91 +104,59 @@ class IncomeController extends GetxController {
     fetchIncomes();
   }
 
-  void fetchIncomes() {
+  Future<void> fetchIncomes() async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
 
     isLoading(true);
-    _firestore
-        .collection('incomes')
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .snapshots()
-        .listen((snapshot) {
-      List<Map<String, dynamic>> tempIncomes = [];
-      Map<String, double> tempTotals = {};
-      double total = 0;
+    try {
+      final response = await ApiService.get('/transactions/?user_id=$userId&type=income');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<Map<String, dynamic>> tempIncomes = [];
+        Map<String, double> tempTotals = {};
+        double total = 0;
 
-      for (var doc in snapshot.docs) {
-        String id = doc.id;
-        Map<String, dynamic> data = doc.data();
-        String category = data['category'] ?? 'Unknown';
-        double amount = (data['amount'] as num).toDouble();
-        DateTime date = (data['date'] as Timestamp).toDate();
+        for (var item in data) {
+          String category = item['category'] ?? 'Unknown';
+          double amount = (item['amount'] as num).toDouble();
+          DateTime date = DateTime.parse(item['date']);
 
-        tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-        total += amount;
+          tempTotals[category] = (tempTotals[category] ?? 0) + amount;
+          total += amount;
 
-        tempIncomes.add({
-          'id': id,
-          'description': data['description'] ?? '',
-          'category': category,
-          'amount': amount,
-          'date': date,
-        });
+          tempIncomes.add({
+            'id': item['id'].toString(),
+            'description': item['description'] ?? '',
+            'category': category,
+            'amount': amount,
+            'date': date,
+          });
+        }
+
+        incomeList.value = tempIncomes;
+        categoryTotals.value = tempTotals;
+        totalIncome.value = total;
+        updateChartData();
+      } else {
+        Get.snackbar('Error', 'Failed to fetch incomes: ${response.body}');
       }
-
-      incomeList.value = tempIncomes;
-      categoryTotals.value = tempTotals;
-      totalIncome.value = total;
-      updateChartData();
+    } catch (e) {
+      Get.snackbar('Error', 'An error occurred: $e');
+    } finally {
       isLoading(false);
-    });
+    }
   }
+
 
   // Inside your IncomeController
   Future<void> fetchChartIncomeTotals(String filter) async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
 
-    DateTime now = DateTime.now();
-    DateTime startDate;
-
-    if (filter == 'Weekly') {
-      startDate =
-          now.subtract(Duration(days: now.weekday - 1)); // Start of week
-    } else if (filter == 'Monthly') {
-      startDate = DateTime(now.year, now.month, 1); // Start of month
-    } else {
-      startDate = DateTime(now.year, 1, 1); // Start of year
-    }
-
-    categoryTotals.clear();
-
-    try {
-      // Fetch data from Firestore based on the selected filter (Weekly, Monthly, or Yearly)
-      var snapshot = await _firestore
-          .collection('incomes')
-          .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .orderBy('date', descending: true)
-          .get();
-
-      Map<String, double> tempTotals = {};
-
-      for (var doc in snapshot.docs) {
-        String category = doc['category'] ?? 'Unknown';
-        double amount = (doc['amount'] as num).toDouble();
-
-        tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-      }
-
-      // Update the categoryTotals with the new data
-      categoryTotals.assignAll(tempTotals);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch chart data: $e');
-    }
+    await fetchIncomes();
   }
+
 
   void updateChartData() {
     final Map<String, double> dataMap = {};
@@ -207,20 +177,24 @@ class IncomeController extends GetxController {
 
     isLoading(true);
     try {
-      DocumentReference incomeRef = await _firestore.collection('incomes').add({
-        'userId': userId,
+      final response = await ApiService.post('/transactions/', body: {
+        'user_id': userId,
         'amount': double.parse(amountController.text.trim()),
         'description': descriptionController.text.trim(),
         'category': selectedCategory.value,
-        'date': Timestamp.now(),
+        'type': 'income',
+        'date': DateTime.now().toIso8601String(),
       });
 
-      await incomeRef.update({'id': incomeRef.id});
-
-      Get.snackbar('Success', 'Income added successfully!');
-      amountController.clear();
-      descriptionController.clear();
-      selectedCategory.value = '';
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Income added successfully!');
+        amountController.clear();
+        descriptionController.clear();
+        selectedCategory.value = '';
+        fetchIncomes(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to add income: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to add income: $e');
     } finally {
@@ -228,24 +202,37 @@ class IncomeController extends GetxController {
     }
   }
 
+
   Future<void> updateIncome(
       String docId, Map<String, dynamic> updatedData) async {
     try {
-      await _firestore.collection('incomes').doc(docId).update(updatedData);
-      Get.snackbar('Success', 'Income updated successfully');
+      final response = await ApiService.put('/transactions/$docId', body: updatedData);
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Income updated successfully');
+        fetchIncomes(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to update income: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to update income: $e');
     }
   }
 
+
   Future<void> deleteIncome(String docId) async {
     try {
-      await _firestore.collection('incomes').doc(docId).delete();
-      Get.snackbar('Deleted', 'Income removed successfully');
+      final response = await ApiService.delete('/transactions/$docId');
+      if (response.statusCode == 200) {
+        Get.snackbar('Deleted', 'Income removed successfully');
+        fetchIncomes(); // Refresh list
+      } else {
+        Get.snackbar('Error', 'Failed to delete income: ${response.body}');
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete income: $e');
     }
   }
+
 }
 
 // ignore_for_file: file_names
