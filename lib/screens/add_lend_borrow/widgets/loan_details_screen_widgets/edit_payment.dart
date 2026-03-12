@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:spendly/res/components/custom_button.dart';
+import 'package:spendly/utils/utils.dart';
 
 class EditPaymentDialog extends StatefulWidget {
   final double initialAmount;
@@ -54,7 +54,7 @@ class _EditPaymentDialogState extends State<EditPaymentDialog> {
             if (newAmount != null) {
               widget.onConfirm(newAmount);
             } else {
-              Get.snackbar("Error", "Invalid amount entered");
+              Utils.showSnackbar("Error", "Invalid amount entered");
             }
           },
         ),

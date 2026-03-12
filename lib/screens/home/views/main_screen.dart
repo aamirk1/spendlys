@@ -46,8 +46,10 @@ class MainScreen extends StatelessWidget {
                                 color: Colors.yellow[700]),
                           ),
                           Text(
-                            myUser.name[0].toUpperCase(),
-                            style: TextStyle(
+                            (myUser.name.isNotEmpty)
+                                ? myUser.name[0].toUpperCase()
+                                : "?",
+                            style: const TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white),
@@ -81,9 +83,9 @@ class MainScreen extends StatelessWidget {
                 ),
                 IconButton(
                     onPressed: () {
-                      
+                      Get.toNamed(RoutesName.chatListView);
                     },
-                    icon: const Icon(CupertinoIcons.power))
+                    icon: Icon(CupertinoIcons.chat_bubble_2_fill, color: Theme.of(context).colorScheme.primary))
               ],
             ),
             const SizedBox(
@@ -230,7 +232,9 @@ class MainScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 25),
+            _buildQuickModules(context),
+            const SizedBox(height: 25),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -391,6 +395,100 @@ class MainScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildQuickModules(BuildContext context) {
+    final List<Map<String, dynamic>> modules = [
+      {
+        'name': 'Income/Exp',
+        'icon': CupertinoIcons.money_dollar_circle,
+        'color': Colors.blue,
+        'route': RoutesName.incomeExpenseHome
+      },
+      {
+        'name': 'Loans',
+        'icon': CupertinoIcons.square_arrow_left_fill,
+        'color': Colors.orange,
+        'route': RoutesName.addLendBorrowView
+      },
+      {
+        'name': 'Chat',
+        'icon': CupertinoIcons.chat_bubble_2_fill,
+        'color': Colors.green,
+        'route': RoutesName.chatListView
+      },
+      {
+        'name': 'Business',
+        'icon': CupertinoIcons.briefcase_fill,
+        'color': Colors.purple,
+        'route': RoutesName.businessHome
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Services',
+          style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 15),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.8,
+          ),
+          itemCount: modules.length,
+          itemBuilder: (context, index) {
+            final module = modules[index];
+            return GestureDetector(
+              onTap: () {
+                if (module['route'] == RoutesName.addLendBorrowView ||
+                    module['route'] == RoutesName.profileView) {
+                  Get.toNamed(module['route'], arguments: myUser);
+                } else {
+                  Get.toNamed(module['route']);
+                }
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 55,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: module['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      module['icon'],
+                      color: module['color'],
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    module['name'],
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

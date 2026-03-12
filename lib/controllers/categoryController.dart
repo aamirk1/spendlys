@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/utils/utils.dart';
 
 class CategoryController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -50,10 +51,10 @@ class CategoryController extends GetxController {
         List<dynamic> data = jsonDecode(response.body);
         categories.value = data.map((item) => item as Map<String, dynamic>).toList();
       } else {
-        Get.snackbar('Error', 'Failed to fetch categories: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to fetch categories: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred: $e');
+      Utils.showSnackbar('Error', 'An error occurred: $e');
     } finally {
       isLoading.value = false;
     }
@@ -65,7 +66,7 @@ class CategoryController extends GetxController {
     if (userId == null) return;
 
     if (nameController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Category name and icon are required.');
+      Utils.showSnackbar('Error', 'Category name and icon are required.');
       return;
     }
 
@@ -80,16 +81,16 @@ class CategoryController extends GetxController {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Category added successfully!');
+        Utils.showSnackbar('Success', 'Category added successfully!', isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
         selectedColor.value = Color(0xFFFFA500);
         fetchCategories(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to add category: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to add category: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to add category: $e');
+      Utils.showSnackbar('Error', 'Failed to add category: $e');
     } finally {
       isLoading.value = false;
     }
@@ -101,7 +102,7 @@ class CategoryController extends GetxController {
     if (userId == null) return;
 
     if (nameController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Category name and icon are required.');
+      Utils.showSnackbar('Error', 'Category name and icon are required.');
       return;
     }
 
@@ -115,16 +116,16 @@ class CategoryController extends GetxController {
       });
 
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Category updated successfully!');
+        Utils.showSnackbar('Success', 'Category updated successfully!', isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
         selectedColor.value = Color(0xFFFFA500);
         fetchCategories(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to update category: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to update category: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to update category: $e');
+      Utils.showSnackbar('Error', 'Failed to update category: $e');
     } finally {
       isLoading.value = false;
     }
@@ -135,13 +136,13 @@ class CategoryController extends GetxController {
     try {
       final response = await ApiService.delete('/categories/$categoryId');
       if (response.statusCode == 200) {
-        Get.snackbar('Deleted', 'Category removed successfully');
+        Utils.showSnackbar('Deleted', 'Category removed successfully', isError: false);
         fetchCategories(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to delete category: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to delete category: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to delete category: $e');
+      Utils.showSnackbar('Error', 'Failed to delete category: $e');
     }
   }
 

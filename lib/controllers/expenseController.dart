@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:spendly/utils/utils.dart';
 
 
 class ExpenseController extends GetxController {
@@ -177,10 +178,10 @@ class ExpenseController extends GetxController {
         categoryTotals.assignAll(tempTotals);
         expensesList.assignAll(tempExpenses);
       } else {
-        Get.snackbar('Error', 'Failed to fetch expenses: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to fetch expenses: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred: $e');
+      Utils.showSnackbar('Error', 'An error occurred: $e');
     } finally {
       isLoading.value = false;
     }
@@ -203,7 +204,7 @@ class ExpenseController extends GetxController {
   Future<void> addExpense() async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
-      Get.snackbar('Error', 'User not logged in.');
+      Utils.showSnackbar('Error', 'User not logged in.');
       return;
     }
 
@@ -220,16 +221,16 @@ class ExpenseController extends GetxController {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Expense added successfully!');
+        Utils.showSnackbar('Success', 'Expense added successfully!', isError: false);
         amountController.clear();
         descriptionController.clear();
         selectedCategory.value = '';
         fetchExpenses(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to add expense: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to add expense: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to add expense: $e');
+      Utils.showSnackbar('Error', 'Failed to add expense: $e');
     } finally {
       isLoading.value = false;
     }
@@ -242,13 +243,13 @@ class ExpenseController extends GetxController {
     try {
       final response = await ApiService.put('/transactions/$docId', body: updatedData);
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Expense updated successfully');
+        Utils.showSnackbar('Success', 'Expense updated successfully', isError: false);
         fetchExpenses(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to update expense: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to update expense: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to update expense: $e');
+      Utils.showSnackbar('Error', 'Failed to update expense: $e');
     }
   }
 
@@ -258,13 +259,13 @@ class ExpenseController extends GetxController {
     try {
       final response = await ApiService.delete('/transactions/$docId');
       if (response.statusCode == 200) {
-        Get.snackbar('Deleted', 'Expense removed successfully');
+        Utils.showSnackbar('Deleted', 'Expense removed successfully', isError: false);
         fetchExpenses(); // Refresh list
       } else {
-        Get.snackbar('Error', 'Failed to delete expense: ${response.body}');
+        Utils.showSnackbar('Error', 'Failed to delete expense: ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to delete expense: $e');
+      Utils.showSnackbar('Error', 'Failed to delete expense: $e');
     }
   }
 

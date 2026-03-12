@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:spendly/screens/add_income_and_expense/income_expense_home.dart';
 import 'package:spendly/res/routes/views_routes.dart';
 import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
 import 'package:spendly/screens/chat/chat_view.dart';
@@ -11,7 +12,7 @@ import 'package:spendly/screens/business/business_profile_view.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class AppRoutes {
-  static appRoutes() => [
+  static List<GetPage<dynamic>> appRoutes() => [
         GetPage(
             name: RoutesName.splashScreen,
             page: () => SplashScreen(),
@@ -122,6 +123,11 @@ class AppRoutes {
         GetPage(
             name: RoutesName.businessProfile,
             page: () => const BusinessProfileView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.incomeExpenseHome,
+            page: () => const IncomeExpenseHome(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
       ];

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/utils/utils.dart';
 
 class ForgotPasswordController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,8 +13,7 @@ class ForgotPasswordController extends GetxController {
 
   Future<void> sendPasswordResetEmail() async {
     if (emailController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter your email.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Please enter your email.');
       return;
     }
 
@@ -25,25 +25,20 @@ class ForgotPasswordController extends GetxController {
           .timeout(const Duration(seconds: 30));
 
       isSending.value = false;
-      Get.snackbar('Success', 'Password reset email sent.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Success', 'Password reset email sent.', isError: false);
       Get.back(); // go back to login screen
     } on FirebaseAuthException catch (e) {
       isSending.value = false;
-      Get.snackbar('Error', _getFirebaseAuthError(e.code),
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', _getFirebaseAuthError(e.code));
     } on SocketException {
       isSending.value = false;
-      Get.snackbar('Network Error', 'No internet connection.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Network Error', 'No internet connection.');
     } on TimeoutException {
       isSending.value = false;
-      Get.snackbar('Timeout', 'Request timed out. Try again.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Timeout', 'Request timed out. Try again.');
     } catch (e) {
       isSending.value = false;
-      Get.snackbar('Error', 'Unexpected error: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Unexpected error: $e');
     }
   }
 

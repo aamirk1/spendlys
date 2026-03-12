@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/utils/utils.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/components/customAppBar.dart';
 import 'package:spendly/res/components/customBotton.dart';
@@ -213,14 +214,9 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               if (expectedReturnDate == null) {
-                Get.snackbar(
+                Utils.showSnackbar(
                   "Warning",
                   "Please select the expected return date.",
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.orange.shade100,
-                  colorText: Colors.orange.shade800,
-                  borderRadius: 10,
-                  margin: const EdgeInsets.all(15),
                 );
                 return;
               }

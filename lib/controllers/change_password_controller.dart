@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/utils/utils.dart';
 
 class ChangePasswordController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -77,23 +78,19 @@ class ChangePasswordController extends GetxController {
       });
 
       Get.back();
-      Get.snackbar("Success", "Password changed successfully!",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Success", "Password changed successfully!", isError: false);
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException caught: ${e.code} - ${e.message}");
       String errorMsg = _getFirebaseAuthError(e.code);
-      Get.snackbar("Error", errorMsg, snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", errorMsg);
     } on SocketException {
-      Get.snackbar(
-          "Network Error", "No internet connection. Please check your network.",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar(
+          "Network Error", "No internet connection. Please check your network.");
     } on TimeoutException {
-      Get.snackbar("Timeout", "Request timed out. Try again later.",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Timeout", "Request timed out. Try again later.");
     } catch (e) {
       print("Unexpected error: $e");
-      Get.snackbar("Error", "Unexpected error: $e",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", "Unexpected error: $e");
     } finally {
       isLoading.value = false;
     }

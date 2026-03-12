@@ -12,6 +12,7 @@ class RoutesName {
 // ----------------------------------------------------------------
   static const String expenseView = '/expense_view';
   static const String incomeView = '/income_view';
+  static const String incomeExpenseHome = '/income_expense_home';
   static const String viewAllExpenses = '/view_all_expenses';
   static const String categorywiseviewAllExpenses =
       '/categorywise_view_all_expenses';

@@ -6,6 +6,7 @@ import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/components/custom_button.dart';
 import 'package:uuid/uuid.dart';
+import 'package:spendly/utils/utils.dart';
 
 class SaveButton extends StatelessWidget {
   const SaveButton(
@@ -68,14 +69,9 @@ class SaveButton extends StatelessWidget {
           onPressed: () {
             if (formKey.currentState!.validate()) {
               if (expectedReturnDate == null) {
-                Get.snackbar(
+                Utils.showSnackbar(
                   "Warning",
                   "Please select the expected return date.",
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.orange.shade100,
-                  colorText: Colors.orange.shade800,
-                  borderRadius: 10,
-                  margin: const EdgeInsets.all(15),
                 );
                 return;
               }

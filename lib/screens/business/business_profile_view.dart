@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/utils/utils.dart';
 
 class BusinessProfileController extends GetxController {
   final nameController = TextEditingController();
@@ -16,7 +17,7 @@ class BusinessProfileController extends GetxController {
   void saveProfile() {
     // Logic to call API
     Get.back();
-    Get.snackbar("Success", "Business Profile Updated");
+    Utils.showSnackbar("Success", "Business Profile Updated", isError: false);
   }
 }
 

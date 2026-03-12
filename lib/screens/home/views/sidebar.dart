@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/controllers/sign_in_controller.dart';
+
 
 class SidebarController extends GetxController {
   var isExpanded = false.obs;
@@ -9,6 +11,8 @@ class SidebarController extends GetxController {
 
 class AnimatedSidebar extends StatelessWidget {
   final SidebarController controller = Get.put(SidebarController());
+  final SignInController signInController = Get.put(SignInController());
+
 
    AnimatedSidebar({super.key});
 
@@ -35,7 +39,8 @@ class AnimatedSidebar extends StatelessWidget {
               sidebarButton(Icons.business_center, "Business Center", onTap: () => Get.toNamed(RoutesName.businessHome)),
               sidebarButton(Icons.message, "Messages", onTap: () => Get.toNamed(RoutesName.chatListView)),
               sidebarButton(Icons.settings, "Settings", onTap: () {}),
-              sidebarButton(Icons.logout, "Logout", onTap: () {}),
+              sidebarButton(Icons.logout, "Logout", onTap: () => signInController.logout()),
+
             ],
           ),
         ));

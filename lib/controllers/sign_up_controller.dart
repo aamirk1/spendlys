@@ -13,6 +13,7 @@ import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
+import 'package:spendly/utils/utils.dart';
 
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -58,14 +59,12 @@ class SignUpController extends GetxController {
         emailController.text.isEmpty ||
         phoneNumberController.text.isEmpty ||
         passwordController.text.isEmpty) {
-      Get.snackbar('Error', 'Please fill all fields',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Please fill all fields');
       return;
     }
 
     if (!isPhoneNumberValid(phoneNumberController.text.trim())) {
-      Get.snackbar('Error', 'Phone number must be 10 digits.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Phone number must be 10 digits.');
       return;
     }
 
@@ -93,8 +92,8 @@ class SignUpController extends GetxController {
       }
     } catch (e) {
       signUpRequired.value = false;
-      Get.snackbar('Error', 'Failed to start registration: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      debugPrint('Signup Error: $e');
+      Utils.showSnackbar('Error', 'Failed to start registration: $e');
     }
   }
 
@@ -122,7 +121,7 @@ class SignUpController extends GetxController {
         if (otpController.text.length == 6) {
           verifyOtp(email, otpController.text);
         } else {
-          Get.snackbar('Error', 'Please enter a valid 6-digit OTP');
+          Utils.showSnackbar('Error', 'Please enter a valid 6-digit OTP');
         }
       },
       barrierDismissible: false,
@@ -143,25 +142,24 @@ class SignUpController extends GetxController {
       if (response.statusCode == 200) {
         // Step 3: Registration Complete on Backend
         // For Chat, we still use Firebase, so let's also create the user in Firebase for Chat module
-        await _completeFirebaseRegistration(
+        final myUser = await _completeFirebaseRegistration(
             email, passwordController.text.trim());
 
         Get.back(); // Close dialog
-        Get.snackbar('Success', 'Account verified successfully',
-            snackPosition: SnackPosition.BOTTOM);
-        Get.offAllNamed(RoutesName.onboardingView);
+        Utils.showSnackbar('Success', 'Account verified successfully', isError: false);
+        Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
       } else {
         throw Exception(response.data['detail'] ?? 'OTP verification failed');
       }
     } catch (e) {
       signUpRequired.value = false;
-      Get.snackbar('Error', 'Verification failed: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Verification failed: $e');
     }
   }
 
-  Future<void> _completeFirebaseRegistration(
+  Future<MyUser?> _completeFirebaseRegistration(
       String email, String password) async {
+    MyUser? myUser;
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -171,7 +169,7 @@ class SignUpController extends GetxController {
 
       User? user = userCredential.user;
       if (user != null) {
-        MyUser myUser = MyUser.empty.copyWith(
+        myUser = MyUser.empty.copyWith(
           userId: user.uid,
           phoneNumber: phoneNumberController.text.trim(),
           email: email,
@@ -187,6 +185,7 @@ class SignUpController extends GetxController {
         box.write("isLoggedIn", true);
         box.write("userId", myUser.userId);
         box.write("email", myUser.email);
+        box.write("name", myUser.name); // Also save name
 
         // Save credentials securely for future API calls
         await _secureStorage.saveCredentials(email, password);
@@ -196,6 +195,7 @@ class SignUpController extends GetxController {
       // Not failing the whole process as backend registration is the source of truth now
     }
     signUpRequired.value = false;
+    return myUser;
   }
 
   Future<void> setUserData(
@@ -211,17 +211,13 @@ class SignUpController extends GetxController {
         'createdAt': FieldValue.serverTimestamp(),
       }).timeout(const Duration(seconds: 10));
     } on FirebaseException catch (e) {
-      Get.snackbar('Error', 'Failed to save user data: ${e.message}',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Failed to save user data: ${e.message}');
     } on SocketException {
-      Get.snackbar('Network Error', 'No internet connection.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Network Error', 'No internet connection.');
     } on TimeoutException {
-      Get.snackbar('Timeout', 'Database request timed out.',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Timeout', 'Database request timed out.');
     } catch (e) {
-      Get.snackbar('Error', 'Unexpected error while saving user data: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar('Error', 'Unexpected error while saving user data: $e');
     }
   }
 

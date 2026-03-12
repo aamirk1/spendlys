@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/utils/colors.dart';
+import 'package:spendly/utils/utils.dart';
 
 class PaymentInputCard extends StatelessWidget {
   const PaymentInputCard({super.key, required this.controller, this.loanId});
@@ -44,28 +44,13 @@ class PaymentInputCard extends StatelessWidget {
                   if (paymentAmount != null && paymentAmount > 0) {
                     controller.updatePayment(loanId, paymentAmount).then((_) {
                       paymentController.clear();
-                      Get.snackbar("Success", "Payment recorded!",
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.green.shade100,
-                          colorText: Colors.green.shade800,
-                          borderRadius: 10,
-                          margin: const EdgeInsets.all(15));
+                      Utils.showSnackbar("Success", "Payment recorded!", isError: false);
                     });
                   } else {
-                    Get.snackbar("Error", "Invalid amount",
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red.shade100,
-                        colorText: Colors.red.shade800,
-                        borderRadius: 10,
-                        margin: const EdgeInsets.all(15));
+                    Utils.showSnackbar("Error", "Invalid amount");
                   }
                 } else if (loanId == null) {
-                  Get.snackbar("Error", "Loan ID is missing",
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.red.shade100,
-                      colorText: Colors.red.shade800,
-                      borderRadius: 10,
-                      margin: const EdgeInsets.all(15));
+                  Utils.showSnackbar("Error", "Loan ID is missing");
                 }
               },
               backgroundColor: AppColors.primary,

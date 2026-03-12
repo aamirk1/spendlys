@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/utils/utils.dart';
 
 class SignInController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -50,8 +51,7 @@ class SignInController extends GetxController {
 
   Future<void> signIn() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill in all fields",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", "Please fill in all fields");
       return;
     }
 
@@ -94,35 +94,29 @@ class SignInController extends GetxController {
       box.write("fcmToken", fcmToken);
 
       signInRequired.value = false;
-      Get.snackbar("Success", "Sign-in successful!",
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Success", "Sign-in successful!", isError: false);
 
       Get.offAllNamed(RoutesName.homeView, arguments: myUser);
     } on FirebaseAuthException catch (e) {
       signInRequired.value = false;
       errorMsg.value = _getFirebaseAuthError(e.code);
-      Get.snackbar("Error", errorMsg.value!,
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", errorMsg.value!);
     } on FirebaseException catch (e) {
       signInRequired.value = false;
       errorMsg.value = "Firestore error: ${e.message}";
-      Get.snackbar("Error", errorMsg.value!,
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", errorMsg.value!);
     } on SocketException {
       signInRequired.value = false;
       errorMsg.value = "No internet connection. Please check your network.";
-      Get.snackbar("Network Error", errorMsg.value!,
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Network Error", errorMsg.value!);
     } on TimeoutException {
       signInRequired.value = false;
       errorMsg.value = "Request timed out. Please try again later.";
-      Get.snackbar("Timeout", errorMsg.value!,
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Timeout", errorMsg.value!);
     } catch (e) {
       signInRequired.value = false;
       errorMsg.value = "Unexpected error: $e";
-      Get.snackbar("Error", errorMsg.value!,
-          snackPosition: SnackPosition.BOTTOM);
+      Utils.showSnackbar("Error", errorMsg.value!);
     }
   }
 
@@ -141,7 +135,8 @@ class SignInController extends GetxController {
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     GetStorage().erase();
-    Get.offAllNamed(RoutesName.welcomeView);
+    Get.deleteAll(force: true); // Dispose all controllers
+    Get.offAllNamed(RoutesName.loginView);
   }
 
   String _getFirebaseAuthError(String code) {
