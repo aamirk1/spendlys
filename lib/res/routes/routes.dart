@@ -9,6 +9,10 @@ import 'package:spendly/screens/home/views/profile_screens/notifications_screen.
 import 'package:spendly/screens/home/views/profile_screens/need_help_screen.dart';
 import 'package:spendly/screens/business/business_home_view.dart';
 import 'package:spendly/screens/business/business_profile_view.dart';
+import 'package:spendly/screens/business/customers_list.dart';
+import 'package:spendly/screens/business/create_invoice.dart';
+import 'package:spendly/screens/business/invoice_list.dart';
+import 'package:spendly/screens/business/create_quotation.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class AppRoutes {
@@ -126,9 +130,29 @@ class AppRoutes {
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
         GetPage(
+            name: RoutesName.customersList,
+            page: () => const CustomersListView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+        GetPage(
             name: RoutesName.incomeExpenseHome,
             page: () => const IncomeExpenseHome(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.createInvoice,
+            page: () => const CreateInvoiceView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.downToUp),
+        GetPage(
+            name: RoutesName.invoiceList,
+            page: () => const InvoiceListView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.createQuotation,
+            page: () => const CreateQuotationView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.downToUp),
       ];
 }

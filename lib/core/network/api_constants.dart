@@ -1,6 +1,6 @@
 class ApiConstants {
   static const String baseUrl =
-      'http://192.168.1.13:8000/api/v1'; // Use 10.0.2.2 for Android Emulator, localhost for iOS simulator
+      'https://dailybachatapi.serwex.in/api/v1'; // Use 10.0.2.2 for Android Emulator, localhost for iOS simulator
 
   // Auth
   static const String login = '/auth/login';
@@ -8,6 +8,8 @@ class ApiConstants {
   static const String registerVerify = '/auth/register/verify';
   static const String sendOtp = '/auth/otp/send';
   static const String verifyOtp = '/auth/otp/verify';
+  static const String syncUser = '/auth/sync';
+
 
   // Transactions
   static const String transactions = '/transactions';

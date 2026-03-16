@@ -42,8 +42,11 @@ dependencies:
   percent_indicator: ^4.2.5
   animations: ^2.0.11
   convert: ^3.1.2
+  fluttertoast: ^9.0.0
+  flutter_staggered_animations: ^1.1.1
   # flutter_local_notifications: 
-  # emoji_picker_flutter: ^4.3.0
+  emoji_picker_flutter: ^4.3.0
+  pinput: ^6.0.2
   # rive: 
   # shared_preferences: 
   # local_auth: ^2.3.0

@@ -13,6 +13,8 @@ import 'package:spendly/widgets/chat/business_message_card.dart';
 class MessageController extends GetxController {
   TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
+  FocusNode focusNode = FocusNode();
+  RxBool showEmoji = false.obs;
   
   RxList<DocumentSnapshot<ChatMessageModel>> localChats = <DocumentSnapshot<ChatMessageModel>>[].obs;
   
@@ -33,6 +35,12 @@ class MessageController extends GetxController {
     isConnected = Get.arguments['connected'] ?? true;
     senderId = Get.arguments['senderId'] ?? FirebaseAuth.instance.currentUser?.uid ?? "";
     
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        showEmoji.value = false;
+      }
+    });
+
     if (isConnected) {
       loadChats();
     }
@@ -43,7 +51,17 @@ class MessageController extends GetxController {
   void onClose() {
     messageController.dispose();
     scrollController.dispose();
+    focusNode.dispose();
     super.onClose();
+  }
+
+  void toggleEmoji() {
+    showEmoji.value = !showEmoji.value;
+    if (showEmoji.value) {
+      focusNode.unfocus();
+    } else {
+      focusNode.requestFocus();
+    }
   }
 
   void loadChats() {

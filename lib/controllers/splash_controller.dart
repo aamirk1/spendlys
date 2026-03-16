@@ -19,22 +19,26 @@ class SplashController extends GetxController {
   Future<void> _checkLoginStatus() async {
     await Future.delayed(const Duration(seconds: 5)); // Simulate splash delay
 
-    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
-      if (user != null) {
-        MyUser myUser = await _getUserData(user.uid); // Fetch user first
-        bool hasSeenOnboarding = box.read('hasSeenOnboarding') ?? false;
+    bool hasSeenOnboarding = box.read('hasSeenOnboarding') ?? false;
+    User? user = FirebaseAuth.instance.currentUser;
 
-        if (!hasSeenOnboarding) {
-          Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
-        } else {
-          Get.put(ExpenseController());
-          Get.put(IncomeController());
-          Get.offAllNamed(RoutesName.homeView, arguments: myUser);
-        }
+    if (!hasSeenOnboarding) {
+      if (user != null) {
+        MyUser myUser = await _getUserData(user.uid);
+        Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
+      } else {
+        Get.offAllNamed(RoutesName.onboardingView);
+      }
+    } else {
+      if (user != null) {
+        MyUser myUser = await _getUserData(user.uid);
+        Get.put(ExpenseController());
+        Get.put(IncomeController());
+        Get.offAllNamed(RoutesName.homeView, arguments: myUser);
       } else {
         Get.offAllNamed(RoutesName.welcomeView);
       }
-    });
+    }
   }
 
 // Helper function to convert User to MyUser

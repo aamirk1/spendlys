@@ -12,51 +12,70 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Form(
-        child: Obx(
-          () => Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 0.0),
+      child: Obx(
+        () => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.90,
-                child: MyTextField(
+              const SizedBox(height: 20),
+
+                const Text(
+                  'Create Account',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Join Spendly today and start tracking your expenses effortlessly.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                
+                _buildFieldLabel('Full Name'),
+                MyTextField(
                   controller: controller.nameController,
-                  hintText: 'Name',
+                  hintText: 'John Doe',
                   obscureText: false,
                   keyboardType: TextInputType.name,
-                  prefixIcon: const Icon(CupertinoIcons.person_fill),
+                  prefixIcon: const Icon(CupertinoIcons.person, size: 22),
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.90,
-                child: MyTextField(
-                  prefixIcon: const Icon(CupertinoIcons.phone_fill),
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('Mobile Number'),
+                MyTextField(
+                  prefixIcon: const Icon(CupertinoIcons.phone, size: 22),
                   controller: controller.phoneNumberController,
-                  hintText: 'Mobile',
+                  hintText: '10-digit mobile number',
                   obscureText: false,
                   keyboardType: TextInputType.phone,
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.90,
-                child: MyTextField(
-                  prefixIcon: const Icon(CupertinoIcons.mail_solid),
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('Email Address'),
+                MyTextField(
+                  prefixIcon: const Icon(CupertinoIcons.mail, size: 22),
                   controller: controller.emailController,
-                  hintText: 'Email',
+                  hintText: 'example@mail.com',
                   obscureText: false,
                   keyboardType: TextInputType.emailAddress,
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.90,
-                child: MyTextField(
+                const SizedBox(height: 20),
+
+                _buildFieldLabel('Password'),
+                MyTextField(
                   controller: controller.passwordController,
-                  prefixIcon: const Icon(CupertinoIcons.lock_fill),
-                  hintText: 'Password',
+                  prefixIcon: const Icon(CupertinoIcons.lock, size: 22),
+                  hintText: 'create a strong password',
                   obscureText: controller.obscurePassword.value,
                   keyboardType: TextInputType.visiblePassword,
                   onChanged: (val) {
@@ -65,71 +84,78 @@ class SignUpScreen extends StatelessWidget {
                   },
                   suffixIcon: IconButton(
                     onPressed: controller.togglePasswordVisibility,
-                    icon: Icon(controller.obscurePassword.value
-                        ? CupertinoIcons.eye_fill
-                        : CupertinoIcons.eye_slash_fill),
+                    icon: Icon(
+                      controller.obscurePassword.value
+                          ? CupertinoIcons.eye
+                          : CupertinoIcons.eye_slash,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildPasswordRequirement(
-                          '1 uppercase', controller.containsUpperCase.value),
-                      _buildPasswordRequirement(
-                          '1 lowercase', controller.containsLowerCase.value),
-                      _buildPasswordRequirement(
-                          '1 number', controller.containsNumber.value),
-                    ],
+                const SizedBox(height: 16),
+                
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade100),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Column(
                     children: [
-                      _buildPasswordRequirement('1 special character',
-                          controller.containsSpecialChar.value),
-                      _buildPasswordRequirement('8 characters minimum',
-                          controller.contains8Length.value),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              controller.signUpRequired.value
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.5,
-                      child: CustomButton(
-                        text: 'Sign Up',
-                        onPressed: controller.signUp,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        isLoading: controller.signUpRequired.value,
-                      )
-
-                      // TextButton(
-                      //   onPressed: controller.signUp,
-                      //   style: TextButton.styleFrom(
-                      //     elevation: 3.0,
-                      //     backgroundColor:
-                      //         Theme.of(context).colorScheme.primary,
-                      //     foregroundColor: Colors.white,
-                      //     shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(60)),
-                      //   ),
-                      //   child: const Padding(
-                      //     padding:
-                      //         EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                      //     child: Text(
-                      //       'Sign Up',
-                      //       style: TextStyle(
-                      //           fontSize: 16, fontWeight: FontWeight.w600),
-                      //     ),
-                      //   ),
-                      // ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildPasswordRequirement('Uppercase', controller.containsUpperCase.value)),
+                          Expanded(child: _buildPasswordRequirement('Lowercase', controller.containsLowerCase.value)),
+                        ],
                       ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(child: _buildPasswordRequirement('1 Number', controller.containsNumber.value)),
+                          Expanded(child: _buildPasswordRequirement('Special Char', controller.containsSpecialChar.value)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildPasswordRequirement('8 characters minimum', controller.contains8Length.value),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: CustomButton(
+                    text: 'Create Account',
+                    onPressed: controller.signUp,
+                    backgroundColor: const Color(0xFF00B2E7),
+                    isLoading: controller.signUpRequired.value,
+                    borderRadius: 16,
+                    fontSize: 18,
+                    elevation: 0,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      children: [
+                        const TextSpan(text: 'Already have an account? '),
+                        TextSpan(
+                          text: 'Log In',
+                          style: const TextStyle(
+                            color: Color(0xFF00B2E7),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
             ],
           ),
         ),
@@ -137,10 +163,39 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
+
+  Widget _buildFieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF4A4A4A),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPasswordRequirement(String text, bool isValid) {
-    return Text(
-      '⚈  $text',
-      style: TextStyle(color: isValid ? Colors.green : Colors.grey),
+    return Row(
+      children: [
+        Icon(
+          isValid ? Icons.check_circle_rounded : Icons.circle_outlined,
+          size: 16,
+          color: isValid ? Colors.green : Colors.grey.shade400,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            color: isValid ? Colors.green.shade700 : Colors.grey.shade600,
+            fontWeight: isValid ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }

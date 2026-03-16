@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -10,14 +11,17 @@ class OnboardingController extends GetxController {
   final box = GetStorage();
 
   void nextPage(MyUser myUser) {
-    // Make myUser nullable
     if (currentIndex.value < 2) {
       pageController.nextPage(
           duration: Duration(milliseconds: 500), curve: Curves.ease);
     } else {
       box.write('hasSeenOnboarding', true); // Mark onboarding as seen
-      Get.offAllNamed(RoutesName.homeView,
-          arguments: myUser); // Modified: Passing MyUser instead of User
+      if (FirebaseAuth.instance.currentUser != null &&
+          myUser.userId.isNotEmpty) {
+        Get.offAllNamed(RoutesName.homeView, arguments: myUser);
+      } else {
+        Get.offAllNamed(RoutesName.welcomeView);
+      }
     }
   }
 }

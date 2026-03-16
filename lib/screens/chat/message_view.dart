@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/chat/message_controller.dart';
@@ -10,35 +11,46 @@ class MessageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(MessageController());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (controller.showEmoji.value) {
+          controller.showEmoji.value = false;
+        } else {
+          Get.back();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(controller.chatConnectionModel.title),
+              Obx(() => Text(
+                controller.isActive.value ? "Online" : "Offline",
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              )),
+            ],
+          ),
+        ),
+        body: Column(
           children: [
-            Text(controller.chatConnectionModel.title),
-            Obx(() => Text(
-              controller.isActive.value ? "Online" : "Offline",
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-            )),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                controller: controller.scrollController,
+                reverse: true,
+                padding: const EdgeInsets.all(16),
+                itemCount: controller.localChats.length,
+                itemBuilder: (context, index) {
+                  final message = controller.localChats[index].data()!;
+                  return controller.buildMessageBubble(message, index);
+                },
+              )),
+            ),
+            _buildInputArea(controller),
           ],
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Obx(() => ListView.builder(
-              controller: controller.scrollController,
-              reverse: true,
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.localChats.length,
-              itemBuilder: (context, index) {
-                final message = controller.localChats[index].data()!;
-                return controller.buildMessageBubble(message, index);
-              },
-            )),
-          ),
-          _buildInputArea(controller),
-        ],
       ),
     );
   }
@@ -78,15 +90,26 @@ class MessageView extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller.messageController,
+                  focusNode: controller.focusNode,
                   decoration: InputDecoration(
                     hintText: "Type a message...",
+                    prefixIcon: IconButton(
+                      onPressed: controller.toggleEmoji,
+                      icon: Obx(() => Icon(
+                            controller.showEmoji.value
+                                ? Icons.keyboard
+                                : Icons.emoji_emotions_outlined,
+                            color: Colors.grey,
+                          )),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: Colors.grey.shade100,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   maxLines: 5,
                   minLines: 1,
@@ -99,6 +122,40 @@ class MessageView extends StatelessWidget {
               ),
             ],
           ),
+          Obx(() => Offstage(
+                offstage: !controller.showEmoji.value,
+                child: SizedBox(
+                  height: 250,
+                  child: EmojiPicker(
+                    textEditingController: controller.messageController,
+                    config: Config(
+                      height: 250,
+                      emojiViewConfig: EmojiViewConfig(
+                        columns: 7,
+                        emojiSizeMax: 32 * (GetPlatform.isIOS ? 1.30 : 1.0),
+                        verticalSpacing: 0,
+                        horizontalSpacing: 0,
+                        gridPadding: EdgeInsets.zero,
+                        buttonMode: ButtonMode.MATERIAL,
+                      ),
+                      categoryViewConfig: CategoryViewConfig(
+                        initCategory: Category.RECENT,
+                        backgroundColor: const Color(0xFFF2F2F2),
+                        indicatorColor: Colors.blue,
+                        iconColor: Colors.grey,
+                        iconColorSelected: Colors.blue,
+                        backspaceColor: Colors.blue,
+                        categoryIcons: const CategoryIcons(),
+                      ),
+                      skinToneConfig: const SkinToneConfig(
+                        enabled: true,
+                        indicatorColor: Colors.grey,
+                        dialogBackgroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              )),
         ],
       ),
     );
