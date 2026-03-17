@@ -7,24 +7,10 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/screens/business/create_quotation.dart';
+import 'package:spendly/screens/business/quotation_list.dart';
 
-class QuotationItem {
-  String description;
-  double quantity;
-  double unitPrice;
-  double get amount => quantity * unitPrice;
-
-  QuotationItem({required this.description, required this.quantity, required this.unitPrice});
-
-  Map<String, dynamic> toJson() => {
-    "description": description,
-    "quantity": quantity,
-    "unit_price": unitPrice,
-    "amount": amount
-  };
-}
-
-class CreateQuotationController extends GetxController {
+class EditQuotationController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
@@ -37,11 +23,25 @@ class CreateQuotationController extends GetxController {
   
   final taxPercent = 0.0.obs;
   final isLoading = false.obs;
+  
+  late String quotationId;
 
-  @override
-  void onInit() {
-    super.onInit();
-    quotationNumberController.text = "QT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
+  void initData(Map<String, dynamic> quot) {
+    quotationId = quot['id'];
+    quotationNumberController.text = quot['quotation_number'] ?? "";
+    selectedCustomerId.value = quot['customer_id']?.toString();
+    taxPercent.value = (quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100;
+    
+    final List quotItems = quot['items'] ?? [];
+    items.clear();
+    for (var it in quotItems) {
+      items.add(QuotationItem(
+        description: it['description'] ?? "",
+        quantity: (it['quantity'] ?? 1.0).toDouble(),
+        unitPrice: (it['unit_price'] ?? 0.0).toDouble()
+      ));
+    }
+    advanceAmountController.text = (quot['advance_amount'] ?? 0.0).toString();
     fetchCustomers();
   }
 
@@ -67,14 +67,14 @@ class CreateQuotationController extends GetxController {
   }
   void removeItem(int index) => items.removeAt(index);
 
-  Future<void> createQuotation() async {
+  Future<void> updateQuotation() async {
     if (!formKey.currentState!.validate()) return;
     if (selectedCustomerId.value == null) {
       Utils.showSnackbar("Required", "Please select a customer");
       return;
     }
     if (items.isEmpty) {
-      Utils.showSnackbar("Required", "Please add at least one item to the quotation");
+      Utils.showSnackbar("Required", "Please add at least one item");
       return;
     }
 
@@ -93,36 +93,42 @@ class CreateQuotationController extends GetxController {
         "items": items.map((i) => i.toJson()).toList()
       };
 
-      final response = await ApiService.post(
-        '/business/quotations',
+      final response = await ApiService.put(
+        '/business/quotations/$quotationId',
         headers: {'Content-Type': 'application/json', 'x-user-id': userId},
         body: payload
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Quotation Generated Successfully!", isError: false);
-        Get.back(); // return to previous screen
+      if (response.statusCode == 200) {
+        Utils.showSnackbar("Success", "Quotation Updated Successfully!", isError: false);
+        if (Get.isRegistered<QuotationListController>()) {
+          Get.find<QuotationListController>().fetchQuotations();
+        }
+        Get.back(); // back to detail
+        Get.back(); // back to list (to refresh data)
       } else {
-        Utils.showSnackbar("Error", "Failed to generate quotation: ${response.body}");
+        Utils.showSnackbar("Error", "Failed to update: ${response.body}");
       }
     } catch (e) {
-      Utils.showSnackbar("Error", "Exception generating quotation: $e");
+      Utils.showSnackbar("Error", "Exception updating quotation: $e");
     } finally {
       isLoading.value = false;
     }
   }
 }
 
-class CreateQuotationView extends StatelessWidget {
-  const CreateQuotationView({super.key});
+class EditQuotationView extends StatelessWidget {
+  const EditQuotationView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CreateQuotationController());
+    final Map<String, dynamic> quot = Get.arguments;
+    final controller = Get.put(EditQuotationController());
+    controller.initData(quot);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New Quotation", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Edit Quotation", style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
@@ -199,22 +205,7 @@ class CreateQuotationView extends StatelessWidget {
                             ],
                           ),
                           if (controller.items.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(30),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.teal.withOpacity(0.3), width: 1, style: BorderStyle.none),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.category_outlined, size: 50, color: Colors.teal.shade300),
-                                  const SizedBox(height: 10),
-                                  const Text("No items added.", style: TextStyle(color: Colors.black54)),
-                                ],
-                              ),
-                            )
+                            const Center(child: Text("No items added."))
                           else
                             ...controller.items.asMap().entries.map((entry) {
                               int idx = entry.key;
@@ -281,14 +272,12 @@ class CreateQuotationView extends StatelessWidget {
                             width: double.infinity,
                             height: 55,
                             child: ElevatedButton(
-                              onPressed: controller.isLoading.value ? null : controller.createQuotation,
+                              onPressed: controller.isLoading.value ? null : controller.updateQuotation,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.teal.shade500,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                                elevation: 8,
-                                shadowColor: Colors.teal.withOpacity(0.4),
                               ),
-                              child: const Text("GENERATE QUOTATION", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                              child: const Text("SAVE CHANGES", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -298,7 +287,7 @@ class CreateQuotationView extends StatelessWidget {
                 ),
               ),
               if (controller.isLoading.value)
-                const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.teal))),
+                const Center(child: CircularProgressIndicator()),
             ],
           )),
         ),
@@ -310,7 +299,7 @@ class CreateQuotationView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: isTotal ? 18 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: isTotal ? Colors.black87 : Colors.black54)),
+        Text(label, style: TextStyle(fontSize: isTotal ? 18 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
         Text("₹${amount.toStringAsFixed(2)}", style: TextStyle(fontSize: isTotal ? 20 : 16, fontWeight: FontWeight.bold, color: isTotal ? Colors.teal.shade700 : Colors.black87)),
       ],
     );
@@ -319,15 +308,7 @@ class CreateQuotationView extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, left: 4.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Colors.teal.shade800,
-          letterSpacing: 0.5,
-        ),
-      ),
+      child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.teal.shade800)),
     );
   }
 
@@ -335,9 +316,9 @@ class CreateQuotationView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.teal.withOpacity(0.08), blurRadius: 20, spreadRadius: 2, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: Colors.teal.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 8))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
@@ -347,14 +328,11 @@ class CreateQuotationView extends StatelessWidget {
     return InputDecoration(
       labelText: hint,
       prefixIcon: Icon(icon, color: Colors.teal.shade600),
-      filled: true,
-      fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.teal.shade600, width: 2)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
     );
   }
 
-  void _showAddItemSheet(BuildContext context, CreateQuotationController controller) {
+  void _showAddItemSheet(BuildContext context, EditQuotationController controller) {
     final tDesc = TextEditingController();
     final tQty = TextEditingController(text: "1");
     final tPrice = TextEditingController();
@@ -371,37 +349,16 @@ class CreateQuotationView extends StatelessWidget {
           key: k,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("Add Item", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: tDesc,
-                validator: (v) => Validators.requiredField(v, "Description"),
-                decoration: _inputDeco("Item Description", Icons.edit),
-              ),
+              TextFormField(controller: tDesc, validator: (v) => Validators.requiredField(v, "Description"), decoration: _inputDeco("Description", Icons.edit)),
               const SizedBox(height: 15),
               Row(
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: tQty,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                      validator: (v) => Validators.requiredField(v, "Qty"),
-                      decoration: _inputDeco("Qty", Icons.numbers),
-                    ),
-                  ),
+                  Expanded(child: TextFormField(controller: tQty, keyboardType: TextInputType.number, decoration: _inputDeco("Qty", Icons.numbers))),
                   const SizedBox(width: 15),
-                  Expanded(
-                    child: TextFormField(
-                      controller: tPrice,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                      validator: (v) => Validators.requiredField(v, "Price"),
-                      decoration: _inputDeco("Unit Price (₹)", Icons.currency_rupee),
-                    ),
-                  ),
+                  Expanded(child: TextFormField(controller: tPrice, keyboardType: TextInputType.number, decoration: _inputDeco("Price", Icons.currency_rupee))),
                 ],
               ),
               const SizedBox(height: 30),
@@ -411,26 +368,19 @@ class CreateQuotationView extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     if (k.currentState!.validate()) {
-                      controller.addItem(
-                        tDesc.text.trim(),
-                        double.parse(tQty.text.trim()),
-                        double.parse(tPrice.text.trim())
-                      );
+                      controller.addItem(tDesc.text.trim(), double.parse(tQty.text.trim()), double.parse(tPrice.text.trim()));
                       Get.back();
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade500,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: const Text("ADD TO QUOTATION", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade500),
+                  child: const Text("ADD ITEM", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 20),
             ],
           ),
         ),
-      )
+      ),
     );
   }
 }

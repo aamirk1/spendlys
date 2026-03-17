@@ -13,6 +13,11 @@ import 'package:spendly/screens/business/customers_list.dart';
 import 'package:spendly/screens/business/create_invoice.dart';
 import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/screens/business/create_quotation.dart';
+import 'package:spendly/screens/business/quotation_list.dart';
+import 'package:spendly/screens/business/quotation_detail.dart';
+import 'package:spendly/screens/business/invoice_detail.dart';
+import 'package:spendly/screens/business/edit_invoice.dart';
+import 'package:spendly/screens/business/edit_quotation.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class AppRoutes {
@@ -150,9 +155,34 @@ class AppRoutes {
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
         GetPage(
+            name: RoutesName.editInvoice,
+            page: () => const EditInvoiceView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.rightToLeftWithFade),
+        GetPage(
             name: RoutesName.createQuotation,
             page: () => const CreateQuotationView(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.downToUp),
+        GetPage(
+            name: RoutesName.quotationList,
+            page: () => const QuotationListView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.editQuotation,
+            page: () => const EditQuotationView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.rightToLeftWithFade),
+        GetPage(
+            name: RoutesName.viewQuotation,
+            page: () => const QuotationDetailView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.rightToLeftWithFade),
+        GetPage(
+            name: RoutesName.viewInvoice,
+            page: () => const InvoiceDetailView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.rightToLeftWithFade),
       ];
 }

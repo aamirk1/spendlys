@@ -8,29 +8,29 @@ import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
-class InvoiceListController extends GetxController {
+class QuotationListController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final invoices = [].obs;
+  final quotations = [].obs;
   final isLoading = true.obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchInvoices();
+    fetchQuotations();
   }
 
-  Future<void> fetchInvoices() async {
+  Future<void> fetchQuotations() async {
     String? userId = _auth.currentUser?.uid;
     if (userId == null) return;
     
     isLoading.value = true;
     try {
-      final response = await ApiService.get('/business/invoices', headers: {'x-user-id': userId});
+      final response = await ApiService.get('/business/quotations', headers: {'x-user-id': userId});
       if (response.statusCode == 200) {
-        invoices.value = jsonDecode(response.body);
+        quotations.value = jsonDecode(response.body);
       }
     } catch (e) {
-      Utils.showSnackbar("Error", "Failed to load invoices: $e");
+      Utils.showSnackbar("Error", "Failed to load quotations: $e");
     } finally {
       isLoading.value = false;
     }
@@ -38,13 +38,13 @@ class InvoiceListController extends GetxController {
 
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'paid':
-        return Colors.green;
-      case 'partially_paid':
+      case 'converted':
         return Colors.blue;
-      case 'pending':
+      case 'sent':
+        return Colors.green;
+      case 'draft':
         return Colors.orange;
-      case 'overdue':
+      case 'expired':
         return Colors.red;
       default:
         return Colors.grey;
@@ -52,16 +52,16 @@ class InvoiceListController extends GetxController {
   }
 }
 
-class InvoiceListView extends StatelessWidget {
-  const InvoiceListView({super.key});
+class QuotationListView extends StatelessWidget {
+  const QuotationListView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(InvoiceListController());
+    final controller = Get.put(QuotationListController());
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Invoice History", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Quotation History", style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
@@ -72,7 +72,7 @@ class InvoiceListView extends StatelessWidget {
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+            colors: [Color(0xFFE0F7FA), Color(0xFFB2EBF2)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -80,16 +80,16 @@ class InvoiceListView extends StatelessWidget {
         child: SafeArea(
           child: Obx(() {
             if (controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator(color: Colors.orange));
+              return const Center(child: CircularProgressIndicator(color: Colors.cyan));
             }
-            if (controller.invoices.isEmpty) {
+            if (controller.quotations.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.receipt_long_rounded, size: 80, color: Colors.orange.withOpacity(0.5)),
+                    Icon(Icons.request_quote_rounded, size: 80, color: Colors.cyan.withOpacity(0.5)),
                     const SizedBox(height: 20),
-                    const Text("No invoices generated yet.", style: TextStyle(fontSize: 18, color: Colors.black54)),
+                    const Text("No quotations generated yet.", style: TextStyle(fontSize: 18, color: Colors.black54)),
                   ],
                 ),
               );
@@ -98,13 +98,13 @@ class InvoiceListView extends StatelessWidget {
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10).copyWith(bottom: 20),
                 physics: const BouncingScrollPhysics(),
-                itemCount: controller.invoices.length,
+                itemCount: controller.quotations.length,
                 itemBuilder: (context, index) {
-                  final inv = controller.invoices[index];
+                  final quot = controller.quotations[index];
                   String dateFormatted = "Unknown";
-                  if (inv['date'] != null) {
+                  if (quot['date'] != null) {
                     try {
-                      dateFormatted = DateFormat('dd MMM yyyy').format(DateTime.parse(inv['date']));
+                      dateFormatted = DateFormat('dd MMM yyyy').format(DateTime.parse(quot['date']));
                     } catch (e) {}
                   }
 
@@ -116,7 +116,7 @@ class InvoiceListView extends StatelessWidget {
                       child: FadeInAnimation(
                         child: GestureDetector(
                           onTap: () {
-                            Get.toNamed(RoutesName.viewInvoice, arguments: inv);
+                            Get.toNamed(RoutesName.viewQuotation, arguments: quot);
                           },
                           child: Container(
                             margin: const EdgeInsets.only(bottom: 15),
@@ -125,7 +125,7 @@ class InvoiceListView extends StatelessWidget {
                               color: Colors.white.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
-                                BoxShadow(color: Colors.orange.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 8))
+                                BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 8))
                               ],
                             ),
                             child: Column(
@@ -135,21 +135,21 @@ class InvoiceListView extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      inv['invoice_number'] ?? '#INV-???',
+                                      quot['quotation_number'] ?? '#QUO-???',
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey),
                                     ),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: controller.getStatusColor(inv['status'] ?? 'pending').withOpacity(0.1),
+                                        color: controller.getStatusColor(quot['status'] ?? 'draft').withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
-                                        (inv['status'] ?? 'pending').toString().toUpperCase().replaceAll('_', ' '),
+                                        (quot['status'] ?? 'draft').toUpperCase(),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: controller.getStatusColor(inv['status'] ?? 'pending'),
+                                          color: controller.getStatusColor(quot['status'] ?? 'draft'),
                                         ),
                                       ),
                                     )
@@ -169,16 +169,11 @@ class InvoiceListView extends StatelessWidget {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        Text("Amount", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                        Text("Total Amount", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                                         Text(
-                                          "₹${inv['total'] ?? '0.00'}",
+                                          "₹${quot['total'] ?? '0.00'}",
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
                                         ),
-                                        if ((inv['paid_amount'] ?? 0.0) > 0 && inv['status'] != 'paid')
-                                          Text(
-                                            "Paid: ₹${inv['paid_amount']}",
-                                            style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
-                                          ),
                                       ],
                                     )
                                   ],

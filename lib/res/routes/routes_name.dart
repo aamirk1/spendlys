@@ -40,5 +40,9 @@ class RoutesName {
   static const String invoiceList = '/invoice_list';
   static const String createInvoice = '/create_invoice';
   static const String viewInvoice = '/view_invoice';
+  static const String editInvoice = '/edit_invoice';
   static const String createQuotation = '/create_quotation';
+  static const String quotationList = '/quotation_list';
+  static const String viewQuotation = '/view_quotation';
+  static const String editQuotation = '/edit_quotation';
 }

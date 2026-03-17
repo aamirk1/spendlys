@@ -156,6 +156,7 @@ class BusinessHomeView extends StatelessWidget {
       children: [
         _luxuryListTile(Icons.group_rounded, "Customers", "Clients & Ledgers", Colors.indigo, () => Get.toNamed(RoutesName.customersList)),
         _luxuryListTile(Icons.history_rounded, "Invoice History", "Past transactions", Colors.deepPurple, () => Get.toNamed(RoutesName.invoiceList)),
+        _luxuryListTile(Icons.request_quote_outlined, "Quotation History", "View past quotes", Colors.teal, () => Get.toNamed(RoutesName.quotationList)),
         _luxuryListTile(Icons.settings_suggest_rounded, "Business Profile", "Account settings", Colors.blueGrey, () => Get.toNamed(RoutesName.businessProfile)),
       ],
     );

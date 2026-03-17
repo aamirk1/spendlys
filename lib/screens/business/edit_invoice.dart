@@ -7,24 +7,10 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/screens/business/invoice_list.dart';
+import 'package:spendly/screens/business/create_quotation.dart' show QuotationItem;
 
-class QuotationItem {
-  String description;
-  double quantity;
-  double unitPrice;
-  double get amount => quantity * unitPrice;
-
-  QuotationItem({required this.description, required this.quantity, required this.unitPrice});
-
-  Map<String, dynamic> toJson() => {
-    "description": description,
-    "quantity": quantity,
-    "unit_price": unitPrice,
-    "amount": amount
-  };
-}
-
-class CreateQuotationController extends GetxController {
+class EditInvoiceController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
@@ -32,16 +18,33 @@ class CreateQuotationController extends GetxController {
   final items = <QuotationItem>[].obs;
   
   final selectedCustomerId = Rxn<String>();
-  final quotationNumberController = TextEditingController();
-  final advanceAmountController = TextEditingController(text: "0.0");
+  final invoiceNumberController = TextEditingController();
+  final dueDateController = TextEditingController();
   
   final taxPercent = 0.0.obs;
   final isLoading = false.obs;
+  
+  late String invoiceId;
 
-  @override
-  void onInit() {
-    super.onInit();
-    quotationNumberController.text = "QT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
+  void initData(Map<String, dynamic> inv) {
+    invoiceId = inv['id'];
+    invoiceNumberController.text = inv['invoice_number'] ?? "";
+    selectedCustomerId.value = inv['customer_id']?.toString();
+    taxPercent.value = (inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100;
+    
+    if (inv['due_date'] != null) {
+      dueDateController.text = inv['due_date'].toString().split(" ")[0];
+    }
+    
+    final List invItems = inv['items'] ?? [];
+    items.clear();
+    for (var it in invItems) {
+      items.add(QuotationItem(
+        description: it['description'] ?? "",
+        quantity: (it['quantity'] ?? 1.0).toDouble(),
+        unitPrice: (it['unit_price'] ?? 0.0).toDouble()
+      ));
+    }
     fetchCustomers();
   }
 
@@ -67,14 +70,14 @@ class CreateQuotationController extends GetxController {
   }
   void removeItem(int index) => items.removeAt(index);
 
-  Future<void> createQuotation() async {
+  Future<void> updateInvoice() async {
     if (!formKey.currentState!.validate()) return;
     if (selectedCustomerId.value == null) {
       Utils.showSnackbar("Required", "Please select a customer");
       return;
     }
     if (items.isEmpty) {
-      Utils.showSnackbar("Required", "Please add at least one item to the quotation");
+      Utils.showSnackbar("Required", "Please add at least one item");
       return;
     }
 
@@ -85,44 +88,51 @@ class CreateQuotationController extends GetxController {
     try {
       final payload = {
         "customer_id": selectedCustomerId.value,
-        "quotation_number": quotationNumberController.text.trim(),
+        "invoice_number": invoiceNumberController.text.trim(),
+        "due_date": dueDateController.text.isNotEmpty ? dueDateController.text : null,
         "subtotal": subtotal,
         "tax": calculatedTax,
         "total": total,
-        "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
+        "status": "pending", // Keep status as pending or use existing
         "items": items.map((i) => i.toJson()).toList()
       };
 
-      final response = await ApiService.post(
-        '/business/quotations',
+      final response = await ApiService.put(
+        '/business/invoices/$invoiceId',
         headers: {'Content-Type': 'application/json', 'x-user-id': userId},
         body: payload
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Quotation Generated Successfully!", isError: false);
-        Get.back(); // return to previous screen
+      if (response.statusCode == 200) {
+        Utils.showSnackbar("Success", "Invoice Updated Successfully!", isError: false);
+        if (Get.isRegistered<InvoiceListController>()) {
+          Get.find<InvoiceListController>().fetchInvoices();
+        }
+        Get.back(); // back to detail
+        Get.back(); // back to list
       } else {
-        Utils.showSnackbar("Error", "Failed to generate quotation: ${response.body}");
+        Utils.showSnackbar("Error", "Failed to update: ${response.body}");
       }
     } catch (e) {
-      Utils.showSnackbar("Error", "Exception generating quotation: $e");
+      Utils.showSnackbar("Error", "Exception updating invoice: $e");
     } finally {
       isLoading.value = false;
     }
   }
 }
 
-class CreateQuotationView extends StatelessWidget {
-  const CreateQuotationView({super.key});
+class EditInvoiceView extends StatelessWidget {
+  const EditInvoiceView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CreateQuotationController());
+    final Map<String, dynamic> inv = Get.arguments;
+    final controller = Get.put(EditInvoiceController());
+    controller.initData(inv);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New Quotation", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Edit Invoice", style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
@@ -133,7 +143,7 @@ class CreateQuotationView extends StatelessWidget {
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE0F7FA), Color(0xFFB2EBF2)],
+            colors: [Color(0xFFE8EAF6), Color(0xFFC5CAE9)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           )
@@ -156,13 +166,13 @@ class CreateQuotationView extends StatelessWidget {
                           child: FadeInAnimation(child: widget),
                         ),
                         children: [
-                          _buildSectionTitle("Quotation Info"),
+                          _buildSectionTitle("Invoice Info"),
                           _buildCard(
                             children: [
                               TextFormField(
-                                controller: controller.quotationNumberController,
-                                validator: (v) => Validators.requiredField(v, "Quote #"),
-                                decoration: _inputDeco("Quotation Number", Icons.request_quote_rounded),
+                                controller: controller.invoiceNumberController,
+                                validator: (v) => Validators.requiredField(v, "Invoice #"),
+                                decoration: _inputDeco("Invoice Number", Icons.receipt_long),
                               ),
                               const SizedBox(height: 15),
                               DropdownButtonFormField<String>(
@@ -171,18 +181,26 @@ class CreateQuotationView extends StatelessWidget {
                                 items: controller.customers.map((c) {
                                   return DropdownMenuItem<String>(
                                     value: c['id'].toString(),
-                                    child: Text(c['name'] ?? 'Unknown Customer', style: const TextStyle(fontSize: 15)),
+                                    child: Text(c['name'] ?? 'Unknown', style: const TextStyle(fontSize: 15)),
                                   );
                                 }).toList(),
                                 onChanged: (val) => controller.selectedCustomerId.value = val,
-                                validator: (v) => v == null ? 'Customer required' : null,
+                                validator: (v) => v == null ? 'Required' : null,
                               ),
                               const SizedBox(height: 15),
                               TextFormField(
-                                controller: controller.advanceAmountController,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                                decoration: _inputDeco("Advance Amount (₹)", Icons.payments_outlined),
+                                controller: controller.dueDateController,
+                                readOnly: true,
+                                onTap: () async {
+                                  DateTime? d = await showDatePicker(
+                                    context: context, 
+                                    initialDate: DateTime.now(), 
+                                    firstDate: DateTime.now(), 
+                                    lastDate: DateTime.now().add(const Duration(days: 365))
+                                  );
+                                  if (d!=null) controller.dueDateController.text = d.toString().split(" ")[0];
+                                },
+                                decoration: _inputDeco("Due Date", Icons.calendar_today),
                               ),
                             ]
                           ),
@@ -190,35 +208,20 @@ class CreateQuotationView extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildSectionTitle("Quotation Items"),
+                              _buildSectionTitle("Invoice Items"),
                               TextButton.icon(
                                 onPressed: () => _showAddItemSheet(context, controller),
-                                icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
-                                label: const Text("Add Item", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+                                icon: const Icon(Icons.add_circle_outline, color: Colors.indigo),
+                                label: const Text("Add Item", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold)),
                               )
                             ],
                           ),
                           if (controller.items.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(30),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.teal.withOpacity(0.3), width: 1, style: BorderStyle.none),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.category_outlined, size: 50, color: Colors.teal.shade300),
-                                  const SizedBox(height: 10),
-                                  const Text("No items added.", style: TextStyle(color: Colors.black54)),
-                                ],
-                              ),
-                            )
+                            const Center(child: Text("No items added."))
                           else
                             ...controller.items.asMap().entries.map((entry) {
                               int idx = entry.key;
-                              QuotationItem item = entry.value;
+                              var item = entry.value;
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 padding: const EdgeInsets.all(15),
@@ -239,7 +242,7 @@ class CreateQuotationView extends StatelessWidget {
                                         ],
                                       ),
                                     ),
-                                    Text("₹${item.amount.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.teal)),
+                                    Text("₹${item.amount.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo)),
                                     IconButton(
                                       icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
                                       onPressed: () => controller.removeItem(idx),
@@ -264,7 +267,7 @@ class CreateQuotationView extends StatelessWidget {
                                       min: 0,
                                       max: 28,
                                       divisions: 28,
-                                      activeColor: Colors.teal,
+                                      activeColor: Colors.indigo,
                                       label: "${controller.taxPercent.value.toInt()}%",
                                       onChanged: (v) => controller.taxPercent.value = v,
                                     ),
@@ -273,7 +276,7 @@ class CreateQuotationView extends StatelessWidget {
                                 ],
                               ),
                               const Divider(height: 30),
-                              _summaryRow("Estimated Total", controller.total, isTotal: true),
+                              _summaryRow("Grand Total", controller.total, isTotal: true),
                             ],
                           ),
                           const SizedBox(height: 40),
@@ -281,14 +284,12 @@ class CreateQuotationView extends StatelessWidget {
                             width: double.infinity,
                             height: 55,
                             child: ElevatedButton(
-                              onPressed: controller.isLoading.value ? null : controller.createQuotation,
+                              onPressed: controller.isLoading.value ? null : controller.updateInvoice,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal.shade500,
+                                backgroundColor: Colors.indigo.shade500,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                                elevation: 8,
-                                shadowColor: Colors.teal.withOpacity(0.4),
                               ),
-                              child: const Text("GENERATE QUOTATION", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                              child: const Text("UPDATE INVOICE", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -298,7 +299,7 @@ class CreateQuotationView extends StatelessWidget {
                 ),
               ),
               if (controller.isLoading.value)
-                const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.teal))),
+                const Center(child: CircularProgressIndicator()),
             ],
           )),
         ),
@@ -310,8 +311,8 @@ class CreateQuotationView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: isTotal ? 18 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: isTotal ? Colors.black87 : Colors.black54)),
-        Text("₹${amount.toStringAsFixed(2)}", style: TextStyle(fontSize: isTotal ? 20 : 16, fontWeight: FontWeight.bold, color: isTotal ? Colors.teal.shade700 : Colors.black87)),
+        Text(label, style: TextStyle(fontSize: isTotal ? 18 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
+        Text("₹${amount.toStringAsFixed(2)}", style: TextStyle(fontSize: isTotal ? 20 : 16, fontWeight: FontWeight.bold, color: isTotal ? Colors.indigo.shade700 : Colors.black87)),
       ],
     );
   }
@@ -319,15 +320,7 @@ class CreateQuotationView extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, left: 4.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Colors.teal.shade800,
-          letterSpacing: 0.5,
-        ),
-      ),
+      child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.indigo.shade800)),
     );
   }
 
@@ -335,9 +328,9 @@ class CreateQuotationView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.teal.withOpacity(0.08), blurRadius: 20, spreadRadius: 2, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: Colors.indigo.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 8))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
@@ -346,15 +339,12 @@ class CreateQuotationView extends StatelessWidget {
   InputDecoration _inputDeco(String hint, IconData icon) {
     return InputDecoration(
       labelText: hint,
-      prefixIcon: Icon(icon, color: Colors.teal.shade600),
-      filled: true,
-      fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.teal.shade600, width: 2)),
+      prefixIcon: Icon(icon, color: Colors.indigo.shade600),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
     );
   }
 
-  void _showAddItemSheet(BuildContext context, CreateQuotationController controller) {
+  void _showAddItemSheet(BuildContext context, EditInvoiceController controller) {
     final tDesc = TextEditingController();
     final tQty = TextEditingController(text: "1");
     final tPrice = TextEditingController();
@@ -371,37 +361,16 @@ class CreateQuotationView extends StatelessWidget {
           key: k,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Add Item", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
+              const Text("Add Item", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.indigo)),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: tDesc,
-                validator: (v) => Validators.requiredField(v, "Description"),
-                decoration: _inputDeco("Item Description", Icons.edit),
-              ),
+              TextFormField(controller: tDesc, validator: (v) => Validators.requiredField(v, "Description"), decoration: _inputDeco("Description", Icons.edit)),
               const SizedBox(height: 15),
               Row(
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: tQty,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                      validator: (v) => Validators.requiredField(v, "Qty"),
-                      decoration: _inputDeco("Qty", Icons.numbers),
-                    ),
-                  ),
+                  Expanded(child: TextFormField(controller: tQty, keyboardType: TextInputType.number, decoration: _inputDeco("Qty", Icons.numbers))),
                   const SizedBox(width: 15),
-                  Expanded(
-                    child: TextFormField(
-                      controller: tPrice,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                      validator: (v) => Validators.requiredField(v, "Price"),
-                      decoration: _inputDeco("Unit Price (₹)", Icons.currency_rupee),
-                    ),
-                  ),
+                  Expanded(child: TextFormField(controller: tPrice, keyboardType: TextInputType.number, decoration: _inputDeco("Price", Icons.currency_rupee))),
                 ],
               ),
               const SizedBox(height: 30),
@@ -411,26 +380,19 @@ class CreateQuotationView extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     if (k.currentState!.validate()) {
-                      controller.addItem(
-                        tDesc.text.trim(),
-                        double.parse(tQty.text.trim()),
-                        double.parse(tPrice.text.trim())
-                      );
+                      controller.addItem(tDesc.text.trim(), double.parse(tQty.text.trim()), double.parse(tPrice.text.trim()));
                       Get.back();
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade500,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: const Text("ADD TO QUOTATION", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade500),
+                  child: const Text("ADD ITEM", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 20),
             ],
           ),
         ),
-      )
+      ),
     );
   }
 }

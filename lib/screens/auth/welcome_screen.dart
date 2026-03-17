@@ -54,7 +54,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
               ),
-              
+
               SafeArea(
                 child: Column(
                   children: [
@@ -78,15 +78,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           'assets/logos/app_icon.png', // Fallback to app icon
                           height: 80,
                           width: 80,
-                          errorBuilder: (context, error, stackTrace) => 
-                            const Icon(Icons.account_balance_wallet_rounded, 
-                            size: 60, color: Color(0xFF00B2E7)),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.account_balance_wallet_rounded,
+                                  size: 60, color: Color(0xFF00B2E7)),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Spendly',
+                      'Daily Bachat',
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.w900,
@@ -95,7 +95,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                     ),
                     const SizedBox(height: 40),
-                    
+
                     // Tab Bar Section
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -132,9 +132,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Forms Section
                     Expanded(
                       child: TabBarView(

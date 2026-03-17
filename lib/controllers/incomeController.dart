@@ -176,11 +176,28 @@ class IncomeController extends GetxController {
       return;
     }
 
+    final amountStr = amountController.text.trim();
+    if (amountStr.isEmpty) {
+      Utils.showSnackbar('Error', 'Please enter an amount.');
+      return;
+    }
+
+    final amount = double.tryParse(amountStr);
+    if (amount == null) {
+      Utils.showSnackbar('Error', 'Please enter a valid amount.');
+      return;
+    }
+
+    if (selectedCategory.value.isEmpty) {
+      Utils.showSnackbar('Error', 'Please select a category.');
+      return;
+    }
+
     isLoading(true);
     try {
       final response = await ApiService.post('/transactions/', body: {
         'user_id': userId,
-        'amount': double.parse(amountController.text.trim()),
+        'amount': amount,
         'description': descriptionController.text.trim(),
         'category': selectedCategory.value,
         'type': 'income',
