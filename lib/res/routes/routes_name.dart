@@ -25,6 +25,7 @@ class RoutesName {
 // ----------------------------------------------------------------
 
   static const String addLendBorrowView = '/add_lend_borrow_view';
+  static const String addLoanScreen = '/add_loan_screen';
   
   static const String chatListView = '/chat_list_view';
   static const String messageView = '/message_view';

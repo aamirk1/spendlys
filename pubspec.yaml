@@ -50,6 +50,8 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   path_provider: ^2.1.5
+  csv: ^7.2.0
+  share_plus: ^12.0.1
   # rive: 
   # shared_preferences: 
   # local_auth: ^2.3.0

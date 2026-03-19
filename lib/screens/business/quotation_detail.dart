@@ -277,7 +277,7 @@ class QuotationDetailView extends StatelessWidget {
 
       // 2. Extract Customer Info
       Map<String, dynamic> customer = quot['customer'] ?? {};
-      if (customer.isEmpty && quot['customer_id'] != null) {
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) && quot['customer_id'] != null) {
         final custResp = await ApiService.get('/business/customers/${quot['customer_id']}', headers: {'x-user-id': userId});
         if (custResp.statusCode == 200) {
           customer = jsonDecode(custResp.body);

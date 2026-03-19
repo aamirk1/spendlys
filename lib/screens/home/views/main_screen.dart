@@ -1,13 +1,13 @@
-import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
+import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
-import 'package:spendly/screens/add_income_and_expense/categorywise_expense_and%20income/categorywise_view_all_expense.dart';
+import 'package:spendly/screens/business/business_home_view.dart';
 
 class MainScreen extends StatelessWidget {
   MainScreen({super.key, required this.myUser});
@@ -15,479 +15,395 @@ class MainScreen extends StatelessWidget {
 
   final ExpenseController expenseController = Get.put(ExpenseController());
   final IncomeController incomeController = Get.put(IncomeController());
-
- 
+  final LoanController loanController = Get.put(LoanController());
+  final BusinessHomeController businessController =
+      Get.put(BusinessHomeController());
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Get.toNamed(RoutesName.profileView, arguments: myUser);
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.yellow[700]),
-                          ),
-                          Text(
-                            (myUser.name.isNotEmpty)
-                                ? myUser.name[0].toUpperCase()
-                                : "?",
-                            style: const TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          )
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Welcome!",
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.outline),
-                        ),
-                        Text(
-                          myUser.name,
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-                IconButton(
-                    onPressed: () {
-                      Get.toNamed(RoutesName.chatListView);
-                    },
-                    icon: Icon(CupertinoIcons.chat_bubble_2_fill, color: Theme.of(context).colorScheme.primary))
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width / 2,
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
-                      Theme.of(context).colorScheme.tertiary,
-                    ],
-                    transform: const GradientRotation(pi / 4),
-                  ),
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                        blurRadius: 4,
-                        color: Colors.grey.shade300,
-                        offset: const Offset(5, 5))
-                  ]),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Total Balance',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(() {
-                    double totalIncome = incomeController.categoryTotals.values
-                        .fold(0, (sum, value) => sum + value);
-                    double totalExpense = expenseController
-                        .categoryTotals.values
-                        .fold(0, (sum, value) => sum + value);
-                    double totalAmount = totalIncome - totalExpense;
-                    return Text(
-                      '₹ ${totalAmount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                          fontSize: 40,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold),
-                    );
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 25,
-                              height: 25,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white30,
-                                  shape: BoxShape.circle),
-                              child: const Center(
-                                  child: Icon(
-                                CupertinoIcons.arrow_up,
-                                size: 12,
-                                color: Colors.greenAccent,
-                              )),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Income',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                Obx(() {
-                                  double totalIncome = incomeController
-                                      .categoryTotals.values
-                                      .fold(0, (sum, value) => sum + value);
-                                  return Text(
-                                    '₹ ${totalIncome.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
-                                  );
-                                }),
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              width: 25,
-                              height: 25,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white30,
-                                  shape: BoxShape.circle),
-                              child: const Center(
-                                  child: Icon(
-                                CupertinoIcons.arrow_down,
-                                size: 12,
-                                color: Colors.red,
-                              )),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Expenses',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                Obx(() {
-                                  double totalExpense = expenseController
-                                      .categoryTotals.values
-                                      .fold(0, (sum, value) => sum + value);
-                                  return Text(
-                                    '₹ ${totalExpense.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
-                                  );
-                                }),
-                              ],
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 25),
-            _buildQuickModules(context),
-            const SizedBox(height: 25),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Transactions',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Get.toNamed(RoutesName.viewAllIncome);
-                      },
-                      child: Text(
-                        'All Income',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.outline,
-                            fontWeight: FontWeight.w400),
-                      ),
-                    ),
-                    Text(
-                      ' / ',
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context).colorScheme.outline,
-                          fontWeight: FontWeight.w400),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Get.toNamed(RoutesName.viewAllExpenses);
-                      },
-                      child: Text(
-                        'All Expenses',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.outline,
-                            fontWeight: FontWeight.w400),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            const SizedBox(height: 20),
-            Obx(() {
-              final expenses = expenseController.expensesList;
-
-              // Group expenses by category and find the latest date
-              Map<String, double> categoryTotals = {};
-              Map<String, DateTime> latestDatePerCategory = {};
-
-              for (var expense in expenses) {
-                String category = expense['category'];
-                double amount = expense['amount'];
-                DateTime date = expense['date'];
-
-                // Sum amounts per category
-                categoryTotals[category] =
-                    (categoryTotals[category] ?? 0) + amount;
-
-                // Track the latest date per category
-                if (latestDatePerCategory[category] == null ||
-                    date.isAfter(latestDatePerCategory[category]!)) {
-                  latestDatePerCategory[category] = date;
-                }
-              }
-
-              return Expanded(
-                child: ListView.builder(
-                  itemCount: categoryTotals.length,
-                  itemBuilder: (context, int i) {
-                    String category = categoryTotals.keys.elementAt(i);
-                    double totalAmount = categoryTotals[category] ?? 0;
-                    DateTime? latestDate = latestDatePerCategory[category];
-
-                    // Fetch category icon and color from expenseCategories
-                    var categoryData =
-                        expenseController.expenseCategories.firstWhere(
-                      (element) => element['name'] == category,
-                      orElse: () => {
-                        'icon': Icons.category,
-                        'color': Colors.grey
-                      }, // Default values
-                    );
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: ListTile(
-                              onTap: () {
-                                Get.to(() => CategorywiseViewAllExpense(),
-                                    arguments: category);
-                              },
-                              contentPadding:
-                                  EdgeInsets.zero, // Removes default padding
-                              leading: CircleAvatar(
-                                radius: 25,
-                                backgroundColor: categoryData['color'] as Color,
-                                child: Icon(
-                                  categoryData['icon'] as IconData,
-                                  color: Colors.white,
-                                ),
-                              ),
-
-                              title: Text(
-                                category,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              trailing: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: MainAxisAlignment
-                                    .center, // Aligns text vertically
-                                children: [
-                                  Text(
-                                    "₹${totalAmount.toStringAsFixed(2)}",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Text(
-                                    DateFormat('dd/MM/yyyy')
-                                        .format(latestDate!),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color:
-                                          Theme.of(context).colorScheme.outline,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                      ),
-                    );
-                  },
-                ),
-              );
-            })
-          ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            businessController.fetchSummary(),
+            loanController.fetchLoans(),
+          ]);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAppBar(context),
+              const SizedBox(height: 25),
+              _buildBalanceCard(context),
+              const SizedBox(height: 30),
+              _buildFeaturesOverview(context),
+              const SizedBox(height: 30),
+              _buildTransactionHeader(context),
+              const SizedBox(height: 15),
+              _buildTransactionsList(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildQuickModules(BuildContext context) {
-    final List<Map<String, dynamic>> modules = [
-      {
-        'name': 'Income/Exp',
-        'icon': CupertinoIcons.money_dollar_circle,
-        'color': Colors.blue,
-        'route': RoutesName.incomeExpenseHome
-      },
-      {
-        'name': 'Loans',
-        'icon': CupertinoIcons.square_arrow_left_fill,
-        'color': Colors.orange,
-        'route': RoutesName.addLendBorrowView
-      },
-      {
-        'name': 'Chat',
-        'icon': CupertinoIcons.chat_bubble_2_fill,
-        'color': Colors.green,
-        'route': RoutesName.chatListView
-      },
-      {
-        'name': 'Business',
-        'icon': CupertinoIcons.briefcase_fill,
-        'color': Colors.purple,
-        'route': RoutesName.businessHome
-      },
-    ];
+  Widget _buildAppBar(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            InkWell(
+              onTap: () =>
+                  Get.toNamed(RoutesName.profileView, arguments: myUser),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle, color: Colors.indigo.shade400),
+                  ),
+                  Text(
+                    (myUser.name.isNotEmpty)
+                        ? myUser.name[0].toUpperCase()
+                        : "?",
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Welcome!",
+                    style:
+                        TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text(myUser.name,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+        ),
+        IconButton(
+          onPressed: () => Get.toNamed(RoutesName.chatListView),
+          icon: Icon(CupertinoIcons.chat_bubble_2_fill,
+              color: Colors.indigo.shade400, size: 28),
+        )
+      ],
+    );
+  }
 
+  Widget _buildBalanceCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.indigo.shade700,
+            Colors.deepPurple.shade600,
+            Colors.blue.shade600
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.withOpacity(0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text('Total Balance',
+              style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          Obx(() {
+            double totalIncome = incomeController.categoryTotals.values
+                .fold(0, (sum, value) => sum + value);
+            double totalExpense = expenseController.categoryTotals.values
+                .fold(0, (sum, value) => sum + value);
+            return Text(
+              '₹ ${(totalIncome - totalExpense).toStringAsFixed(2)}',
+              style: const TextStyle(
+                  fontSize: 42,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
+            );
+          }),
+          const SizedBox(height: 25),
+          Row(
+            children: [
+              _balanceStatItem(
+                icon: CupertinoIcons.arrow_up_circle_fill,
+                label: "Income",
+                color: Colors.greenAccent.shade400,
+                amountObx: () => incomeController.categoryTotals.values
+                    .fold(0, (sum, value) => sum + value),
+              ),
+              Container(
+                  width: 1,
+                  height: 35,
+                  color: Colors.white24,
+                  margin: const EdgeInsets.symmetric(horizontal: 20)),
+              _balanceStatItem(
+                icon: CupertinoIcons.arrow_down_circle_fill,
+                label: "Expense",
+                color: Colors.redAccent.shade200,
+                amountObx: () => expenseController.categoryTotals.values
+                    .fold(0, (sum, value) => sum + value),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _balanceStatItem(
+      {required IconData icon,
+      required String label,
+      required Color color,
+      required double Function() amountObx}) {
+    return Expanded(
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(color: Colors.white60, fontSize: 13)),
+              Obx(() => Text('₹ ${amountObx().toStringAsFixed(0)}',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold))),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturesOverview(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Services',
-          style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold),
-        ),
+        const Text("Feature Modules",
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
         const SizedBox(height: 15),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.8,
-          ),
-          itemCount: modules.length,
-          itemBuilder: (context, index) {
-            final module = modules[index];
-            return GestureDetector(
-              onTap: () {
-                if (module['route'] == RoutesName.addLendBorrowView ||
-                    module['route'] == RoutesName.profileView) {
-                  Get.toNamed(module['route'], arguments: myUser);
-                } else {
-                  Get.toNamed(module['route']);
-                }
-              },
-              child: Column(
-                children: [
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: module['color'].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Icon(
-                      module['icon'],
-                      color: module['color'],
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    module['name'],
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          },
+        Row(
+          children: [
+            _overviewCard(
+              context,
+              title: "Business Center",
+              subtitle: "Paid/Pending Invoices",
+              icon: Icons.storefront_rounded,
+              color: Colors.blue.shade600,
+              valueObx: () =>
+                  "₹${businessController.totalRevenue.value.toStringAsFixed(0)} / ₹${businessController.pendingAmount.value.toStringAsFixed(0)}",
+              onTap: () => Get.toNamed(RoutesName.businessHome),
+            ),
+            const SizedBox(width: 15),
+            _overviewCard(
+              context,
+              title: "Digital Ledger",
+              subtitle: "Lent/Borrowed",
+              icon: Icons.menu_book_rounded,
+              color: Colors.orange.shade600,
+              valueObx: () =>
+                  "₹${loanController.totalLent.toStringAsFixed(0)} / ₹${loanController.totalBorrowed.toStringAsFixed(0)}",
+              onTap: () =>
+                  Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  Widget _overviewCard(BuildContext context,
+      {required String title,
+      required String subtitle,
+      required IconData icon,
+      required Color color,
+      required String Function() valueObx,
+      required VoidCallback onTap}) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: color, size: 26),
+              ),
+              const SizedBox(height: 12),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87)),
+              const SizedBox(height: 4),
+              Text(subtitle,
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+              const SizedBox(height: 8),
+              Obx(() => Text(valueObx(),
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: color))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text('Recent Transactions',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
+        GestureDetector(
+          onTap: () => Get.toNamed(RoutesName.viewAllExpenses),
+          child: Text('View History',
+              style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.indigo.shade600,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionsList(BuildContext context) {
+    return Obx(() {
+      final expenses = expenseController.expensesList;
+      Map<String, double> categoryTotals = {};
+      Map<String, DateTime> latestDatePerCategory = {};
+
+      for (var expense in expenses) {
+        String category = expense['category'];
+        categoryTotals[category] =
+            (categoryTotals[category] ?? 0) + expense['amount'];
+        if (latestDatePerCategory[category] == null ||
+            expense['date'].isAfter(latestDatePerCategory[category]!)) {
+          latestDatePerCategory[category] = expense['date'];
+        }
+      }
+
+      if (categoryTotals.isEmpty) {
+        return Center(
+          child: Column(
+            children: [
+              Icon(Icons.receipt_long_outlined,
+                  size: 60, color: Colors.grey.shade300),
+              const SizedBox(height: 10),
+              Text("No transactions yet",
+                  style: TextStyle(color: Colors.grey.shade400)),
+            ],
+          ),
+        );
+      }
+
+      return Column(
+        children: categoryTotals.keys.take(5).map((category) {
+          final total = categoryTotals[category]!;
+          final date = latestDatePerCategory[category]!;
+          final categoryData = expenseController.expenseCategories.firstWhere(
+            (e) => e['name'] == category,
+            orElse: () => {'icon': Icons.category, 'color': Colors.grey},
+          );
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor:
+                      (categoryData['color'] as Color).withOpacity(0.15),
+                  child: Icon(categoryData['icon'] as IconData,
+                      color: categoryData['color'] as Color, size: 22),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(category,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(DateFormat('dd MMM').format(date),
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ),
+                Text("₹${total.toStringAsFixed(0)}",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.black87)),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
   }
 }

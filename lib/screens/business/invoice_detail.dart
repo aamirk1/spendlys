@@ -220,7 +220,7 @@ class InvoiceDetailView extends StatelessWidget {
 
       // 2. Extract Customer Info (if not in inv, fetch it)
       Map<String, dynamic> customer = inv['customer'] ?? {};
-      if (customer.isEmpty && inv['customer_id'] != null) {
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) && inv['customer_id'] != null) {
         final custResp = await ApiService.get('/business/customers/${inv['customer_id']}', headers: {'x-user-id': userId});
         if (custResp.statusCode == 200) {
           customer = jsonDecode(custResp.body);

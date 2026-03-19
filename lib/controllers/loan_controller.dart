@@ -55,6 +55,11 @@ class LoanController extends GetxController {
       loans.where((loan) => loan.type == 'borrowed').toList();
   List<Loan> get lent => loans.where((loan) => loan.type == 'lent').toList();
 
+  double get totalLent =>
+      lent.fold(0, (sum, item) => sum + (item.amount - item.paidAmount.value));
+  double get totalBorrowed =>
+      borrowed.fold(0, (sum, item) => sum + (item.amount - item.paidAmount.value));
+
   /// Add a new loan
   Future<void> addLoan(Loan loan) async {
     final userId = _auth.currentUser?.uid;

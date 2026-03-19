@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:spendly/screens/add_income_and_expense/income_expense_home.dart';
 import 'package:spendly/res/routes/views_routes.dart';
 import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
+import 'package:spendly/screens/add_lend_borrow/add_loan_screen.dart';
 import 'package:spendly/screens/chat/chat_view.dart';
 import 'package:spendly/screens/chat/message_view.dart';
 import 'package:spendly/screens/home/views/profile_screens/app_settings_screen.dart';
@@ -96,6 +97,14 @@ class AppRoutes {
                 ),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.addLoanScreen,
+            page: () => AddLoanScreen(
+                  myUser: Get.arguments['myUser'],
+                  controller: Get.arguments['controller'],
+                ),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.downToUp),
         GetPage(
             name: RoutesName.chatListView,
             page: () => const ChatView(),

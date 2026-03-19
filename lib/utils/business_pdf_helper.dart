@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class BusinessPdfHelper {
   static Future<void> generateAndPrintPdf({
@@ -14,6 +15,15 @@ class BusinessPdfHelper {
     bool isInvoice = true,
   }) async {
     final pdf = pw.Document();
+
+    // Load logo for watermark
+    pw.ImageProvider? watermarkImage;
+    try {
+      final logoBytes = (await rootBundle.load('assets/logos/logo.png')).buffer.asUint8List();
+      watermarkImage = pw.MemoryImage(logoBytes);
+    } catch (e) {
+      print("Error loading logo for PDF: $e");
+    }
 
     // Safe Numeric Parsing
     double toDouble(dynamic val) {
@@ -45,10 +55,26 @@ class BusinessPdfHelper {
 
     // Load Font if needed, using default for now
     
+    final pageTheme = pw.PageTheme(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      buildBackground: (pw.Context context) {
+        if (watermarkImage == null) return pw.SizedBox();
+        return pw.FullPage(
+          ignoreMargins: true,
+          child: pw.Center(
+            child: pw.Opacity(
+              opacity: 0.1,
+              child: pw.Image(watermarkImage, width: 350),
+            ),
+          ),
+        );
+      },
+    );
+
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pageTheme,
         build: (pw.Context context) {
           return [
             // Header: Business Info
@@ -87,9 +113,10 @@ class BusinessPdfHelper {
             ),
             pw.Divider(thickness: 1, color: PdfColors.grey300, height: 40),
 
-            // Customer Info
+            // Customer Info & Logo Header
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Expanded(
                   child: pw.Column(
@@ -97,13 +124,25 @@ class BusinessPdfHelper {
                     children: [
                       pw.Text('BILL TO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
                       pw.SizedBox(height: 4),
-                      pw.Text(customer['name'] ?? 'Unknown Customer', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                      if (customer['address'] != null) pw.Text(customer['address']),
-                      if (customer['phone'] != null) pw.Text('Phone: ${customer['phone']}'),
-                      if (customer['email'] != null) pw.Text('Email: ${customer['email']}'),
+                      pw.Text(
+                        (customer['name'] ?? customer['full_name'] ?? docData['customer_name'] ?? 'Unknown Customer').toString(),
+                        style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                      ),
+                      if (customer['address'] != null && customer['address'].toString().isNotEmpty && customer['address'] != 'null')
+                        pw.Text(customer['address'].toString()),
+                      if (customer['phone'] != null && customer['phone'].toString().isNotEmpty && customer['phone'] != 'null')
+                        pw.Text('Phone: ${customer['phone']}'),
+                      if (customer['email'] != null && customer['email'].toString().isNotEmpty && customer['email'] != 'null')
+                        pw.Text('Email: ${customer['email']}'),
                     ],
                   ),
                 ),
+                if (watermarkImage != null)
+                   pw.Container(
+                     width: 80,
+                     height: 80,
+                     child: pw.Image(watermarkImage, fit: pw.BoxFit.contain),
+                   ),
               ],
             ),
             pw.SizedBox(height: 30),
