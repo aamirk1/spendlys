@@ -362,7 +362,7 @@ class BusinessProfileView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Obx(() => DropdownButtonFormField<String>(
-        value: controller.selectedBank.value,
+        initialValue: controller.selectedBank.value,
         decoration: InputDecoration(
           labelText: "Bank Name",
           prefixIcon: const Icon(Icons.account_balance, color: Colors.blueAccent),

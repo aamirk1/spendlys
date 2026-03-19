@@ -6,6 +6,8 @@ import 'package:spendly/utils/colors.dart';
 class ForgotPasswordScreen extends StatelessWidget {
   final controller = Get.put(ForgotPasswordController());
 
+  ForgotPasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

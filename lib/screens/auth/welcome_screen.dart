@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:spendly/screens/auth/sign_in_screen.dart';
 import 'package:spendly/screens/auth/sign_up_screen.dart';
 import 'package:flutter/material.dart';

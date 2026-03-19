@@ -29,8 +29,10 @@ android {
         applicationId = "com.technosolz.dailybachat"
         minSdkVersion = 24 // Suggested bump for modern plugins
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.0.5"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+        // versionCode = 5
+        // versionName = "1.0.5"
 
         // versionName = flutter.versionName
     }

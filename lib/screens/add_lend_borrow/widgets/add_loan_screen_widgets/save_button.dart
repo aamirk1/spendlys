@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/models/myuser.dart';

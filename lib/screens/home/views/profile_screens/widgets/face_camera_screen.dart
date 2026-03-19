@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 
 class ProfileImageCapture extends StatefulWidget {
+  const ProfileImageCapture({super.key});
+
   @override
   _ProfileImageCaptureState createState() => _ProfileImageCaptureState();
 }

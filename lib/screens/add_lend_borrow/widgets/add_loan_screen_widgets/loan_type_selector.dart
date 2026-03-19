@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:spendly/utils/colors.dart';
 
 class LoanTypeSelector extends StatefulWidget {
   const LoanTypeSelector({

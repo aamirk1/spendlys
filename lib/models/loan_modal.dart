@@ -59,30 +59,37 @@ class Loan {
   factory Loan.fromMap(Map<String, dynamic> map, String id) {
     DateTime parseDate(dynamic d) {
       if (d == null) return DateTime.now();
-      if (d is String) return DateTime.parse(d);
-      // Fallback if somehow it's still a Timestamp in transition (though we commented it)
-      // return (d as Timestamp).toDate(); 
+      if (d is String) {
+        try {
+          return DateTime.parse(d);
+        } catch (e) {
+          return DateTime.now();
+        }
+      }
       return DateTime.now();
     }
 
     return Loan(
       id: id,
-      userId: map['user_id'] ?? map['userId'] ?? '',
-      personName: map['person_name'] ?? map['personName'] ?? '',
-      amount: (map['amount'] as num).toDouble(),
-      paidAmount: (map['paid_amount'] ?? map['paidAmount'] as num).toDouble().obs,
-      status: (map['status'] as String).obs,
+      userId: map['user_id']?.toString() ?? map['userId']?.toString() ?? '',
+      personName: map['person_name']?.toString() ?? map['personName']?.toString() ?? 'Unknown',
+      amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
+      paidAmount: (map['paid_amount'] as num? ?? map['paidAmount'] as num? ?? 0.0).toDouble().obs,
+      status: (map['status']?.toString() ?? 'pending').obs,
       date: parseDate(map['date']),
-      expectedReturnDate: map['expected_return_date'] != null || map['expectedReturnDate'] != null
+      expectedReturnDate: (map['expected_return_date'] != null || map['expectedReturnDate'] != null)
           ? parseDate(map['expected_return_date'] ?? map['expectedReturnDate'])
           : null,
-      type: map['type'],
-      reason: map['reason'],
+      type: map['type']?.toString() ?? 'lent',
+      reason: map['reason']?.toString(),
       paymentHistory: RxList<Map<String, dynamic>>.from(
-        (map['payment_history'] ?? map['paymentHistory'] as List<dynamic>? ?? []).map((e) => {
-              'amount': (e['amount'] as num).toDouble(),
-              'timestamp': parseDate(e['timestamp']),
-            }),
+        (map['payment_history'] as List<dynamic>? ?? map['paymentHistory'] as List<dynamic>? ?? []).map((e) {
+          final entry = e as Map<String, dynamic>;
+          return {
+            'amount': (entry['amount'] as num?)?.toDouble() ?? 0.0,
+            'timestamp': parseDate(entry['timestamp']),
+          };
+        }),
       ),
     );
   }

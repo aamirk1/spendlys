@@ -88,6 +88,7 @@ class EditQuotationController extends GetxController {
         "quotation_number": quotationNumberController.text.trim(),
         "subtotal": subtotal,
         "tax": calculatedTax,
+        "tax_percent": taxPercent.value,
         "total": total,
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
         "items": items.map((i) => i.toJson()).toList()
@@ -172,7 +173,7 @@ class EditQuotationView extends StatelessWidget {
                               ),
                               const SizedBox(height: 15),
                               DropdownButtonFormField<String>(
-                                value: controller.selectedCustomerId.value,
+                                initialValue: controller.selectedCustomerId.value,
                                 decoration: _inputDeco("Select Customer", Icons.person_rounded),
                                 items: controller.customers.map((c) {
                                   return DropdownMenuItem<String>(
@@ -238,7 +239,7 @@ class EditQuotationView extends StatelessWidget {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
 
                           const SizedBox(height: 30),
                           _buildSectionTitle("Summary"),
@@ -248,7 +249,7 @@ class EditQuotationView extends StatelessWidget {
                               const SizedBox(height: 10),
                               Row(
                                 children: [
-                                  const Text("Tax (%) ", style: TextStyle(color: Colors.black54, fontSize: 14)),
+                                  Text("Tax (${controller.taxPercent.value.toInt()}%) ", style: const TextStyle(color: Colors.black54, fontSize: 14)),
                                   Expanded(
                                     child: Slider(
                                       value: controller.taxPercent.value,

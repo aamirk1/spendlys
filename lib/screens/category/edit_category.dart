@@ -8,7 +8,7 @@ import 'package:spendly/screens/auth/components/my_text_field.dart';
 class EditCategoryScreen extends StatelessWidget {
   final String categoryId;
 
-  EditCategoryScreen({required this.categoryId});
+  EditCategoryScreen({super.key, required this.categoryId});
 
   final CategoryController controller = Get.find<CategoryController>();
 

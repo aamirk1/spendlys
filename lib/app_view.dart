@@ -4,7 +4,7 @@ import 'package:spendly/res/routes/routes.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class MyAppView extends StatelessWidget {
-  const MyAppView({Key? key, }) : super(key: key);
+  const MyAppView({super.key, });
 
   @override
   Widget build(BuildContext context) {

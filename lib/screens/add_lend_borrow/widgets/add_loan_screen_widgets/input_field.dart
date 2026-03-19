@@ -57,9 +57,7 @@ class InputField extends StatelessWidget {
           labelText: label,
           hintText: hint,
           labelStyle: TextStyle(color: Colors.blueGrey.shade400),
-          prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: Colors.blueGrey.shade400)
-              : null,
+          prefixIcon: Icon(prefixIcon, color: Colors.blueGrey.shade400),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 18),

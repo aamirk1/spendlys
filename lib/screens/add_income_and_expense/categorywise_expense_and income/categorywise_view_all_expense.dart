@@ -104,7 +104,7 @@ class CategorywiseViewAllExpense extends StatelessWidget {
             decoration: const InputDecoration(labelText: "Description"),
           ),
           DropdownButtonFormField(
-            value: selectedCategory,
+            initialValue: selectedCategory,
             items: expenseController.expenseCategories.map((category) {
               return DropdownMenuItem(
                 value: category['name'],

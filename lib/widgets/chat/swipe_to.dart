@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 
 class SwipeTo extends StatefulWidget {
@@ -15,7 +14,7 @@ class SwipeTo extends StatefulWidget {
   final GestureDragUpdateCallback? onLeftSwipe;
 
   const SwipeTo({
-    Key? key,
+    super.key,
     required this.child,
     this.onRightSwipe,
     this.onLeftSwipe,
@@ -27,7 +26,7 @@ class SwipeTo extends StatefulWidget {
     this.iconColor,
     this.animationDuration = const Duration(milliseconds: 150),
     this.offsetDx = 0.3,
-  }) : super(key: key);
+  });
 
   @override
   State<SwipeTo> createState() => _SwipeToState();

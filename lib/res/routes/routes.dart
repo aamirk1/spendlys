@@ -18,7 +18,6 @@ import 'package:spendly/screens/business/quotation_detail.dart';
 import 'package:spendly/screens/business/invoice_detail.dart';
 import 'package:spendly/screens/business/edit_invoice.dart';
 import 'package:spendly/screens/business/edit_quotation.dart';
-import 'package:spendly/res/routes/routes_name.dart';
 
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [

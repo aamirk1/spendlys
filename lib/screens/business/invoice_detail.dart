@@ -6,6 +6,8 @@ import 'package:spendly/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'dart:convert';
+import 'package:spendly/utils/business_pdf_helper.dart';
 
 class InvoiceDetailView extends StatelessWidget {
   const InvoiceDetailView({super.key});
@@ -13,13 +15,19 @@ class InvoiceDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> inv = Get.arguments;
-    final List items = inv['items'] ?? [];
-    final String dateFormatted = inv['date'] != null 
-        ? DateFormat('dd MMM yyyy').format(DateTime.parse(inv['date']))
-        : "N/A";
-    final String dueDateFormatted = inv['due_date'] != null 
-        ? DateFormat('dd MMM yyyy').format(DateTime.parse(inv['due_date']))
-        : "N/A";
+    
+    // Safer item handling
+    final dynamic itemsData = inv['items'] ?? [];
+    final List items = itemsData is String ? jsonDecode(itemsData) : itemsData;
+
+    String formatDate(dynamic d) {
+      if (d == null || d.toString().isEmpty || d == 'null') return "N/A";
+      try { return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString())); } 
+      catch (_) { return "N/A"; }
+    }
+
+    final String dateFormatted = formatDate(inv['date']);
+    final String dueDateFormatted = formatDate(inv['due_date']);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +39,7 @@ class InvoiceDetailView extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () => _downloadPdf(inv['id']),
+            onPressed: () => _downloadPdf(inv),
           ),
         ],
       ),
@@ -50,7 +58,7 @@ class InvoiceDetailView extends StatelessWidget {
             ]),
             const SizedBox(height: 20),
             _buildSectionTitle("Items"),
-            ...items.map((item) => _buildItemCard(item)).toList(),
+            ...items.map((item) => _buildItemCard(item)),
             const SizedBox(height: 20),
             _buildSummaryCard(inv),
             const SizedBox(height: 30),
@@ -182,7 +190,10 @@ class InvoiceDetailView extends StatelessWidget {
         child: Column(
           children: [
             _buildInfoRow("Subtotal", "₹${inv['subtotal']}"),
-            _buildInfoRow("Tax", "₹${inv['tax']}"),
+            _buildInfoRow(
+              "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)", 
+              "₹${inv['tax']}"
+            ),
             _buildInfoRow("Paid Amount", "₹${inv['paid_amount'] ?? '0.00'}"),
             const Divider(),
             _buildInfoRow("Grand Total", "₹${inv['total']}"),
@@ -192,10 +203,49 @@ class InvoiceDetailView extends StatelessWidget {
     );
   }
 
-  Future<void> _downloadPdf(String? invoiceId) async {
-    if (invoiceId == null) return;
-    Utils.showSnackbar("Info", "PDF download feature coming soon", isError: false);
+  Future<void> _downloadPdf(Map<String, dynamic> inv) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    try {
+      // 1. Fetch Business Profile
+      final busResp = await ApiService.get('/business/profile', headers: {'x-user-id': userId});
+      if (busResp.statusCode != 200) {
+        Get.back();
+        Utils.showSnackbar("Error", "Please complete your business profile first.");
+        return;
+      }
+      final businessProfile = jsonDecode(busResp.body);
+
+      // 2. Extract Customer Info (if not in inv, fetch it)
+      Map<String, dynamic> customer = inv['customer'] ?? {};
+      if (customer.isEmpty && inv['customer_id'] != null) {
+        final custResp = await ApiService.get('/business/customers/${inv['customer_id']}', headers: {'x-user-id': userId});
+        if (custResp.statusCode == 200) {
+          customer = jsonDecode(custResp.body);
+        }
+      }
+      
+      Get.back(); // hide loading
+      
+      // 3. Generate and Print
+      await BusinessPdfHelper.generateAndPrintPdf(
+        title: "INVOICE",
+        businessProfile: businessProfile,
+        customer: customer,
+        docData: inv,
+        items: inv['items'] ?? [],
+        isInvoice: true,
+      );
+    } catch (e) {
+      Get.back();
+      Utils.showSnackbar("Error", "PDF Generation failed: $e");
+    }
   }
+
+  // Helper for the UI call
+
 
   Future<void> _markAsPaid(String? invoiceId) async {
     if (invoiceId == null) return;
@@ -262,7 +312,7 @@ class InvoiceDetailView extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               DropdownButtonFormField<String>(
-                value: selectedMethod,
+                initialValue: selectedMethod,
                 decoration: _inputDeco("Method", Icons.account_balance_wallet),
                 items: ["Cash", "UPI", "Bank Transfer"].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                 onChanged: (v) => selectedMethod = v!,

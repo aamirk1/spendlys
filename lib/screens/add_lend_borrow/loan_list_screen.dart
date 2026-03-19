@@ -1,6 +1,4 @@
-import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
@@ -14,7 +12,7 @@ import 'loan_detail_screen.dart';
 class LoansScreen extends StatelessWidget {
   final MyUser myUser;
 
-  LoansScreen({required this.myUser, Key? key}) : super(key: key);
+  const LoansScreen({required this.myUser, super.key});
 
   @override
   Widget build(BuildContext context) {

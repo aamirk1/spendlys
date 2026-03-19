@@ -5,7 +5,7 @@ import 'package:spendly/screens/home/views/profile_screens/widgets/links_card.da
 import 'package:spendly/screens/home/views/profile_screens/widgets/user_info_section.dart';
 
 class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key, required this.myUser});
+  const ProfileScreen({super.key, required this.myUser});
   final MyUser myUser;
 
   @override

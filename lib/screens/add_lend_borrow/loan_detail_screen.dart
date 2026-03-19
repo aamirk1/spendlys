@@ -6,7 +6,6 @@ import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/info_column.dart';
 import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/overall_payment_status.dart';
 import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/payment_history_card.dart';
-import 'package:spendly/utils/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:spendly/utils/utils.dart';
@@ -15,8 +14,7 @@ class LoanDetailScreen extends StatelessWidget {
   final Loan loan;
   final LoanController controller;
 
-  LoanDetailScreen({required this.loan, required this.controller, Key? key})
-      : super(key: key);
+  LoanDetailScreen({required this.loan, required this.controller, super.key});
 
   final paymentController = TextEditingController();
 

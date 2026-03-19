@@ -5,7 +5,7 @@ import 'package:spendly/no_internet_screen.dart';
 
 class NetworkChecker extends StatelessWidget {
   final Widget child;
-  const NetworkChecker({Key? key, required this.child}) : super(key: key);
+  const NetworkChecker({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

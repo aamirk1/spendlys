@@ -7,10 +7,10 @@ class EditPaymentDialog extends StatefulWidget {
   final Function(double) onConfirm;
 
   const EditPaymentDialog({
-    Key? key,
+    super.key,
     required this.initialAmount,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   _EditPaymentDialogState createState() => _EditPaymentDialogState();

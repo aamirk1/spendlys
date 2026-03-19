@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NoInternetScreen extends StatefulWidget {
-  const NoInternetScreen({Key? key}) : super(key: key);
+  const NoInternetScreen({super.key});
 
   @override
   State<NoInternetScreen> createState() => _NoInternetScreenState();

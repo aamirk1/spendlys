@@ -63,7 +63,7 @@ class AddIncome extends StatelessWidget {
                   // Category Dropdown
                   Obx(() {
                     return DropdownButtonFormField<String>(
-                      value: controller.selectedCategory.value.isEmpty
+                      initialValue: controller.selectedCategory.value.isEmpty
                           ? null
                           : controller.selectedCategory.value,
                       decoration: InputDecoration(

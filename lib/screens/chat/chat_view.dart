@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/chat/chat_controller.dart';
-import 'package:spendly/models/chat_connection_model.dart';
 import 'package:intl/intl.dart';
 
 class ChatView extends StatelessWidget {

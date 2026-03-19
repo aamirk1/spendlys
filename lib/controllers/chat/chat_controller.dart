@@ -6,7 +6,6 @@ import 'package:spendly/models/chat_connection_model.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/app_constants.dart';
 import 'package:spendly/utils/fire_chat_utils.dart';
-import 'package:spendly/utils/chat_utils.dart';
 import 'package:spendly/screens/chat/message_view.dart';
 
 class ChatController extends GetxController {

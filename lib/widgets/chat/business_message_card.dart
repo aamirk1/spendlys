@@ -79,7 +79,7 @@ class BusinessMessageCard extends StatelessWidget {
               print("Viewing ${message.type}: ${message.invoiceId}");
             },
             child: Text(
-              "VIEW ${label}",
+              "VIEW $label",
               style: TextStyle(color: accentColor, fontWeight: FontWeight.bold),
             ),
           ),

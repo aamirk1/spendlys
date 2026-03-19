@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/core/services/api_service.dart';
@@ -92,6 +91,7 @@ class EditInvoiceController extends GetxController {
         "due_date": dueDateController.text.isNotEmpty ? dueDateController.text : null,
         "subtotal": subtotal,
         "tax": calculatedTax,
+        "tax_percent": taxPercent.value,
         "total": total,
         "status": "pending", // Keep status as pending or use existing
         "items": items.map((i) => i.toJson()).toList()
@@ -176,7 +176,7 @@ class EditInvoiceView extends StatelessWidget {
                               ),
                               const SizedBox(height: 15),
                               DropdownButtonFormField<String>(
-                                value: controller.selectedCustomerId.value,
+                                initialValue: controller.selectedCustomerId.value,
                                 decoration: _inputDeco("Select Customer", Icons.person_rounded),
                                 items: controller.customers.map((c) {
                                   return DropdownMenuItem<String>(
@@ -250,7 +250,7 @@ class EditInvoiceView extends StatelessWidget {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
 
                           const SizedBox(height: 30),
                           _buildSectionTitle("Summary"),
@@ -260,7 +260,7 @@ class EditInvoiceView extends StatelessWidget {
                               const SizedBox(height: 10),
                               Row(
                                 children: [
-                                  const Text("Tax (%) ", style: TextStyle(color: Colors.black54, fontSize: 14)),
+                                  Text("Tax (${controller.taxPercent.value.toInt()}%) ", style: const TextStyle(color: Colors.black54, fontSize: 14)),
                                   Expanded(
                                     child: Slider(
                                       value: controller.taxPercent.value,

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:spendly/utils/chat_utils.dart';
 
 class ChatMessageModel {

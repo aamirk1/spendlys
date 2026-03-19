@@ -12,8 +12,7 @@ import 'package:intl/intl.dart';
 class AddLoanScreen extends StatefulWidget {
   final LoanController controller;
   final MyUser myUser;
-  AddLoanScreen({required this.myUser, Key? key, required this.controller})
-      : super(key: key);
+  const AddLoanScreen({required this.myUser, super.key, required this.controller});
 
   @override
   State<AddLoanScreen> createState() => _AddLoanScreenState();

@@ -7,29 +7,43 @@ class ApiService {
 
   static Future<http.Response> get(String endpoint, {Map<String, String>? headers}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    return await http.get(url, headers: headers);
+    final resp = await http.get(url, headers: headers);
+    _logResponse(endpoint, resp);
+    return resp;
   }
 
   static Future<http.Response> post(String endpoint, {Map<String, String>? headers, dynamic body}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    return await http.post(
+    final resp = await http.post(
       url,
       headers: headers ?? {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
+      body: body != null ? jsonEncode(body) : null,
     );
+    _logResponse(endpoint, resp);
+    return resp;
   }
 
   static Future<http.Response> put(String endpoint, {Map<String, String>? headers, dynamic body}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    return await http.put(
+    final resp = await http.put(
       url,
       headers: headers ?? {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
+      body: body != null ? jsonEncode(body) : null,
     );
+    _logResponse(endpoint, resp);
+    return resp;
   }
 
   static Future<http.Response> delete(String endpoint, {Map<String, String>? headers}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    return await http.delete(url, headers: headers);
+    final resp = await http.delete(url, headers: headers);
+    _logResponse(endpoint, resp);
+    return resp;
+  }
+
+  static void _logResponse(String endpoint, http.Response response) {
+    if (response.statusCode >= 400) {
+      print("API ERROR [$endpoint] Status: ${response.statusCode} Body: ${response.body}");
+    }
   }
 }

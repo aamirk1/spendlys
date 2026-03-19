@@ -1,22 +1,17 @@
 import 'dart:convert';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/loan_modal.dart';
-import 'package:spendly/utils/colors.dart';
 import 'package:spendly/utils/utils.dart';
-
+import 'package:uuid/uuid.dart';
 
 class LoanController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
   var loans = <Loan>[].obs;
   var isLoading = false.obs;
   var errorMsg = Rx<String?>(null);
-
-
 
   @override
   void onInit() {
@@ -33,16 +28,16 @@ class LoanController extends GetxController {
       final response = await ApiService.get('/loans/?user_id=$userId');
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-        final fetchedLoans = data
-            .map((item) => Loan.fromMap(item as Map<String, dynamic>, item['id'].toString()))
-            .toList();
+        final fetchedLoans = (data).map((item) {
+          final map = item as Map<String, dynamic>;
+          final id = map['id']?.toString() ?? '';
+          return Loan.fromMap(map, id);
+        }).toList();
 
         // Sort by date descending (latest first)
         fetchedLoans.sort((a, b) {
           return b.date.compareTo(a.date);
         });
-
-
 
         loans.value = fetchedLoans;
         errorMsg.value = null;
@@ -55,7 +50,6 @@ class LoanController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   List<Loan> get borrowed =>
       loans.where((loan) => loan.type == 'borrowed').toList();
@@ -72,7 +66,9 @@ class LoanController extends GetxController {
 
     isLoading.value = true;
     try {
+      final uuid = const Uuid().v4();
       final response = await ApiService.post('/loans/', body: {
+        'id': uuid,
         'user_id': userId,
         'person_name': loan.personName,
         'amount': loan.amount,
@@ -82,14 +78,17 @@ class LoanController extends GetxController {
         'date': DateTime.now().toIso8601String(),
         'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'payment_history': loan.paymentHistory.map((e) => {
-          'amount': e['amount'],
-          'timestamp': (e['timestamp'] as DateTime).toIso8601String(),
-        }).toList(),
+        'payment_history': loan.paymentHistory
+            .map((e) => {
+                  'amount': e['amount'],
+                  'timestamp': (e['timestamp'] as DateTime).toIso8601String(),
+                })
+            .toList(),
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Loan added successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Loan added successfully!',
+            isError: false);
         fetchLoans(); // Refresh list
       } else {
         Utils.showSnackbar('Error', 'Failed to add loan: ${response.body}');
@@ -101,7 +100,6 @@ class LoanController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   /// Update payment status
   Future<void> updatePayment(String loanId, double paymentAmount) async {
@@ -123,22 +121,28 @@ class LoanController extends GetxController {
         loan.status.value = 'partially paid';
       }
 
-      final response = await ApiService.put('/loans/$loanId', body: {
+      final userId = _auth.currentUser?.uid;
+      final response =
+          await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'payment_history': loan.paymentHistory.map((e) => {
-          'amount': e['amount'],
-          'timestamp': e['timestamp'] is DateTime 
-              ? (e['timestamp'] as DateTime).toIso8601String() 
-              : e['timestamp'].toString(),
-        }).toList(),
+        'payment_history': loan.paymentHistory
+            .map((e) => {
+                  'amount': e['amount'],
+                  'timestamp': e['timestamp'] is DateTime
+                      ? (e['timestamp'] as DateTime).toIso8601String()
+                      : e['timestamp'].toString(),
+                })
+            .toList(),
       });
 
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment updated successfully', isError: false);
+        Utils.showSnackbar('Success', 'Payment updated successfully',
+            isError: false);
         fetchLoans(); // Refresh list to be sure
       } else {
-        Utils.showSnackbar('Error', 'Failed to update payment: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to update payment: ${response.body}');
       }
     } catch (e) {
       errorMsg.value = 'Error updating payment: $e';
@@ -146,13 +150,15 @@ class LoanController extends GetxController {
     }
   }
 
-
   /// Delete loan from Firestore and local list
   Future<void> deleteLoan(String loanId) async {
     try {
-      final response = await ApiService.delete('/loans/$loanId');
+      final userId = _auth.currentUser?.uid;
+      final response =
+          await ApiService.delete('/loans/$loanId?user_id=$userId');
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Loan Deleted', 'The loan was removed successfully', isError: false);
+        Utils.showSnackbar('Loan Deleted', 'The loan was removed successfully',
+            isError: false);
         fetchLoans(); // Refresh list
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');
@@ -162,7 +168,6 @@ class LoanController extends GetxController {
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
-
 
   /// Edit payment
   Future<void> editPayment(
@@ -186,29 +191,34 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      final response = await ApiService.put('/loans/$loanId', body: {
+      final userId = _auth.currentUser?.uid;
+      final response =
+          await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'payment_history': loan.paymentHistory.map((e) => {
-          'amount': e['amount'],
-          'timestamp': e['timestamp'] is DateTime 
-              ? (e['timestamp'] as DateTime).toIso8601String() 
-              : e['timestamp'].toString(),
-        }).toList(),
+        'payment_history': loan.paymentHistory
+            .map((e) => {
+                  'amount': e['amount'],
+                  'timestamp': e['timestamp'] is DateTime
+                      ? (e['timestamp'] as DateTime).toIso8601String()
+                      : e['timestamp'].toString(),
+                })
+            .toList(),
       });
 
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment updated successfully', isError: false);
+        Utils.showSnackbar('Success', 'Payment updated successfully',
+            isError: false);
         fetchLoans(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to update payment: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to update payment: ${response.body}');
       }
     } catch (e) {
       errorMsg.value = 'Error editing payment: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
-
 
   /// Delete payment
   Future<void> deletePayment(String loanId, int paymentIndex) async {
@@ -231,33 +241,32 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      final response = await ApiService.put('/loans/$loanId', body: {
+      final userId = _auth.currentUser?.uid;
+      final response =
+          await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,
         'status': loan.status.value,
-        'payment_history': loan.paymentHistory.map((e) => {
-          'amount': e['amount'],
-          'timestamp': e['timestamp'] is DateTime 
-              ? (e['timestamp'] as DateTime).toIso8601String() 
-              : e['timestamp'].toString(),
-        }).toList(),
+        'payment_history': loan.paymentHistory
+            .map((e) => {
+                  'amount': e['amount'],
+                  'timestamp': e['timestamp'] is DateTime
+                      ? (e['timestamp'] as DateTime).toIso8601String()
+                      : e['timestamp'].toString(),
+                })
+            .toList(),
       });
 
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment deleted successfully', isError: false);
+        Utils.showSnackbar('Success', 'Payment deleted successfully',
+            isError: false);
         fetchLoans(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to delete payment: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to delete payment: ${response.body}');
       }
     } catch (e) {
       errorMsg.value = 'Error deleting payment: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
     }
   }
-
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
-
 }

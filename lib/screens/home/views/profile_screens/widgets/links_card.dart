@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/components/custom_list_tile.dart';
-import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/home/views/profile_screens/change_password_dialog.dart';
 
 class LinksCard extends StatelessWidget {
