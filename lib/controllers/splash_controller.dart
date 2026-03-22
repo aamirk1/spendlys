@@ -6,6 +6,7 @@ import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/services/app_update_service.dart';
 
 class SplashController extends GetxController {
   final box = GetStorage();
@@ -13,6 +14,12 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _checkUpdateAndLogin();
+  }
+
+  Future<void> _checkUpdateAndLogin() async {
+    final updateService = Get.put(AppUpdateService());
+    await updateService.checkForUpdate();
     _checkLoginStatus();
   }
 

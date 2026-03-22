@@ -12,20 +12,18 @@ class OnboardingScreen extends StatelessWidget {
   final List<Map<String, String>> onboardingData = [
     {
       'animation': 'assets/animations/s_animation.json',
-      'title': 'Track Your Expenses',
-      'description':
-          'Keep an eye on your spending and manage your budget effectively.'
+      'title': 'track_expenses'.tr,
+      'description': 'track_expenses_desc'.tr
     },
     {
       'animation': 'assets/animations/t_animation.json',
-      'title': 'Set Budget Goals',
-      'description': 'Plan and set limits to ensure you never overspend.'
+      'title': 'set_budget'.tr,
+      'description': 'set_budget_desc'.tr
     },
     {
       'animation': 'assets/animations/g_animation.json',
-      'title': 'Gain Financial Insights',
-      'description':
-          'Analyze your expenses and make smarter financial decisions.'
+      'title': 'financial_insights'.tr,
+      'description': 'financial_insights_desc'.tr
     }
   ];
 
@@ -84,8 +82,8 @@ class OnboardingScreen extends StatelessWidget {
                       controller.nextPage(myUser), // Remove the ! operator
                   child: Text(
                       controller.currentIndex.value == onboardingData.length - 1
-                          ? 'Get Started'
-                          : 'Next'),
+                          ? 'get_started'.tr
+                          : 'next'.tr),
                 )),
             SizedBox(height: 40),
           ],

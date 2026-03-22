@@ -57,8 +57,8 @@ class BusinessHomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
-        title: const Text("Business Center",
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text("business_center_title".tr,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -84,8 +84,8 @@ class BusinessHomeView extends StatelessWidget {
               const SizedBox(height: 30),
               _buildAnalyticsSummary(controller),
               const SizedBox(height: 30),
-              const Text("Management",
-                  style: TextStyle(
+              Text("management".tr,
+                  style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey)),
@@ -123,15 +123,15 @@ class BusinessHomeView extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text("DailyBachat Business",
-                    style: TextStyle(
+              children: [
+                Text("business_header_title".tr,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold)),
-                SizedBox(height: 5),
-                Text("Manage invoices, quotes & ledgers",
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 5),
+                Text("business_header_subtitle".tr,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -143,10 +143,10 @@ class BusinessHomeView extends StatelessWidget {
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
-        _actionButton(context, Icons.receipt_long_rounded, "Create Invoice",
+        _actionButton(context, Icons.receipt_long_rounded, "create_invoice".tr,
             Colors.orange, () => Get.toNamed(RoutesName.createInvoice)),
         const SizedBox(width: 15),
-        _actionButton(context, Icons.request_quote_rounded, "Quotation",
+        _actionButton(context, Icons.request_quote_rounded, "quotation".tr,
             Colors.teal, () => Get.toNamed(RoutesName.createQuotation)),
       ],
     );
@@ -211,8 +211,8 @@ class BusinessHomeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Monthly Revenue",
-                    style: TextStyle(
+                Text("monthly_revenue".tr,
+                    style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87)),
@@ -232,12 +232,12 @@ class BusinessHomeView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _statItem(
-                      "Total Amount",
+                      "total_amount".tr,
                       "₹${controller.totalRevenue.value.toStringAsFixed(2)}",
                       Colors.blue),
                   Container(width: 1, height: 40, color: Colors.grey[100]),
                   _statItem(
-                      "Pending",
+                      "pending".tr,
                       "₹${controller.pendingAmount.value.toStringAsFixed(2)}",
                       Colors.redAccent),
                 ],
@@ -263,24 +263,24 @@ class BusinessHomeView extends StatelessWidget {
   Widget _buildModuleList(BuildContext context) {
     return Column(
       children: [
-        _luxuryListTile(Icons.group_rounded, "Customers", "Clients & Ledgers",
+        _luxuryListTile(Icons.group_rounded, "customers".tr, "clients_ledgers".tr,
             Colors.indigo, () => Get.toNamed(RoutesName.customersList)),
         _luxuryListTile(
             Icons.history_rounded,
-            "Invoice History",
-            "Past transactions",
+            "invoice_history".tr,
+            "past_transactions".tr,
             Colors.deepPurple,
             () => Get.toNamed(RoutesName.invoiceList)),
         _luxuryListTile(
             Icons.request_quote_outlined,
-            "Quotation History",
-            "View past quotes",
+            "quotation_history".tr,
+            "view_past_quotes".tr,
             Colors.teal,
             () => Get.toNamed(RoutesName.quotationList)),
         _luxuryListTile(
             Icons.settings_suggest_rounded,
-            "Business Profile",
-            "Account settings",
+            "business_profile".tr,
+            "account_settings".tr,
             Colors.blueGrey,
             () => Get.toNamed(RoutesName.businessProfile)),
       ],

@@ -39,7 +39,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                     children: [
                       // Header
                       Text(
-                        'Reset Your Password',
+                        'reset_password'.tr,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -48,7 +48,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Enter your email to receive a password reset link',
+                        'forgot_password_subtitle'.tr,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade600,
@@ -61,7 +61,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                         controller: controller.emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          labelText: 'Email Address',
+                          labelText: 'email_address'.tr,
                           hintText: 'example@gmail.com',
                           prefixIcon:
                               Icon(Icons.email, color: Colors.blue.shade700),
@@ -97,8 +97,8 @@ class ForgotPasswordScreen extends StatelessWidget {
                                       color: Colors.white,
                                       strokeWidth: 2.5,
                                     )
-                                  : const Text(
-                                      'Send Reset Link',
+                                  : Text(
+                                      'send_reset_link'.tr,
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,

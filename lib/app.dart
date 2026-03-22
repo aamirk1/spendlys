@@ -2,30 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/core/bindings/initial_binding.dart';
 import 'package:spendly/res/routes/routes.dart';
-import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/network_checker.dart';
+
+import 'package:spendly/controllers/localization_controller.dart';
+import 'package:spendly/controllers/theme_controller.dart';
+import 'package:spendly/utils/app_translations.dart';
+import 'package:spendly/utils/app_themes.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final LocalizationController localizationController =
+        Get.put(LocalizationController());
+    final ThemeController themeController = Get.put(ThemeController());
+
     return GetMaterialApp(
       initialBinding: InitialBinding(),
       debugShowCheckedModeBanner: false,
       title: "DailyBachat",
-      theme: ThemeData(
-        colorScheme: ColorScheme.light(
-          surface: Colors.grey.shade100,
-          onSurface: Colors.black,
-          primary: const Color(0xFF00B2E7),
-          secondary: const Color(0xFFE064F7),
-          tertiary: const Color(0xFFFF8D6C),
-          outline: Colors.grey,
-        ),
-      ),
+      theme: AppThemes.lightTheme,
+      darkTheme: AppThemes.darkTheme,
+      themeMode: themeController.theme,
+      translations: AppTranslations(),
+      locale: localizationController.getLocale,
+      fallbackLocale: const Locale('en', 'US'),
       getPages: AppRoutes.appRoutes(),
-      initialRoute: RoutesName.splashScreen,
+      initialRoute: '/splash',
       builder: (context, child) {
         return NetworkChecker(child: child!);
       },

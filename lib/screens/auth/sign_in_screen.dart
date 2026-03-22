@@ -24,9 +24,9 @@ class SignInScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-                const Text(
-                  'Welcome Back',
-                  style: TextStyle(
+                Text(
+                  'welcome_back'.tr,
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
@@ -35,7 +35,7 @@ class SignInScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Log in to your account and stay on top of your finances.',
+                  'login_subtitle'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -43,7 +43,7 @@ class SignInScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 60),
                 
-                _buildFieldLabel('Email Address'),
+                _buildFieldLabel('email_address'.tr),
                 Obx(() => MyTextField(
                   controller: controller.emailController,
                   hintText: 'example@mail.com',
@@ -66,12 +66,12 @@ class SignInScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildFieldLabel('Password'),
+                    _buildFieldLabel('password'.tr),
                     GestureDetector(
                       onTap: () => Get.toNamed(RoutesName.forgotPasswordView),
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
+                      child: Text(
+                        'forgot_password'.tr,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF00B2E7),
                           fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class SignInScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: CustomButton(
-                    text: 'Sign In',
+                    text: 'sign_in'.tr,
                     onPressed: controller.signIn,
                     backgroundColor: const Color(0xFF00B2E7),
                     isLoading: controller.signInRequired.value,
@@ -126,13 +126,13 @@ class SignInScreen extends StatelessWidget {
                     text: TextSpan(
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                       children: [
-                        const TextSpan(text: "Don't have an account? "),
+                        TextSpan(text: "dont_have_account".tr),
                         WidgetSpan(
                           child: GestureDetector(
                             onTap: () => Get.toNamed(RoutesName.signupView),
-                            child: const Text(
-                              'Sign Up',
-                              style: TextStyle(
+                            child: Text(
+                              'sign_up'.tr,
+                              style: const TextStyle(
                                 color: Color(0xFF00B2E7),
                                 fontWeight: FontWeight.bold,
                               ),

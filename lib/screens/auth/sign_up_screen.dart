@@ -22,9 +22,9 @@ class SignUpScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-                const Text(
-                  'Create Account',
-                  style: TextStyle(
+                Text(
+                  'create_account'.tr,
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
@@ -41,7 +41,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 
-                _buildFieldLabel('Full Name'),
+                _buildFieldLabel('full_name'.tr),
                 MyTextField(
                   controller: controller.nameController,
                   hintText: 'John Doe',
@@ -51,7 +51,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                _buildFieldLabel('Mobile Number'),
+                _buildFieldLabel('phone_number'.tr),
                 MyTextField(
                   prefixIcon: const Icon(CupertinoIcons.phone, size: 22),
                   controller: controller.phoneNumberController,
@@ -61,7 +61,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                _buildFieldLabel('Email Address'),
+                _buildFieldLabel('email_address'.tr),
                 MyTextField(
                   prefixIcon: const Icon(CupertinoIcons.mail, size: 22),
                   controller: controller.emailController,
@@ -71,7 +71,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                _buildFieldLabel('Password'),
+                _buildFieldLabel('password'.tr),
                 MyTextField(
                   controller: controller.passwordController,
                   prefixIcon: const Icon(CupertinoIcons.lock, size: 22),
@@ -128,7 +128,7 @@ class SignUpScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: CustomButton(
-                    text: 'Create Account',
+                    text: 'create_account'.tr,
                     onPressed: controller.signUp,
                     backgroundColor: const Color(0xFF00B2E7),
                     isLoading: controller.signUpRequired.value,
@@ -143,9 +143,9 @@ class SignUpScreen extends StatelessWidget {
                     text: TextSpan(
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                       children: [
-                        const TextSpan(text: 'Already have an account? '),
+                        TextSpan(text: 'already_have_account'.tr),
                         TextSpan(
-                          text: 'Log In',
+                          text: 'sign_in'.tr,
                           style: const TextStyle(
                             color: Color(0xFF00B2E7),
                             fontWeight: FontWeight.bold,

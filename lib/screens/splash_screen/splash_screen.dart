@@ -122,7 +122,7 @@ class SplashScreen extends StatelessWidget {
                     return Opacity(
                       opacity: value,
                       child: Text(
-                        'Track Your Expenses Smartly',
+                        'track_expenses_smartly'.tr,
                         style: TextStyle(
                           fontSize: 18,
                           // ignore: deprecated_member_use

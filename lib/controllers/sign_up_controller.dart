@@ -401,7 +401,9 @@ class SignUpController extends GetxController {
         Get.back(); // Close dialog
         Utils.showSnackbar('Success', 'Account verified successfully',
             isError: false);
-        Get.offAllNamed(RoutesName.onboardingView, arguments: myUser);
+        final box = GetStorage();
+        box.write('hasSeenOnboarding', true);
+        Get.offAllNamed(RoutesName.homeView, arguments: myUser);
       } else {
         throw Exception(response.data['detail'] ?? 'OTP verification failed');
       }

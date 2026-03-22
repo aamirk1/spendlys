@@ -52,6 +52,9 @@ dependencies:
   path_provider: ^2.1.5
   csv: ^7.2.0
   share_plus: ^12.0.1
+  in_app_review: ^2.0.9
+  package_info_plus: ^8.2.1
+  url_launcher: ^6.3.1
   # rive: 
   # shared_preferences: 
   # local_auth: ^2.3.0

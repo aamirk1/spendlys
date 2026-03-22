@@ -22,16 +22,16 @@ class LedgerScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: CustomAppBar(
         backgroundColor: AppColors.primary,
-        title: "Global Ledger",
+        title: "global_ledger".tr,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
-            tooltip: "Export PDF",
+            tooltip: "export_pdf".tr,
             onPressed: () => _handleExport(controller, isPdf: true),
           ),
           IconButton(
             icon: const Icon(Icons.table_view_rounded, color: Colors.white),
-            tooltip: "Export Excel",
+            tooltip: "export_excel".tr,
             onPressed: () => _handleExport(controller, isPdf: false),
           ),
         ],
@@ -65,11 +65,11 @@ class LedgerScreen extends StatelessWidget {
       color: AppColors.primary.withOpacity(0.05),
       child: Obx(() => Row(
             children: [
-              _typeButton(controller, LedgerType.business, "Business",
+              _typeButton(controller, LedgerType.business, "business".tr,
                   Icons.business_center),
               _typeButton(
-                  controller, LedgerType.loan, "Loans", Icons.handshake),
-              _typeButton(controller, LedgerType.expense, "Expenses",
+                  controller, LedgerType.loan, "loans".tr, Icons.handshake),
+              _typeButton(controller, LedgerType.expense, "expenses".tr,
                   Icons.account_balance_wallet),
             ],
           )),
@@ -114,7 +114,7 @@ class LedgerScreen extends StatelessWidget {
   }
 
   Widget _buildBusinessLedger(LedgerController controller) {
-    if (controller.invoices.isEmpty) return _emptyState("No business records");
+    if (controller.invoices.isEmpty) return _emptyState("no_business_records".tr);
     return ListView.builder(
       padding: const EdgeInsets.all(15),
       itemCount: controller.invoices.length,
@@ -122,7 +122,7 @@ class LedgerScreen extends StatelessWidget {
         final inv = controller.invoices[index];
         return _ledgerCard(
           title: inv['invoice_number'] ?? "INV-???",
-          subtitle: inv['resolved_customer_name'] ?? "Unknown Customer",
+          subtitle: inv['resolved_customer_name'] ?? "unknown_customer".tr,
           amount: "₹${inv['total']}",
           date: inv['date'],
           status: inv['status'],
@@ -137,7 +137,7 @@ class LedgerScreen extends StatelessWidget {
       ...controller.loanController.borrowed,
       ...controller.loanController.lent
     ];
-    if (allLoans.isEmpty) return _emptyState("No loan records");
+    if (allLoans.isEmpty) return _emptyState("no_loan_records".tr);
 
     // Sort by date
     allLoans.sort((a, b) => b.date.compareTo(a.date));
@@ -150,10 +150,10 @@ class LedgerScreen extends StatelessWidget {
         final isLent = loan.type == 'Lent' || loan.type == 'lent';
         return _ledgerCard(
           title: loan.personName,
-          subtitle: isLent ? "You Lent Money" : "You Borrowed Money",
+          subtitle: isLent ? "lent_money_msg".tr : "borrowed_money_msg".tr,
           amount: "₹${loan.amount}",
           date: loan.date.toIso8601String(),
-          status: isLent ? "LENT" : "BORROWED",
+          status: isLent ? "lent_caps".tr : "borrowed_caps".tr,
           color: isLent ? Colors.orange : Colors.deepPurple,
         );
       },
@@ -169,7 +169,7 @@ class LedgerScreen extends StatelessWidget {
         .toList();
     final all = [...incomes, ...expenses];
 
-    if (all.isEmpty) return _emptyState("No transaction records");
+    if (all.isEmpty) return _emptyState("no_transaction_records".tr);
 
     all.sort(
         (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
@@ -185,7 +185,7 @@ class LedgerScreen extends StatelessWidget {
           subtitle: item['category'] ?? "",
           amount: "₹${item['amount']}",
           date: item['date'].toString(),
-          status: isIncome ? "INCOME" : "EXPENSE",
+          status: isIncome ? "income_caps".tr : "expense_caps".tr,
           color: isIncome ? Colors.green : Colors.red,
         );
       },

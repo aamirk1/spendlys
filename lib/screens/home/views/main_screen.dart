@@ -85,7 +85,7 @@ class MainScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Welcome!",
+                Text("welcome".tr,
                     style:
                         TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 Text(myUser.name,
@@ -129,8 +129,8 @@ class MainScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('Total Balance',
-              style: TextStyle(
+          Text('total_balance'.tr,
+              style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 15,
                   fontWeight: FontWeight.w500)),
@@ -153,7 +153,7 @@ class MainScreen extends StatelessWidget {
             children: [
               _balanceStatItem(
                 icon: CupertinoIcons.arrow_up_circle_fill,
-                label: "Income",
+                label: "income".tr,
                 color: Colors.greenAccent.shade400,
                 amountObx: () => incomeController.categoryTotals.values
                     .fold(0, (sum, value) => sum + value),
@@ -165,7 +165,7 @@ class MainScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 20)),
               _balanceStatItem(
                 icon: CupertinoIcons.arrow_down_circle_fill,
-                label: "Expense",
+                label: "expense".tr,
                 color: Colors.redAccent.shade200,
                 amountObx: () => expenseController.categoryTotals.values
                     .fold(0, (sum, value) => sum + value),
@@ -208,8 +208,8 @@ class MainScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Feature Modules",
-            style: TextStyle(
+        Text("feature_modules".tr,
+            style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87)),
@@ -218,8 +218,8 @@ class MainScreen extends StatelessWidget {
           children: [
             _overviewCard(
               context,
-              title: "Business Center",
-              subtitle: "Paid/Pending Invoices",
+              title: "business_center".tr,
+              subtitle: "invoices_subtitle".tr,
               icon: Icons.storefront_rounded,
               color: Colors.blue.shade600,
               valueObx: () =>
@@ -229,8 +229,8 @@ class MainScreen extends StatelessWidget {
             const SizedBox(width: 15),
             _overviewCard(
               context,
-              title: "Digital Ledger",
-              subtitle: "Lent/Borrowed",
+              title: "digital_ledger".tr,
+              subtitle: "lent_borrowed".tr,
               icon: Icons.menu_book_rounded,
               color: Colors.orange.shade600,
               valueObx: () =>
@@ -302,14 +302,14 @@ class MainScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('Recent Transactions',
-            style: TextStyle(
+        Text('recent_transactions'.tr,
+            style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87)),
         GestureDetector(
           onTap: () => Get.toNamed(RoutesName.viewAllExpenses),
-          child: Text('View History',
+          child: Text('view_history'.tr,
               style: TextStyle(
                   fontSize: 13,
                   color: Colors.indigo.shade600,
@@ -342,7 +342,7 @@ class MainScreen extends StatelessWidget {
               Icon(Icons.receipt_long_outlined,
                   size: 60, color: Colors.grey.shade300),
               const SizedBox(height: 10),
-              Text("No transactions yet",
+              Text("no_transactions".tr,
                   style: TextStyle(color: Colors.grey.shade400)),
             ],
           ),

@@ -30,8 +30,8 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    const Text(
-                      'Notifications',
+                    Text(
+                      'notifications'.tr,
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     )
@@ -49,8 +49,8 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    const Text(
-                      'App Settings',
+                    Text(
+                      'app_settings'.tr,
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     )
@@ -68,8 +68,8 @@ class CommonBottomScreen extends StatelessWidget {
                       size: 25,
                       color: AppColors.tertiary,
                     ),
-                    const Text(
-                      'Need Help',
+                    Text(
+                      'need_help'.tr,
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     )
@@ -94,7 +94,7 @@ class CommonBottomScreen extends StatelessWidget {
                     color: AppColors.red,
                   ),
                   Text(
-                    'Logout',
+                    'logout'.tr,
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   )
                 ],

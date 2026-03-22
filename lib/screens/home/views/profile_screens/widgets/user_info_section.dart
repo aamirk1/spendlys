@@ -42,170 +42,205 @@ class UserInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     DateTime lastLoginDateTime = (myUser.lastLogin).toDate();
     String formattedDate =
-        DateFormat('MMM dd yyyy HH:mm:ss').format(lastLoginDateTime);
+        DateFormat('MMM dd yyyy HH:mm').format(lastLoginDateTime);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    myUser.name,
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                  Text(
-                    'User ID: ${myUser.userId.substring(myUser.userId.length - 5).toUpperCase()}',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.60,
-                    height: 25,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(50)),
-                      color: const Color.fromARGB(255, 232, 224, 199),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Center(
-                        child: Text(
-                          'Last Login: $formattedDate',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurface),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.yellow[700],
-                        ),
-                      ),
-                      Text(
-                        myUser.name[0].toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        child: GestureDetector(
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) {
-                                return SafeArea(
-                                  child: Wrap(
-                                    children: [
-                                      ListTile(
-                                        title: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text('Select Profile Picture',
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        trailing: IconButton(
-                                          onPressed: () {
-                                            Get.back();
-                                          },
-                                          icon: Icon(Icons.close_rounded),
-                                        ),
-                                      ),
-                                      ListTile(
-                                        leading: Icon(Icons.camera_alt),
-                                        title: Text('Capture from Camera'),
-                                        onTap: () async {
-                                          final XFile? image =
-                                              await _picker.pickImage(
-                                            source: ImageSource.camera,
-                                            imageQuality:
-                                                50, // Optional: Adjust image quality (0-100)
-                                            preferredCameraDevice: CameraDevice
-                                                .rear, // Use rear camera (can be front as well)
-                                          );
-
-                                          if (image != null) {
-                                            // Convert the XFile to File
-                                            File imageFile = File(image.path);
-
-                                            // Call the method to upload the image and store URL in Firestore
-                                            await uploadProfilePicture(
-                                                imageFile);
-                                          }
-                                          Get.back(); // Close the modal bottom sheet
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: Icon(Icons.photo_library),
-                                        title: Text('Select from Gallery'),
-                                        onTap: () async {
-                                          final XFile? image =
-                                              await _picker.pickImage(
-                                                  source: ImageSource.gallery);
-                                          if (image != null) {
-                                            File imageFile = File(image.path);
-                                            await uploadProfilePicture(
-                                                imageFile);
-                                          }
-                                          Get.back();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 24,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              )
-            ],
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _buildModernAvatar(context),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      myUser.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${'user_id'.tr}: ${myUser.userId.substring(myUser.userId.length - 5).toUpperCase()}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    size: 16, color: Colors.white70),
+                const SizedBox(width: 8),
+                Text(
+                  '${'last_login'.tr}: $formattedDate',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernAvatar(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: Text(
+              myUser.name[0].toUpperCase(),
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: GestureDetector(
+            onTap: () => _showPicker(context),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.camera_alt_rounded,
+                size: 16,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPicker(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Get.isDarkMode ? Colors.grey.shade900 : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'select_profile_pic'.tr,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            _pickerOption(
+              Icons.camera_alt_rounded,
+              'capture_camera'.tr,
+              () async {
+                final XFile? image =
+                    await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (image != null) await uploadProfilePicture(File(image.path));
+                Get.back();
+              },
+            ),
+            _pickerOption(
+              Icons.photo_library_rounded,
+              'select_gallery'.tr,
+              () async {
+                final XFile? image =
+                    await _picker.pickImage(source: ImageSource.gallery);
+                if (image != null) await uploadProfilePicture(File(image.path));
+                Get.back();
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pickerOption(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: Colors.blue.shade700),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      onTap: onTap,
     );
   }
 }

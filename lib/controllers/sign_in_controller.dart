@@ -92,6 +92,7 @@ class SignInController extends GetxController {
       box.write("phoneNumber", myUser.phoneNumber);
       box.write("deviceInfo", deviceInfo);
       box.write("fcmToken", fcmToken);
+      box.write("hasSeenOnboarding", true);
 
       signInRequired.value = false;
       Utils.showSnackbar("Success", "Sign-in successful!", isError: false);
