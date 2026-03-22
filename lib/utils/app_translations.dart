@@ -7,7 +7,8 @@ class AppTranslations extends Translations {
           'app_name': 'DailyBachat',
           'track_expenses_smartly': 'Track Your Expenses Smartly',
           'welcome_back': 'Welcome Back',
-          'login_subtitle': 'Log in to your account and stay on top of your finances.',
+          'login_subtitle':
+              'Log in to your account and stay on top of your finances.',
           'email_address': 'Email Address',
           'password': 'Password',
           'forgot_password': 'Forgot Password?',
@@ -21,11 +22,14 @@ class AppTranslations extends Translations {
           'next': 'Next',
           'get_started': 'Get Started',
           'track_expenses': 'Track Your Expenses',
-          'track_expenses_desc': 'Keep an eye on your spending and manage your budget effectively.',
+          'track_expenses_desc':
+              'Keep an eye on your spending and manage your budget effectively.',
           'set_budget': 'Set Budget Goals',
-          'set_budget_desc': 'Plan and set limits to ensure you never overspend.',
+          'set_budget_desc':
+              'Plan and set limits to ensure you never overspend.',
           'financial_insights': 'Gain Financial Insights',
-          'financial_insights_desc': 'Analyze your expenses and make smarter financial decisions.',
+          'financial_insights_desc':
+              'Analyze your expenses and make smarter financial decisions.',
           'settings': 'Settings',
           'language': 'Language',
           'select_language': 'Select Language',
@@ -61,7 +65,8 @@ class AppTranslations extends Translations {
           'contact_details': 'Contact Details',
           'change_password': 'Change Password',
           'reset_password': 'Reset Your Password',
-          'forgot_password_subtitle': 'Enter your email to receive a password reset link',
+          'forgot_password_subtitle':
+              'Enter your email to receive a password reset link',
           'send_reset_link': 'Send Reset Link',
           'global_ledger': 'Global Ledger',
           'export_pdf': 'Export PDF',
@@ -107,16 +112,20 @@ class AppTranslations extends Translations {
           'app_version': 'App Version',
           'rate_us': 'Rate Us',
           'delete_account': 'Delete Account',
-          'delete_account_confirm': 'Are you sure you want to request account deletion? This action is irreversible.',
+          'delete_account_confirm':
+              'Are you sure you want to request account deletion? This action is irreversible.',
           'update_required': 'Update Required',
-          'update_desc': 'A new version of the app is available. Please update to continue.',
+          'update_desc':
+              'A new version of the app is available. Please update to continue.',
           'update_btn': 'Update Now',
         },
         'hi_IN': {
           'app_name': 'डेलीबचत',
-          'track_expenses_smartly': 'अपने खर्चों को स्मार्ट तरीके से ट्रैक करें',
+          'track_expenses_smartly':
+              'अपने खर्चों को स्मार्ट तरीके से ट्रैक करें',
           'welcome_back': 'वापसी पर आपका स्वागत है',
-          'login_subtitle': 'अपने खाते में लॉग इन करें और अपने वित्त के शीर्ष पर रहें।',
+          'login_subtitle':
+              'अपने खाते में लॉग इन करें और अपने वित्त के शीर्ष पर रहें।',
           'email_address': 'ईमेल पता',
           'password': 'पासवर्ड',
           'forgot_password': 'पासवर्ड भूल गए?',
@@ -130,11 +139,14 @@ class AppTranslations extends Translations {
           'next': 'अगला',
           'get_started': 'शुरू करें',
           'track_expenses': 'अपने खर्चों को ट्रैक करें',
-          'track_expenses_desc': 'अपने खर्चों पर नज़र रखें और अपने बजट को प्रभावी ढंग से प्रबंधित करें।',
+          'track_expenses_desc':
+              'अपने खर्चों पर नज़र रखें और अपने बजट को प्रभावी ढंग से प्रबंधित करें।',
           'set_budget': 'बजट लक्ष्य निर्धारित करें',
-          'set_budget_desc': 'योजना बनाएं और सीमाओं को निर्धारित करें ताकि आप कभी भी अधिक खर्च न करें।',
+          'set_budget_desc':
+              'योजना बनाएं और सीमाओं को निर्धारित करें ताकि आप कभी भी अधिक खर्च न करें।',
           'financial_insights': 'वित्तीय जानकारी प्राप्त करें',
-          'financial_insights_desc': 'अपने खर्चों का विश्लेषण करें और बेहतर वित्तीय निर्णय लें।',
+          'financial_insights_desc':
+              'अपने खर्चों का विश्लेषण करें और बेहतर वित्तीय निर्णय लें।',
           'settings': 'सेटिंग्स',
           'language': 'भाषा',
           'select_language': 'भाषा चुनें',
@@ -170,7 +182,8 @@ class AppTranslations extends Translations {
           'contact_details': 'संपर्क विवरण',
           'change_password': 'पासवर्ड बदलें',
           'reset_password': 'अपना पासवर्ड रीसेट करें',
-          'forgot_password_subtitle': 'पासवर्ड रीसेट लिंक प्राप्त करने के लिए अपना ईमेल दर्ज करें',
+          'forgot_password_subtitle':
+              'पासवर्ड रीसेट लिंक प्राप्त करने के लिए अपना ईमेल दर्ज करें',
           'send_reset_link': 'रीसेट लिंक भेजें',
           'global_ledger': 'ग्लोबल खाता',
           'export_pdf': 'पीडीएफ साझा करें',
@@ -216,16 +229,19 @@ class AppTranslations extends Translations {
           'app_version': 'ऐप संस्करण',
           'rate_us': 'हमें रेट करें',
           'delete_account': 'खाता हटाएं',
-          'delete_account_confirm': 'क्या आप वाकई खाता हटाने का अनुरोध करना चाहते हैं? यह क्रिया अपरिवर्तनीय है।',
+          'delete_account_confirm':
+              'क्या आप वाकई खाता हटाने का अनुरोध करना चाहते हैं? यह क्रिया अपरिवर्तनीय है।',
           'update_required': 'अपडेट आवश्यक है',
-          'update_desc': 'ऐप का नया संस्करण उपलब्ध है। कृपया जारी रखने के लिए अपडेट करें।',
+          'update_desc':
+              'ऐप का नया संस्करण उपलब्ध है। कृपया जारी रखने के लिए अपडेट करें।',
           'update_btn': 'अभी अपडेट करें',
         },
         'mr_IN': {
           'app_name': 'डेलीबचत',
           'track_expenses_smartly': 'तुमचे खर्च स्मार्ट पद्धतीने ट्रॅक करा',
           'welcome_back': 'पुनः स्वागत आहे',
-          'login_subtitle': 'तुमच्या खात्यात लॉग इन करा आणि तुमची आर्थिक स्थिती सांभाळा.',
+          'login_subtitle':
+              'तुमच्या खात्यात लॉग इन करा आणि तुमची आर्थिक स्थिती सांभाळा.',
           'email_address': 'ईमेल पत्ता',
           'password': 'पासवर्ड',
           'forgot_password': 'पासवर्ड विसरलात?',
@@ -239,11 +255,14 @@ class AppTranslations extends Translations {
           'next': 'पुढील',
           'get_started': 'सुरू करा',
           'track_expenses': 'तुमचे खर्च ट्रॅक करा',
-          'track_expenses_desc': 'तुमच्या खर्चावर लक्ष ठेवा आणि तुमचे बजेट प्रभावीपणे व्यवस्थापित करा.',
+          'track_expenses_desc':
+              'तुमच्या खर्चावर लक्ष ठेवा आणि तुमचे बजेट प्रभावीपणे व्यवस्थापित करा.',
           'set_budget': 'बजेटची उद्दिष्टे ठरवा',
-          'set_budget_desc': 'नियोजन करा आणि मर्यादा निश्चित करा जेणेकरून तुम्ही कधीही जास्त खर्च करणार नाही.',
+          'set_budget_desc':
+              'नियोजन करा आणि मर्यादा निश्चित करा जेणेकरून तुम्ही कधीही जास्त खर्च करणार नाही.',
           'financial_insights': 'आर्थिक अंतर्दृष्टी मिळवा',
-          'financial_insights_desc': 'तुमच्या खर्चाचे विश्लेषण करा आणि अधिक चांगले आर्थिक निर्णय घ्या.',
+          'financial_insights_desc':
+              'तुमच्या खर्चाचे विश्लेषण करा आणि अधिक चांगले आर्थिक निर्णय घ्या.',
           'settings': 'सेटिंग्ज',
           'language': 'भाषा',
           'select_language': 'भाषा निवडा',
@@ -279,7 +298,8 @@ class AppTranslations extends Translations {
           'contact_details': 'संपर्क तपशील',
           'change_password': 'पासवर्ड बदला',
           'reset_password': 'तुमचा पासवर्ड रीसेट करा',
-          'forgot_password_subtitle': 'पासवर्ड रीसेट लिंक प्राप्त करण्यासाठी तुमचा ईमेल प्रविष्ट करा',
+          'forgot_password_subtitle':
+              'पासवर्ड रीसेट लिंक प्राप्त करण्यासाठी तुमचा ईमेल प्रविष्ट करा',
           'send_reset_link': 'रीसेट लिंक पाठवा',
           'global_ledger': 'ग्लोबल खातेवही',
           'export_pdf': 'पीडीएफ पाठवा',
@@ -298,7 +318,8 @@ class AppTranslations extends Translations {
           'unknown_customer': 'अज्ञात ग्राहक',
           'business_center_title': 'व्यवसाय केंद्र',
           'business_header_title': 'डेलीबचत व्यवसाय',
-          'business_header_subtitle': 'इनव्हॉइस, कोट्स आणि लेजर व्यवस्थापित करा',
+          'business_header_subtitle':
+              'इनव्हॉइस, कोट्स आणि लेजर व्यवस्थापित करा',
           'create_invoice': 'इनव्हॉइस तयार करा',
           'quotation': 'कोटेशन',
           'management': 'व्यवस्थापन',
@@ -325,16 +346,19 @@ class AppTranslations extends Translations {
           'app_version': 'अॅप व्हर्जन',
           'rate_us': 'आम्हाला रेट करा',
           'delete_account': 'खाते हटवा',
-          'delete_account_confirm': 'तुम्हाला नक्की खाते हटवण्याची विनंती करायची आहे का? ही क्रिया अपरिवर्तनीय आहे.',
+          'delete_account_confirm':
+              'तुम्हाला नक्की खाते हटवण्याची विनंती करायची आहे का? ही क्रिया अपरिवर्तनीय आहे.',
           'update_required': 'अपडेट आवश्यक आहे',
-          'update_desc': 'अॅपची नवीन आवृत्ती उपलब्ध आहे. कृपया सुरू ठेवण्यासाठी अपडेट करा.',
+          'update_desc':
+              'अॅपची नवीन आवृत्ती उपलब्ध आहे. कृपया सुरू ठेवण्यासाठी अपडेट करा.',
           'update_btn': 'आता अपडेट करा',
         },
         'gu_IN': {
           'app_name': 'ડેલીબચત',
           'track_expenses_smartly': 'તમારા ખર્ચાઓને સ્માર્ટ રીતે ટ્રૅક કરો',
           'welcome_back': 'ફરીથી આપનું સ્વાગત છે',
-          'login_subtitle': 'તમારા ખાતામાં લોગ ઇન કરો અને તમારી નાણાકીય સ્થિતિ જાળવો.',
+          'login_subtitle':
+              'તમારા ખાતામાં લોગ ઇન કરો અને તમારી નાણાકીય સ્થિતિ જાળવો.',
           'email_address': 'ઈમેલ સરનામું',
           'password': 'પાસવર્ડ',
           'forgot_password': 'પાસવર્ડ ભૂલી ગયા છો?',
@@ -348,11 +372,14 @@ class AppTranslations extends Translations {
           'next': 'આગળ',
           'get_started': 'શરૂ કરો',
           'track_expenses': 'તમારા ખર્ચાઓને ટ્રૅક કરો',
-          'track_expenses_desc': 'તમારા ખર્ચ પર નજર રાખો અને તમારા બજેટને અસરકારક રીતે સંચાલિત કરો.',
+          'track_expenses_desc':
+              'તમારા ખર્ચ પર નજર રાખો અને તમારા બજેટને અસરકારક રીતે સંચાલિત કરો.',
           'set_budget': 'બજેટ ના લક્ષ્યો નક્કી કરો',
-          'set_budget_desc': 'આયોજન કરો અને મર્યાદા નક્કી કરો જેથી તમે ક્યારેય વધુ ખર્ચ ન કરો.',
+          'set_budget_desc':
+              'આયોજન કરો અને મર્યાદા નક્કી કરો જેથી તમે ક્યારેય વધુ ખર્ચ ન કરો.',
           'financial_insights': 'નાણાકીય આંતરદૃષ્ટિ મેળવો',
-          'financial_insights_desc': 'તમારા ખર્ચાઓનું વિશ્લેષણ કરો અને વધુ સારા નાણાકીય નિર્ણયો લો.',
+          'financial_insights_desc':
+              'તમારા ખર્ચાઓનું વિશ્લેષણ કરો અને વધુ સારા નાણાકીય નિર્ણયો લો.',
           'settings': 'સેટિંગ્સ',
           'language': 'ભાષા',
           'select_language': 'ભાષા પસંદ કરો',
@@ -388,7 +415,8 @@ class AppTranslations extends Translations {
           'contact_details': 'સંપર્ક વિગતો',
           'change_password': 'પાસવર્ડ બદલો',
           'reset_password': 'તમારો પાસવર્ડ રીસેટ કરો',
-          'forgot_password_subtitle': 'પાસવર્ડ રીસેટ લિંક મેળવવા માટે તમારું ઇમેઇલ દાખલ કરો',
+          'forgot_password_subtitle':
+              'પાસવર્ડ રીસેટ લિંક મેળવવા માટે તમારું ઇમેઇલ દાખલ કરો',
           'send_reset_link': 'રીસેટ લિંક મોકલો',
           'global_ledger': 'ગ્લોબલ ખાતાવહી',
           'export_pdf': 'પીડીએફ નિકાસ કરો',
@@ -434,9 +462,11 @@ class AppTranslations extends Translations {
           'app_version': 'એપ્લિકેશન સંસ્કરણ',
           'rate_us': 'અમને રેટ કરો',
           'delete_account': 'એકાઉન્ટ કાઢી નાખો',
-          'delete_account_confirm': 'શું તમે ખરેખર એકાઉન્ટ ડિલીટ કરવાની વિનંતી કરવા માંગો છો? આ ક્રિયા બદલી શકાતી નથી.',
+          'delete_account_confirm':
+              'શું તમે ખરેખર એકાઉન્ટ ડિલીટ કરવાની વિનંતી કરવા માંગો છો? આ ક્રિયા બદલી શકાતી નથી.',
           'update_required': 'અપડેટ આવશ્યક છે',
-          'update_desc': 'એપ્લિકેશનનું નવું સંસ્કરણ ઉપલબ્ધ છે. ચાલુ રાખવા માટે કૃપા કરીને અપડેટ કરો.',
+          'update_desc':
+              'એપ્લિકેશનનું નવું સંસ્કરણ ઉપલબ્ધ છે. ચાલુ રાખવા માટે કૃપા કરીને અપડેટ કરો.',
           'update_btn': 'હમણાં અપડેટ કરો',
         },
       };
