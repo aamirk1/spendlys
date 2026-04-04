@@ -83,13 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (index == 2) {
-            Get.toNamed(RoutesName.addLoanScreen,
-                arguments: {'controller': LoanController(), 'myUser': myUser});
-          } else {
-            Get.toNamed(RoutesName.incomeExpenseHome, arguments: myUser);
-          }
+        onPressed: () {
+          _showActionSheet(context);
         },
         shape: const CircleBorder(),
         elevation: 8,
@@ -114,6 +109,118 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: index,
         children: screens,
+      ),
+    );
+  }
+
+  void _showActionSheet(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              'choose_action'.tr,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: _actionButton(
+                    context: context,
+                    icon: CupertinoIcons.arrow_up_down_circle_fill,
+                    label: 'income_expense'.tr,
+                    color: Colors.indigo,
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(RoutesName.incomeExpenseHome,
+                          arguments: myUser);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _actionButton(
+                    context: context,
+                    icon: CupertinoIcons.money_dollar_circle_fill,
+                    label: 'loan'.tr,
+                    color: Colors.deepPurple,
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(RoutesName.addLoanScreen, arguments: {
+                        'controller': LoanController(),
+                        'myUser': myUser
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      elevation: 0,
+    );
+  }
+
+  Widget _actionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

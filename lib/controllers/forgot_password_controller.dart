@@ -9,6 +9,7 @@ import 'package:spendly/utils/utils.dart';
 class ForgotPasswordController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final emailController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
   var isSending = false.obs;
 
   Future<void> sendPasswordResetEmail() async {

@@ -19,8 +19,10 @@ class SplashController extends GetxController {
 
   Future<void> _checkUpdateAndLogin() async {
     final updateService = Get.put(AppUpdateService());
-    await updateService.checkForUpdate();
-    _checkLoginStatus();
+    bool updateRequired = await updateService.checkForUpdate();
+    if (!updateRequired) {
+      _checkLoginStatus();
+    }
   }
 
   Future<void> _checkLoginStatus() async {

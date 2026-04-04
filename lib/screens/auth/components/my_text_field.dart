@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spendly/utils/colors.dart';
 
 class MyTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -42,9 +43,9 @@ class MyTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         prefixIcon: prefixIcon,
         hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+        hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 16),
         filled: true,
-        fillColor: const Color(0xFFF5F7F9),
+        fillColor: AppColors.lightGrey.withOpacity(0.2),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -52,7 +53,7 @@ class MyTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF00B2E7), width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

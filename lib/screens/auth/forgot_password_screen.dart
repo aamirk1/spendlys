@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/forgot_password_controller.dart';
+import 'package:spendly/screens/auth/components/my_text_field.dart';
 import 'package:spendly/utils/colors.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
@@ -32,76 +33,82 @@ class ForgotPasswordScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: controller.formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Header
                       Text(
                         'reset_password'.tr,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade900,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'forgot_password_subtitle'.tr,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       // Email TextField
-                      TextField(
+                      MyTextField(
                         controller: controller.emailController,
+                        hintText: 'example@mail.com',
+                        obscureText: false,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'email_address'.tr,
-                          hintText: 'example@gmail.com',
-                          prefixIcon:
-                              Icon(Icons.email, color: Colors.blue.shade700),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                        ),
+                        prefixIcon:
+                            const Icon(Icons.email, color: AppColors.primary),
+                        validator: (val) {
+                          if (val!.isEmpty) return 'Please enter your email';
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(val)) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       // Submit Button
                       Obx(() => AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             width: controller.isSending.value
                                 ? 60
                                 : double.infinity,
-                            height: 50,
+                            height: 56,
                             child: ElevatedButton(
                               onPressed: controller.isSending.value
                                   ? null
-                                  : controller.sendPasswordResetEmail,
+                                  : () {
+                                      if (controller.formKey.currentState!
+                                          .validate()) {
+                                        controller.sendPasswordResetEmail();
+                                      }
+                                    },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade700,
+                                backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 elevation: 5,
                               ),
                               child: controller.isSending.value
-                                  ? CircularProgressIndicator(
+                                  ? const CircularProgressIndicator(
                                       color: Colors.white,
                                       strokeWidth: 2.5,
                                     )
                                   : Text(
                                       'send_reset_link'.tr,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                             ),

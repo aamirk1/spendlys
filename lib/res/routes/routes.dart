@@ -47,6 +47,11 @@ class AppRoutes {
             page: () => SignUpScreen(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.forgotPasswordView,
+            page: () => ForgotPasswordScreen(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
 
 // ---------------------------------------------------------------------------------
         GetPage(

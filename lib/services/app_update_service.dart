@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 class AppUpdateService extends GetxService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> checkForUpdate() async {
+  Future<bool> checkForUpdate() async {
     try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String currentVersion = packageInfo.version;
@@ -17,16 +17,18 @@ class AppUpdateService extends GetxService {
 
       if (config.exists) {
         Map<String, dynamic> data = config.data() as Map<String, dynamic>;
-        String minVersion = data['min_version'] ?? '1.0.0';
+        String minVersion = data['min_version'] ?? '1.2.0';
         String storeUrl = data['store_url'] ?? '';
 
         if (_shouldUpdate(currentVersion, minVersion)) {
           _showUpdateDialog(storeUrl);
+          return true;
         }
       }
     } catch (e) {
       debugPrint('Error checking for update: $e');
     }
+    return false;
   }
 
   bool _shouldUpdate(String current, String min) {

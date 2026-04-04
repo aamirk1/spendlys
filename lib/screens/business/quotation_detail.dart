@@ -59,6 +59,16 @@ class QuotationDetailView extends StatelessWidget {
           children: [
             _buildStatusHeader(quot),
             const SizedBox(height: 20),
+            _buildSectionTitle("Customer Info"),
+            _buildInfoCard([
+              _buildInfoRow(
+                  "Customer",
+                  quot['customer_name'] ??
+                      quot['customer']?['name'] ??
+                      quot['customer']?['full_name'] ??
+                      "Loading..."),
+            ]),
+            const SizedBox(height: 20),
             _buildSectionTitle("Quotation Info"),
             _buildInfoCard([
               _buildInfoRow("Number", quot['quotation_number'] ?? "N/A"),
@@ -168,9 +178,9 @@ class QuotationDetailView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
-        subtitle: Text("Qty: ${item['quantity']} × ₹${item['unit_price']}"),
+        subtitle: Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
         trailing: Text(
-          "₹${item['amount']}",
+          "\u20b9${item['amount']}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
@@ -185,21 +195,20 @@ class QuotationDetailView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow("Subtotal", "₹${quot['subtotal']}"),
+            _buildInfoRow("Subtotal", "\u20b9${quot['subtotal']}"),
             _buildInfoRow(
-              "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)", 
-              "₹${quot['tax']}"
-            ),
+                "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)",
+                "\u20b9${quot['tax']}"),
             _buildInfoRow(
               "Advance Paid",
-              "₹${quot['advance_amount'] ?? '0.00'}",
+              "\u20b9${quot['advance_amount'] ?? '0.00'}",
             ),
             const Divider(),
-            _buildInfoRow("Total", "₹${quot['total']}"),
+            _buildInfoRow("Total", "\u20b9${quot['total']}"),
             if ((quot['advance_amount'] ?? 0.0) > 0)
               _buildInfoRow(
                 "Remaining Balance",
-                "₹${(quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0)}",
+                "\u20b9${(quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0)}",
               ),
           ],
         ),
@@ -234,10 +243,7 @@ class QuotationDetailView extends StatelessWidget {
     try {
       final response = await ApiService.post(
         '/business/quotations/${quot['id']}/convert-to-invoice',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': userId
-        },
+        headers: {'Content-Type': 'application/json', 'x-user-id': userId},
       );
 
       Get.back(); // hide loading
@@ -260,32 +266,48 @@ class QuotationDetailView extends StatelessWidget {
       Utils.showSnackbar("Error", "An error occurred: $e");
     }
   }
+
   Future<void> _downloadPdf(Map<String, dynamic> quot) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
-    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    Get.dialog(const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false);
     try {
       // 1. Fetch Business Profile
-      final busResp = await ApiService.get('/business/profile', headers: {'x-user-id': userId});
+      final busResp = await ApiService.get('/business/profile',
+          headers: {'x-user-id': userId});
       if (busResp.statusCode != 200) {
         Get.back();
-        Utils.showSnackbar("Error", "Please complete your business profile first.");
+        Utils.showSnackbar(
+            "Error", "Please complete your business profile first.");
         return;
       }
       final businessProfile = jsonDecode(busResp.body);
 
       // 2. Extract Customer Info
-      Map<String, dynamic> customer = quot['customer'] ?? {};
-      if ((customer['name'] == null || customer['name'].toString().isEmpty) && quot['customer_id'] != null) {
-        final custResp = await ApiService.get('/business/customers/${quot['customer_id']}', headers: {'x-user-id': userId});
+      dynamic rawCust = quot['customer'];
+      Map<String, dynamic> customer = {};
+      if (rawCust is String) {
+        try {
+          customer = jsonDecode(rawCust);
+        } catch (_) {}
+      } else if (rawCust is Map) {
+        customer = Map<String, dynamic>.from(rawCust);
+      }
+
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) &&
+          quot['customer_id'] != null) {
+        final custResp = await ApiService.get(
+            '/business/customers/${quot['customer_id']}',
+            headers: {'x-user-id': userId});
         if (custResp.statusCode == 200) {
           customer = jsonDecode(custResp.body);
         }
       }
-      
+
       Get.back(); // hide loading
-      
+
       // 3. Generate and Print
       await BusinessPdfHelper.generateAndPrintPdf(
         title: "QUOTATION",

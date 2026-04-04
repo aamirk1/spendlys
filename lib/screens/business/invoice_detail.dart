@@ -15,15 +15,18 @@ class InvoiceDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> inv = Get.arguments;
-    
+
     // Safer item handling
     final dynamic itemsData = inv['items'] ?? [];
     final List items = itemsData is String ? jsonDecode(itemsData) : itemsData;
 
     String formatDate(dynamic d) {
       if (d == null || d.toString().isEmpty || d == 'null') return "N/A";
-      try { return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString())); } 
-      catch (_) { return "N/A"; }
+      try {
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));
+      } catch (_) {
+        return "N/A";
+      }
     }
 
     final String dateFormatted = formatDate(inv['date']);
@@ -35,7 +38,8 @@ class InvoiceDetailView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => Get.toNamed(RoutesName.editInvoice, arguments: inv),
+            onPressed: () =>
+                Get.toNamed(RoutesName.editInvoice, arguments: inv),
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
@@ -49,6 +53,16 @@ class InvoiceDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusHeader(inv),
+            const SizedBox(height: 20),
+            _buildSectionTitle("Customer Info"),
+            _buildInfoCard([
+              _buildInfoRow(
+                  "Customer",
+                  inv['customer_name'] ??
+                      inv['customer']?['name'] ??
+                      inv['customer']?['full_name'] ??
+                      "N/A"),
+            ]),
             const SizedBox(height: 20),
             _buildSectionTitle("Invoice Info"),
             _buildInfoCard([
@@ -75,7 +89,8 @@ class InvoiceDetailView extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
                       ),
                     ),
                   ),
@@ -90,7 +105,8 @@ class InvoiceDetailView extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.green, width: 2),
                         foregroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
                       ),
                     ),
                   ),
@@ -135,7 +151,8 @@ class InvoiceDetailView extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0, left: 4),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+        style: const TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
       ),
     );
   }
@@ -172,9 +189,10 @@ class InvoiceDetailView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
-        subtitle: Text("Qty: ${item['quantity']} × ₹${item['unit_price']}"),
+        subtitle:
+            Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
         trailing: Text(
-          "₹${item['amount']}",
+          "\u20b9${item['amount']}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
@@ -189,14 +207,14 @@ class InvoiceDetailView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow("Subtotal", "₹${inv['subtotal']}"),
+            _buildInfoRow("Subtotal", "\u20b9${inv['subtotal']}"),
             _buildInfoRow(
-              "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)", 
-              "₹${inv['tax']}"
-            ),
-            _buildInfoRow("Paid Amount", "₹${inv['paid_amount'] ?? '0.00'}"),
+                "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)",
+                "\u20b9${inv['tax']}"),
+            _buildInfoRow(
+                "Paid Amount", "\u20b9${inv['paid_amount'] ?? '0.00'}"),
             const Divider(),
-            _buildInfoRow("Grand Total", "₹${inv['total']}"),
+            _buildInfoRow("Grand Total", "\u20b9${inv['total']}"),
           ],
         ),
       ),
@@ -207,28 +225,43 @@ class InvoiceDetailView extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
-    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    Get.dialog(const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false);
     try {
       // 1. Fetch Business Profile
-      final busResp = await ApiService.get('/business/profile', headers: {'x-user-id': userId});
+      final busResp = await ApiService.get('/business/profile',
+          headers: {'x-user-id': userId});
       if (busResp.statusCode != 200) {
         Get.back();
-        Utils.showSnackbar("Error", "Please complete your business profile first.");
+        Utils.showSnackbar(
+            "Error", "Please complete your business profile first.");
         return;
       }
       final businessProfile = jsonDecode(busResp.body);
 
       // 2. Extract Customer Info (if not in inv, fetch it)
-      Map<String, dynamic> customer = inv['customer'] ?? {};
-      if ((customer['name'] == null || customer['name'].toString().isEmpty) && inv['customer_id'] != null) {
-        final custResp = await ApiService.get('/business/customers/${inv['customer_id']}', headers: {'x-user-id': userId});
+      dynamic rawCust = inv['customer'];
+      Map<String, dynamic> customer = {};
+      if (rawCust is String) {
+        try {
+          customer = jsonDecode(rawCust);
+        } catch (_) {}
+      } else if (rawCust is Map) {
+        customer = Map<String, dynamic>.from(rawCust);
+      }
+
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) &&
+          inv['customer_id'] != null) {
+        final custResp = await ApiService.get(
+            '/business/customers/${inv['customer_id']}',
+            headers: {'x-user-id': userId});
         if (custResp.statusCode == 200) {
           customer = jsonDecode(custResp.body);
         }
       }
-      
+
       Get.back(); // hide loading
-      
+
       // 3. Generate and Print
       await BusinessPdfHelper.generateAndPrintPdf(
         title: "INVOICE",
@@ -246,22 +279,23 @@ class InvoiceDetailView extends StatelessWidget {
 
   // Helper for the UI call
 
-
   Future<void> _markAsPaid(String? invoiceId) async {
     if (invoiceId == null) return;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
-    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    Get.dialog(const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false);
     try {
       final response = await ApiService.post(
         '/business/invoices/$invoiceId/mark-paid',
         headers: {'x-user-id': userId},
       );
-      
+
       Get.back(); // hide loading
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Invoice marked as paid!", isError: false);
+        Utils.showSnackbar("Success", "Invoice marked as paid!",
+            isError: false);
         if (Get.isRegistered<InvoiceListController>()) {
           Get.find<InvoiceListController>().fetchInvoices();
         }
@@ -275,7 +309,8 @@ class InvoiceDetailView extends StatelessWidget {
     }
   }
 
-  void _showPartialPaymentDialog(BuildContext context, Map<String, dynamic> inv) {
+  void _showPartialPaymentDialog(
+      BuildContext context, Map<String, dynamic> inv) {
     final tAmount = TextEditingController();
     final tRef = TextEditingController();
     String selectedMethod = "Cash";
@@ -286,89 +321,105 @@ class InvoiceDetailView extends StatelessWidget {
     double remaining = total - paid;
 
     showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Record Payment"),
-        content: Form(
-          key: k,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Remaining: ₹${remaining.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: tAmount,
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return "Required";
-                  double? val = double.tryParse(v);
-                  if (val == null) return "Invalid";
-                  if (val <= 0) return "Must be > 0";
-                  if (val > (remaining + 0.01)) return "Exceeds remaining";
-                  return null;
-                },
-                decoration: _inputDeco("Amount Paid", Icons.payments),
+        context: context,
+        builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Text("Record Payment"),
+              content: Form(
+                key: k,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Remaining: ₹${remaining.toStringAsFixed(2)}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.indigo)),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: tAmount,
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return "Required";
+                        double? val = double.tryParse(v);
+                        if (val == null) return "Invalid";
+                        if (val <= 0) return "Must be > 0";
+                        if (val > (remaining + 0.01))
+                          return "Exceeds remaining";
+                        return null;
+                      },
+                      decoration: _inputDeco("Amount Paid", Icons.payments),
+                    ),
+                    const SizedBox(height: 15),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedMethod,
+                      decoration:
+                          _inputDeco("Method", Icons.account_balance_wallet),
+                      items: ["Cash", "UPI", "Bank Transfer"]
+                          .map(
+                              (m) => DropdownMenuItem(value: m, child: Text(m)))
+                          .toList(),
+                      onChanged: (v) => selectedMethod = v!,
+                    ),
+                    const SizedBox(height: 15),
+                    TextFormField(
+                      controller: tRef,
+                      decoration:
+                          _inputDeco("Reference ID (Optional)", Icons.tag),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 15),
-              DropdownButtonFormField<String>(
-                initialValue: selectedMethod,
-                decoration: _inputDeco("Method", Icons.account_balance_wallet),
-                items: ["Cash", "UPI", "Bank Transfer"].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                onChanged: (v) => selectedMethod = v!,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: tRef,
-                decoration: _inputDeco("Reference ID (Optional)", Icons.tag),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text("CANCEL")),
-          ElevatedButton(
-            onPressed: () async {
-              if (!k.currentState!.validate()) return;
-              
-              String? userId = FirebaseAuth.instance.currentUser?.uid;
-              if (userId == null) return;
+              actions: [
+                TextButton(
+                    onPressed: () => Get.back(), child: const Text("CANCEL")),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (!k.currentState!.validate()) return;
 
-              Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-              try {
-                final payload = {
-                  "amount": double.parse(tAmount.text),
-                  "method": selectedMethod,
-                  "reference_id": tRef.text
-                };
-                final response = await ApiService.post(
-                  '/business/invoices/${inv['id']}/payments',
-                  headers: {'Content-Type': 'application/json', 'x-user-id': userId},
-                  body: payload
-                );
-                
-                Get.back(); // hide loading
-                if (response.statusCode == 200 || response.statusCode == 201) {
-                  Utils.showSnackbar("Success", "Payment recorded!", isError: false);
-                  if (Get.isRegistered<InvoiceListController>()) {
-                    Get.find<InvoiceListController>().fetchInvoices();
-                  }
-                  Get.back(); // close dialog
-                  Get.back(); // return to list
-                } else {
-                  Utils.showSnackbar("Error", "Failed: ${response.body}");
-                }
-              } catch (e) {
-                Get.back(); // hide loading
-                Utils.showSnackbar("Error", "Exception: $e");
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-            child: const Text("SAVE PAYMENT", style: TextStyle(color: Colors.white)),
-          )
-        ],
-      )
-    );
+                    String? userId = FirebaseAuth.instance.currentUser?.uid;
+                    if (userId == null) return;
+
+                    Get.dialog(const Center(child: CircularProgressIndicator()),
+                        barrierDismissible: false);
+                    try {
+                      final payload = {
+                        "amount": double.parse(tAmount.text),
+                        "method": selectedMethod,
+                        "reference_id": tRef.text
+                      };
+                      final response = await ApiService.post(
+                          '/business/invoices/${inv['id']}/payments',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': userId
+                          },
+                          body: payload);
+
+                      Get.back(); // hide loading
+                      if (response.statusCode == 200 ||
+                          response.statusCode == 201) {
+                        Utils.showSnackbar("Success", "Payment recorded!",
+                            isError: false);
+                        if (Get.isRegistered<InvoiceListController>()) {
+                          Get.find<InvoiceListController>().fetchInvoices();
+                        }
+                        Get.back(); // close dialog
+                        Get.back(); // return to list
+                      } else {
+                        Utils.showSnackbar("Error", "Failed: ${response.body}");
+                      }
+                    } catch (e) {
+                      Get.back(); // hide loading
+                      Utils.showSnackbar("Error", "Exception: $e");
+                    }
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+                  child: const Text("SAVE PAYMENT",
+                      style: TextStyle(color: Colors.white)),
+                )
+              ],
+            ));
   }
 
   InputDecoration _inputDeco(String label, IconData icon) {

@@ -41,6 +41,21 @@ class BusinessPdfHelper {
       } catch (_) {}
     }
 
+    String getName(Map data, List<String> keys) {
+      for (var k in keys) {
+        if (data[k] != null && data[k].toString().trim().isNotEmpty && data[k].toString() != 'null') {
+          return data[k].toString();
+        }
+      }
+      return "";
+    }
+
+    final String finalCustomerName = getName(customer, ['name', 'full_name', 'customer_name']).isNotEmpty 
+      ? getName(customer, ['name', 'full_name', 'customer_name'])
+      : getName(docData, ['customer_name', 'name', 'full_name', 'customer']).isNotEmpty
+        ? getName(docData, ['customer_name', 'name', 'full_name', 'customer'])
+        : 'Unknown Customer';
+
     final String docNumber = isInvoice 
         ? (docData['invoice_number'] ?? 'N/A') 
         : (docData['quotation_number'] ?? 'N/A');
@@ -122,27 +137,37 @@ class BusinessPdfHelper {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('BILL TO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
+                      pw.Text('BILL TO:',
+                          style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.blueGrey800)),
                       pw.SizedBox(height: 4),
                       pw.Text(
-                        (customer['name'] ?? customer['full_name'] ?? docData['customer_name'] ?? 'Unknown Customer').toString(),
-                        style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                        finalCustomerName,
+                        style: pw.TextStyle(
+                            fontSize: 14, fontWeight: pw.FontWeight.bold),
                       ),
-                      if (customer['address'] != null && customer['address'].toString().isNotEmpty && customer['address'] != 'null')
+                      if (customer['address'] != null &&
+                          customer['address'].toString().isNotEmpty &&
+                          customer['address'] != 'null')
                         pw.Text(customer['address'].toString()),
-                      if (customer['phone'] != null && customer['phone'].toString().isNotEmpty && customer['phone'] != 'null')
+                      if (customer['phone'] != null &&
+                          customer['phone'].toString().isNotEmpty &&
+                          customer['phone'] != 'null')
                         pw.Text('Phone: ${customer['phone']}'),
-                      if (customer['email'] != null && customer['email'].toString().isNotEmpty && customer['email'] != 'null')
+                      if (customer['email'] != null &&
+                          customer['email'].toString().isNotEmpty &&
+                          customer['email'] != 'null')
                         pw.Text('Email: ${customer['email']}'),
                     ],
                   ),
                 ),
                 if (watermarkImage != null)
-                   pw.Container(
-                     width: 80,
-                     height: 80,
-                     child: pw.Image(watermarkImage, fit: pw.BoxFit.contain),
-                   ),
+                  pw.Container(
+                    width: 80,
+                    height: 80,
+                    child: pw.Image(watermarkImage, fit: pw.BoxFit.contain),
+                  ),
               ],
             ),
             pw.SizedBox(height: 30),

@@ -27,6 +27,7 @@ class SignUpController extends GetxController {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final phoneNumberController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   var obscurePassword = true.obs;
   var signUpRequired = false.obs;
@@ -398,6 +399,11 @@ class SignUpController extends GetxController {
         final myUser = await _completeFirebaseRegistration(
             email, passwordController.text.trim());
 
+        if (myUser == null) {
+          throw Exception(
+              'Authentication failed. Please try signing in instead.');
+        }
+
         Get.back(); // Close dialog
         Utils.showSnackbar('Success', 'Account verified successfully',
             isError: false);
@@ -466,9 +472,40 @@ class SignUpController extends GetxController {
         // Save credentials securely for future API calls
         await _secureStorage.saveCredentials(email, password);
       }
+    } on FirebaseAuthException catch (firebaseError) {
+      debugPrint("Firebase shadow registration error: ${firebaseError.code}");
+      if (firebaseError.code == 'email-already-in-use') {
+        // User already in Firebase, try signing in to get their auth state
+        try {
+          UserCredential signinCredential =
+              await _auth.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          User? user = signinCredential.user;
+          if (user != null) {
+            myUser = MyUser(
+              userId: user.uid,
+              name: nameController.text.trim(),
+              email: email,
+              phoneNumber: phoneNumberController.text.trim(),
+              lastLogin: Timestamp.now(),
+            );
+
+            // Save locally
+            final box = GetStorage();
+            box.write("isLoggedIn", true);
+            box.write("userId", myUser.userId);
+            box.write("email", myUser.email);
+            box.write("name", myUser.name);
+            await _secureStorage.saveCredentials(email, password);
+          }
+        } catch (signInError) {
+          debugPrint("Firebase shadow signin also failed: $signInError");
+        }
+      }
     } catch (e) {
-      print("Firebase shadow registration failed: $e");
-      // Not failing the whole process as backend registration is the source of truth now
+      debugPrint("Shadow registration failed: $e");
     }
     signUpRequired.value = false;
     return myUser;

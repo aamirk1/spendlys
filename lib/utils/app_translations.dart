@@ -118,6 +118,9 @@ class AppTranslations extends Translations {
           'update_desc':
               'A new version of the app is available. Please update to continue.',
           'update_btn': 'Update Now',
+          'choose_action': 'Choose Action',
+          'income_expense': 'Income/Expense',
+          'loan': 'Loan',
         },
         'hi_IN': {
           'app_name': 'डेलीबचत',
@@ -235,6 +238,9 @@ class AppTranslations extends Translations {
           'update_desc':
               'ऐप का नया संस्करण उपलब्ध है। कृपया जारी रखने के लिए अपडेट करें।',
           'update_btn': 'अभी अपडेट करें',
+          'choose_action': 'कार्रवाई चुनें',
+          'income_expense': 'आय/व्यय',
+          'loan': 'ऋण',
         },
         'mr_IN': {
           'app_name': 'डेलीबचत',
@@ -352,6 +358,9 @@ class AppTranslations extends Translations {
           'update_desc':
               'अॅपची नवीन आवृत्ती उपलब्ध आहे. कृपया सुरू ठेवण्यासाठी अपडेट करा.',
           'update_btn': 'आता अपडेट करा',
+          'choose_action': 'कृती निवडा',
+          'income_expense': 'आय/व्यय',
+          'loan': 'कर्ज',
         },
         'gu_IN': {
           'app_name': 'ડેલીબચત',
@@ -468,6 +477,9 @@ class AppTranslations extends Translations {
           'update_desc':
               'એપ્લિકેશનનું નવું સંસ્કરણ ઉપલબ્ધ છે. ચાલુ રાખવા માટે કૃપા કરીને અપડેટ કરો.',
           'update_btn': 'હમણાં અપડેટ કરો',
+          'choose_action': 'ક્રિયા પસંદ કરો',
+          'income_expense': 'આવક/ખર્ચ',
+          'loan': 'લોન',
         },
       };
 }
