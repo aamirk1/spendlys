@@ -15,6 +15,7 @@ import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:pinput/pinput.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -120,7 +121,7 @@ class SignUpController extends GetxController {
     } catch (e) {
       signUpRequired.value = false;
       debugPrint('Signup Error: $e');
-      Utils.showSnackbar('Error', 'Failed to start registration: $e');
+      AppErrorHandler.handleError(e, customTitle: 'Registration Failed');
     }
   }
 
@@ -147,7 +148,7 @@ class SignUpController extends GetxController {
       }
     } catch (e) {
       signUpRequired.value = false;
-      Utils.showSnackbar('Error', 'Failed to resend OTP: $e');
+      AppErrorHandler.handleError(e, customTitle: 'Resend Failed');
     }
   }
 
@@ -415,7 +416,7 @@ class SignUpController extends GetxController {
       }
     } catch (e) {
       signUpRequired.value = false;
-      Utils.showSnackbar('Error', 'Verification failed: $e');
+      AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
     }
   }
 
@@ -506,6 +507,7 @@ class SignUpController extends GetxController {
       }
     } catch (e) {
       debugPrint("Shadow registration failed: $e");
+      AppErrorHandler.handleError(e);
     }
     signUpRequired.value = false;
     return myUser;
@@ -523,15 +525,8 @@ class SignUpController extends GetxController {
         'fcmToken': fcmToken,
         'createdAt': FieldValue.serverTimestamp(),
       }).timeout(const Duration(seconds: 10));
-    } on FirebaseException catch (e) {
-      Utils.showSnackbar('Error', 'Failed to save user data: ${e.message}');
-    } on SocketException {
-      Utils.showSnackbar('Network Error', 'No internet connection.');
-    } on TimeoutException {
-      Utils.showSnackbar('Timeout', 'Database request timed out.');
     } catch (e) {
-      Utils.showSnackbar(
-          'Error', 'Unexpected error while saving user data: $e');
+      AppErrorHandler.handleError(e, customTitle: 'Data Save Error');
     }
   }
 
@@ -556,22 +551,5 @@ class SignUpController extends GetxController {
     return await fcm.getToken();
   }
 
-  String _getFirebaseAuthError(String code) {
-    switch (code) {
-      case 'invalid-email':
-        return 'Invalid email format.';
-      case 'weak-password':
-        return 'Password is too weak.';
-      case 'email-already-in-use':
-        return 'Email already exists.';
-      case 'operation-not-allowed':
-        return 'Sign-up currently disabled.';
-      case 'user-creation-failed':
-        return 'User creation failed.';
-      case 'network-request-failed':
-        return 'Network error.';
-      default:
-        return 'Sign-up failed. Try again.';
-    }
-  }
 }
+

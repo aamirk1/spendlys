@@ -12,11 +12,77 @@ class InvoiceListController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final invoices = [].obs;
   final isLoading = true.obs;
+  final isMoreLoading = false.obs;
+
+  // Pagination
+  int currentPage = 1;
+  final int limit = 10;
+  bool hasMoreData = true;
+  final scrollController = ScrollController();
 
   // Search and Filter
   final searchQuery = ''.obs;
   final selectedStatus = 'All'.obs;
   final dateRange = Rxn<DateTimeRange>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchInvoices();
+    setupScrollListener();
+  }
+
+  void setupScrollListener() {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+        if (hasMoreData && !isMoreLoading.value && !isLoading.value) {
+          fetchInvoices(loadMore: true);
+        }
+      }
+    });
+  }
+
+  Future<void> fetchInvoices({bool loadMore = false, bool refresh = false}) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    if (refresh) {
+      currentPage = 1;
+      hasMoreData = true;
+    }
+
+    if (loadMore) {
+      isMoreLoading.value = true;
+    } else {
+      isLoading.value = true;
+    }
+
+    try {
+      final endpoint = '/business/invoices?page=$currentPage&limit=$limit';
+      final response = await ApiService.get(endpoint, headers: {'x-user-id': userId});
+      
+      if (response.statusCode == 200) {
+        final List newData = jsonDecode(response.body);
+        
+        if (refresh || !loadMore) {
+          invoices.assignAll(newData);
+        } else {
+          invoices.addAll(newData);
+        }
+
+        if (newData.length < limit) {
+          hasMoreData = false;
+        } else {
+          currentPage++;
+        }
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "Failed to load invoices: $e");
+    } finally {
+      isLoading.value = false;
+      isMoreLoading.value = false;
+    }
+  }
 
   List get filteredInvoices {
     return invoices.where((inv) {
@@ -43,30 +109,6 @@ class InvoiceListController extends GetxController {
 
       return matchesSearch && matchesStatus && matchesDate;
     }).toList();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchInvoices();
-  }
-
-  Future<void> fetchInvoices() async {
-    String? userId = _auth.currentUser?.uid;
-    if (userId == null) return;
-
-    isLoading.value = true;
-    try {
-      final response = await ApiService.get('/business/invoices',
-          headers: {'x-user-id': userId});
-      if (response.statusCode == 200) {
-        invoices.value = jsonDecode(response.body);
-      }
-    } catch (e) {
-      Utils.showSnackbar("Error", "Failed to load invoices: $e");
-    } finally {
-      isLoading.value = false;
-    }
   }
 
   Color getStatusColor(String status) {
@@ -170,166 +212,178 @@ class InvoiceListView extends StatelessWidget {
                       ),
                     );
                   }
-                  return AnimationLimiter(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10)
-                          .copyWith(bottom: 20),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final inv = items[index];
-                        String dateFormatted = "Unknown";
-                        if (inv['date'] != null) {
-                          try {
-                            dateFormatted = DateFormat('dd MMM yyyy')
-                                .format(DateTime.parse(inv['date']));
-                          } catch (e) {}
-                        }
+                  return RefreshIndicator(
+                    onRefresh: () => controller.fetchInvoices(refresh: true),
+                    color: Colors.orange,
+                    child: AnimationLimiter(
+                      child: ListView.builder(
+                        controller: controller.scrollController,
+                        padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10)
+                            .copyWith(bottom: 20),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: items.length + (controller.isMoreLoading.value ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == items.length) {
+                            return const Center(
+                                child: Padding(
+                              padding: EdgeInsets.all(15.0),
+                              child: CircularProgressIndicator(color: Colors.orange),
+                            ));
+                          }
+                          final inv = items[index];
+                          String dateFormatted = "Unknown";
+                          if (inv['date'] != null) {
+                            try {
+                              dateFormatted = DateFormat('dd MMM yyyy')
+                                  .format(DateTime.parse(inv['date']));
+                            } catch (e) {}
+                          }
 
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 500),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Get.toNamed(RoutesName.viewInvoice,
-                                      arguments: inv);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(bottom: 15),
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Colors.orange.withOpacity(0.1),
-                                          blurRadius: 15,
-                                          offset: const Offset(0, 8))
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                inv['invoice_number'] ??
-                                                    '#INV-???',
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.blueGrey),
-                                              ),
-                                              Text(
-                                                inv['customer']?['name'] ??
-                                                    'Unknown Customer',
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color:
-                                                        Colors.grey.shade600),
-                                              ),
-                                            ],
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: controller
-                                                  .getStatusColor(
-                                                      inv['status'] ??
-                                                          'pending')
-                                                  .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Text(
-                                              (inv['status'] ?? 'pending')
-                                                  .toString()
-                                                  .toUpperCase()
-                                                  .replaceAll('_', ' '),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    controller.getStatusColor(
-                                                        inv['status'] ??
-                                                            'pending'),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text("Date",
-                                                  style: TextStyle(
-                                                      color:
-                                                          Colors.grey.shade600,
-                                                      fontSize: 12)),
-                                              Text(dateFormatted,
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 13)),
-                                            ],
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text("Amount",
-                                                  style: TextStyle(
-                                                      color:
-                                                          Colors.grey.shade600,
-                                                      fontSize: 12)),
-                                              Text(
-                                                "₹${inv['total'] ?? '0.00'}",
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.black87),
-                                              ),
-                                              if ((inv['paid_amount'] ?? 0.0) >
-                                                      0 &&
-                                                  inv['status'] != 'paid')
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 500),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(RoutesName.viewInvoice,
+                                        arguments: inv);
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 15),
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.orange.withOpacity(0.1),
+                                            blurRadius: 15,
+                                            offset: const Offset(0, 8))
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
                                                 Text(
-                                                  "Paid: ₹${inv['paid_amount']}",
+                                                  inv['invoice_number'] ??
+                                                      '#INV-???',
                                                   style: const TextStyle(
-                                                      color: Colors.green,
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                      color: Colors.blueGrey),
                                                 ),
-                                            ],
-                                          )
-                                        ],
-                                      )
-                                    ],
+                                                Text(
+                                                  inv['customer']?['name'] ??
+                                                      'Unknown Customer',
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          Colors.grey.shade600),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: controller
+                                                    .getStatusColor(
+                                                        inv['status'] ??
+                                                            'pending')
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                (inv['status'] ?? 'pending')
+                                                    .toString()
+                                                    .toUpperCase()
+                                                    .replaceAll('_', ' '),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      controller.getStatusColor(
+                                                          inv['status'] ??
+                                                              'pending'),
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text("Date",
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey.shade600,
+                                                        fontSize: 12)),
+                                                Text(dateFormatted,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 13)),
+                                              ],
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text("Amount",
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey.shade600,
+                                                        fontSize: 12)),
+                                                Text(
+                                                  "₹${inv['total'] ?? '0.00'}",
+                                                  style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                      color: Colors.black87),
+                                                ),
+                                                if ((inv['paid_amount'] ?? 0.0) >
+                                                        0 &&
+                                                    inv['status'] != 'paid')
+                                                  Text(
+                                                    "Paid: ₹${inv['paid_amount']}",
+                                                    style: const TextStyle(
+                                                        color: Colors.green,
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                              ],
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   );
                 }),

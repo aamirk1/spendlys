@@ -11,6 +11,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class SignInController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -98,26 +99,9 @@ class SignInController extends GetxController {
       Utils.showSnackbar("Success", "Sign-in successful!", isError: false);
 
       Get.offAllNamed(RoutesName.homeView, arguments: myUser);
-    } on FirebaseAuthException catch (e) {
-      signInRequired.value = false;
-      errorMsg.value = _getFirebaseAuthError(e.code);
-      Utils.showSnackbar("Error", errorMsg.value!);
-    } on FirebaseException catch (e) {
-      signInRequired.value = false;
-      errorMsg.value = "Firestore error: ${e.message}";
-      Utils.showSnackbar("Error", errorMsg.value!);
-    } on SocketException {
-      signInRequired.value = false;
-      errorMsg.value = "No internet connection. Please check your network.";
-      Utils.showSnackbar("Network Error", errorMsg.value!);
-    } on TimeoutException {
-      signInRequired.value = false;
-      errorMsg.value = "Request timed out. Please try again later.";
-      Utils.showSnackbar("Timeout", errorMsg.value!);
     } catch (e) {
       signInRequired.value = false;
-      errorMsg.value = "Unexpected error: $e";
-      Utils.showSnackbar("Error", errorMsg.value!);
+      AppErrorHandler.handleError(e);
     }
   }
 
@@ -138,26 +122,5 @@ class SignInController extends GetxController {
     GetStorage().erase();
     Get.deleteAll(force: true); // Dispose all controllers
     Get.offAllNamed(RoutesName.loginView);
-  }
-
-  String _getFirebaseAuthError(String code) {
-    switch (code) {
-      case 'invalid-email':
-        return 'Invalid email format.';
-      case 'user-disabled':
-        return 'User account has been disabled.';
-      case 'user-not-found':
-        return 'No account found for this email.';
-      case 'wrong-password':
-        return 'Incorrect password.';
-      case 'user-data-not-found':
-        return 'User data not found in Firestore.';
-      case 'too-many-requests':
-        return 'Too many failed login attempts. Try again later.';
-      case 'network-request-failed':
-        return 'Network error. Please check your internet connection.';
-      default:
-        return 'Authentication failed. Please try again.';
-    }
   }
 }
