@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/home/views/profile_screens/change_password_dialog.dart';
 
 class LinksCard extends StatelessWidget {
@@ -30,14 +31,18 @@ class LinksCard extends StatelessWidget {
               icon: Icons.person_outline_rounded,
               title: "customer_profile_update".tr,
               color: Colors.blue,
-              onPressed: () {},
+              onPressed: () {
+                Get.toNamed(RoutesName.editProfile, arguments: myUser);
+              },
             ),
             _buildDivider(),
             _buildLinkItem(
-              icon: Icons.contact_emergency_outlined,
-              title: "contact_details".tr,
-              color: Colors.orange,
-              onPressed: () {},
+              icon: Icons.business_center_outlined,
+              title: "business_profile".tr,
+              color: Colors.indigo,
+              onPressed: () {
+                Get.toNamed(RoutesName.businessProfile);
+              },
             ),
             _buildDivider(),
             _buildLinkItem(

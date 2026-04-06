@@ -121,6 +121,11 @@ class AppTranslations extends Translations {
           'choose_action': 'Choose Action',
           'income_expense': 'Income/Expense',
           'loan': 'Loan',
+          'income': 'Income',
+          'expense': 'Expense',
+          'net_balance': 'Net Balance',
+          'more_options': 'More Options',
+          'account': 'Account',
         },
         'hi_IN': {
           'app_name': 'डेलीबचत',
@@ -241,6 +246,11 @@ class AppTranslations extends Translations {
           'choose_action': 'कार्रवाई चुनें',
           'income_expense': 'आय/व्यय',
           'loan': 'ऋण',
+          'income': 'आय',
+          'expense': 'खर्च',
+          'net_balance': 'कुल शेष',
+          'more_options': 'अधिक विकल्प',
+          'account': 'खाता',
         },
         'mr_IN': {
           'app_name': 'डेलीबचत',
@@ -361,6 +371,11 @@ class AppTranslations extends Translations {
           'choose_action': 'कृती निवडा',
           'income_expense': 'आय/व्यय',
           'loan': 'कर्ज',
+          'income': 'उत्पन्न',
+          'expense': 'खर्च',
+          'net_balance': 'एकूण शिल्लक',
+          'more_options': 'अधिक पर्याय',
+          'account': 'खाते',
         },
         'gu_IN': {
           'app_name': 'ડેલીબચત',
@@ -480,6 +495,11 @@ class AppTranslations extends Translations {
           'choose_action': 'ક્રિયા પસંદ કરો',
           'income_expense': 'આવક/ખર્ચ',
           'loan': 'લોન',
+          'income': 'આવક',
+          'expense': 'ખર્ચ',
+          'net_balance': 'કુલ બાકી',
+          'more_options': 'વધારે વિકલ્પો',
+          'account': 'ખાતું',
         },
       };
 }

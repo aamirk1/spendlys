@@ -19,14 +19,14 @@ class ProfileStats extends StatelessWidget {
         double totalMonthlyIncome = 0;
         double totalMonthlyExpense = 0;
         final now = DateTime.now();
-        
+
         for (var inc in incomeController.incomeList) {
           final date = inc['date'] as DateTime;
           if (date.month == now.month && date.year == now.year) {
             totalMonthlyIncome += inc['amount'];
           }
         }
-        
+
         for (var exp in expenseController.expensesList) {
           final date = exp['date'] as DateTime;
           if (date.month == now.month && date.year == now.year) {
@@ -64,27 +64,33 @@ class ProfileStats extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _buildBalanceCard(context, balance, incomeController.isLoading.value || expenseController.isLoading.value),
+            _buildBalanceCard(
+                context,
+                balance,
+                incomeController.isLoading.value ||
+                    expenseController.isLoading.value),
           ],
         );
       }),
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context, double balance, bool isLoading) {
+  Widget _buildBalanceCard(
+      BuildContext context, double balance, bool isLoading) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: balance >= 0 
-            ? [Colors.blue.shade400, Colors.blue.shade600]
-            : [Colors.orange.shade400, Colors.orange.shade600],
+          colors: balance >= 0
+              ? [Colors.blue.shade400, Colors.blue.shade600]
+              : [Colors.orange.shade400, Colors.orange.shade600],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (balance >= 0 ? Colors.blue : Colors.orange).withOpacity(0.3),
+            color:
+                (balance >= 0 ? Colors.blue : Colors.orange).withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -95,29 +101,40 @@ class ProfileStats extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 28),
+              const Icon(Icons.account_balance_wallet_outlined,
+                  color: Colors.white, size: 28),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'net_balance'.tr,
-                    style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                    net_balance.tr,
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.9), fontSize: 13),
                   ),
                   const SizedBox(height: 2),
                   if (isLoading)
-                    const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
                   else
                     Text(
                       '₹${balance.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                 ],
               ),
             ],
           ),
           Icon(
-            balance >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+            balance >= 0
+                ? Icons.trending_up_rounded
+                : Icons.trending_down_rounded,
             color: Colors.white.withOpacity(0.5),
             size: 40,
           ),

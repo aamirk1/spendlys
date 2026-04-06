@@ -10,6 +10,7 @@ class RoutesName {
 // ---------------------------------------------------------------
   static const String homeView = '/home_view';
   static const String profileView = '/profile_view';
+  static const String editProfile = '/edit_profile';
 
 // ----------------------------------------------------------------
   static const String expenseView = '/expense_view';

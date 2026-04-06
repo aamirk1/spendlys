@@ -137,6 +137,13 @@ class AppRoutes {
             page: () => const NeedHelpScreen(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.leftToRightWithFade),
+        GetPage(
+            name: RoutesName.editProfile,
+            page: () => EditProfileScreen(
+                  myUser: Get.arguments,
+                ),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.rightToLeftWithFade),
 
         // Business Module
         GetPage(

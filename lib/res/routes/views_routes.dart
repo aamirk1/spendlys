@@ -10,6 +10,7 @@ export 'package:spendly/screens/auth/sign_in_screen.dart';
 export 'package:spendly/screens/auth/sign_up_screen.dart';
 export 'package:spendly/screens/home/views/home_screen.dart';
 export 'package:spendly/screens/home/views/profile_screens/profile_screen.dart';
+export 'package:spendly/screens/home/views/profile_screens/edit_profile_screen.dart';
 export 'package:spendly/screens/setup_screen/onboarding_screen.dart';
 export 'package:spendly/screens/auth/forgot_password_screen.dart';
 export 'package:spendly/screens/splash_screen/splash_screen.dart';
