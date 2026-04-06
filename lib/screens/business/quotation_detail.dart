@@ -50,6 +50,11 @@ class QuotationDetailView extends StatelessWidget {
             tooltip: "Download PDF",
             onPressed: () => _downloadPdf(quot),
           ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: "Share PDF",
+            onPressed: () => _sharePdf(quot),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -320,6 +325,62 @@ class QuotationDetailView extends StatelessWidget {
     } catch (e) {
       Get.back();
       Utils.showSnackbar("Error", "PDF Generation failed: $e");
+    }
+  }
+
+  Future<void> _sharePdf(Map<String, dynamic> quot) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    Get.dialog(const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false);
+    try {
+      // 1. Fetch Business Profile
+      final busResp = await ApiService.get('/business/profile',
+          headers: {'x-user-id': userId});
+      if (busResp.statusCode != 200) {
+        Get.back();
+        Utils.showSnackbar(
+            "Error", "Please complete your business profile first.");
+        return;
+      }
+      final businessProfile = jsonDecode(busResp.body);
+
+      // 2. Extract Customer Info
+      dynamic rawCust = quot['customer'];
+      Map<String, dynamic> customer = {};
+      if (rawCust is String) {
+        try {
+          customer = jsonDecode(rawCust);
+        } catch (_) {}
+      } else if (rawCust is Map) {
+        customer = Map<String, dynamic>.from(rawCust);
+      }
+
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) &&
+          quot['customer_id'] != null) {
+        final custResp = await ApiService.get(
+            '/business/customers/${quot['customer_id']}',
+            headers: {'x-user-id': userId});
+        if (custResp.statusCode == 200) {
+          customer = jsonDecode(custResp.body);
+        }
+      }
+
+      Get.back(); // hide loading
+
+      // 3. Generate and Share
+      await BusinessPdfHelper.generateAndSharePdf(
+        title: "QUOTATION",
+        businessProfile: businessProfile,
+        customer: customer,
+        docData: quot,
+        items: quot['items'] ?? [],
+        isInvoice: false,
+      );
+    } catch (e) {
+      Get.back();
+      Utils.showSnackbar("Error", "PDF Share failed: $e");
     }
   }
 }

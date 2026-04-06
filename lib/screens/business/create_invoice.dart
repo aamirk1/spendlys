@@ -802,127 +802,129 @@ class CreateInvoiceView extends StatelessWidget {
                   color: Colors.white,
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(25))),
-              child: Form(
-                key: k,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Add Item",
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green)),
-                    const SizedBox(height: 20),
-                    if (controller.products.isNotEmpty) ...[
-                      const Text("Select from Inventory",
+              child: SingleChildScrollView(
+                child: Form(
+                  key: k,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Add Item",
                           style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black54)),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        decoration: _inputDeco("Search Items...", Icons.search),
-                        onChanged: (v) =>
-                            controller.productSearchQuery.value = v,
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        height: 60,
-                        child: Obx(() {
-                          final filtered = controller.filteredProducts;
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: filtered.length,
-                            itemBuilder: (ctx, i) {
-                              final p = filtered[i];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: ActionChip(
-                                  label: Text(p['name']),
-                                  onPressed: () {
-                                    tDesc.text = p['name'];
-                                    tPrice.text = p['price'].toString();
-                                  },
-                                  avatar: const Icon(Icons.inventory_2_outlined,
-                                      size: 16),
-                                  backgroundColor: Colors.green.shade50,
-                                ),
-                              );
-                            },
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 15),
-                      const Divider(),
-                      const SizedBox(height: 15),
-                    ],
-                    TextFormField(
-                      controller: tDesc,
-                      validator: (v) =>
-                          Validators.requiredField(v, "Description"),
-                      decoration: _inputDeco("Item Description", Icons.edit),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: tQty,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d*'))
-                            ],
-                            validator: (v) =>
-                                Validators.requiredField(v, "Qty"),
-                            decoration: _inputDeco("Qty", Icons.numbers),
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: TextFormField(
-                            controller: tPrice,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d*'))
-                            ],
-                            validator: (v) =>
-                                Validators.requiredField(v, "Price"),
-                            decoration: _inputDeco(
-                                "Unit Price (₹)", Icons.currency_rupee),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (k.currentState!.validate()) {
-                            controller.addItem(
-                                tDesc.text.trim(),
-                                double.parse(tQty.text.trim()),
-                                double.parse(tPrice.text.trim()));
-                            Get.back();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade600,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15)),
-                        ),
-                        child: const Text("ADD TO INVOICE",
+                              color: Colors.green)),
+                      const SizedBox(height: 20),
+                      if (controller.products.isNotEmpty) ...[
+                        const Text("Select from Inventory",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54)),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          decoration: _inputDeco("Search Items...", Icons.search),
+                          onChanged: (v) =>
+                              controller.productSearchQuery.value = v,
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 60,
+                          child: Obx(() {
+                            final filtered = controller.filteredProducts;
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: filtered.length,
+                              itemBuilder: (ctx, i) {
+                                final p = filtered[i];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: ActionChip(
+                                    label: Text(p['name']),
+                                    onPressed: () {
+                                      tDesc.text = p['name'];
+                                      tPrice.text = p['price'].toString();
+                                    },
+                                    avatar: const Icon(Icons.inventory_2_outlined,
+                                        size: 16),
+                                    backgroundColor: Colors.green.shade50,
+                                  ),
+                                );
+                              },
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 15),
+                        const Divider(),
+                        const SizedBox(height: 15),
+                      ],
+                      TextFormField(
+                        controller: tDesc,
+                        validator: (v) =>
+                            Validators.requiredField(v, "Description"),
+                        decoration: _inputDeco("Item Description", Icons.edit),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: tQty,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d*'))
+                              ],
+                              validator: (v) =>
+                                  Validators.requiredField(v, "Qty"),
+                              decoration: _inputDeco("Qty", Icons.numbers),
+                            ),
+                          ),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: TextFormField(
+                              controller: tPrice,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d*'))
+                              ],
+                              validator: (v) =>
+                                  Validators.requiredField(v, "Price"),
+                              decoration: _inputDeco(
+                                  "Unit Price (₹)", Icons.currency_rupee),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (k.currentState!.validate()) {
+                              controller.addItem(
+                                  tDesc.text.trim(),
+                                  double.parse(tQty.text.trim()),
+                                  double.parse(tPrice.text.trim()));
+                              Get.back();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade600,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)),
+                          ),
+                          child: const Text("ADD TO INVOICE",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ));

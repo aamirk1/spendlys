@@ -43,7 +43,13 @@ class InvoiceDetailView extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
+            tooltip: "Print PDF",
             onPressed: () => _downloadPdf(inv),
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: "Share PDF",
+            onPressed: () => _sharePdf(inv),
           ),
         ],
       ),
@@ -274,6 +280,62 @@ class InvoiceDetailView extends StatelessWidget {
     } catch (e) {
       Get.back();
       Utils.showSnackbar("Error", "PDF Generation failed: $e");
+    }
+  }
+
+  Future<void> _sharePdf(Map<String, dynamic> inv) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    Get.dialog(const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false);
+    try {
+      // 1. Fetch Business Profile
+      final busResp = await ApiService.get('/business/profile',
+          headers: {'x-user-id': userId});
+      if (busResp.statusCode != 200) {
+        Get.back();
+        Utils.showSnackbar(
+            "Error", "Please complete your business profile first.");
+        return;
+      }
+      final businessProfile = jsonDecode(busResp.body);
+
+      // 2. Extract Customer Info
+      dynamic rawCust = inv['customer'];
+      Map<String, dynamic> customer = {};
+      if (rawCust is String) {
+        try {
+          customer = jsonDecode(rawCust);
+        } catch (_) {}
+      } else if (rawCust is Map) {
+        customer = Map<String, dynamic>.from(rawCust);
+      }
+
+      if ((customer['name'] == null || customer['name'].toString().isEmpty) &&
+          inv['customer_id'] != null) {
+        final custResp = await ApiService.get(
+            '/business/customers/${inv['customer_id']}',
+            headers: {'x-user-id': userId});
+        if (custResp.statusCode == 200) {
+          customer = jsonDecode(custResp.body);
+        }
+      }
+
+      Get.back(); // hide loading
+
+      // 3. Generate and Share
+      await BusinessPdfHelper.generateAndSharePdf(
+        title: "INVOICE",
+        businessProfile: businessProfile,
+        customer: customer,
+        docData: inv,
+        items: inv['items'] ?? [],
+        isInvoice: true,
+      );
+    } catch (e) {
+      Get.back();
+      Utils.showSnackbar("Error", "PDF Share failed: $e");
     }
   }
 
