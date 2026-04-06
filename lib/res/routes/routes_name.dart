@@ -46,4 +46,7 @@ class RoutesName {
   static const String quotationList = '/quotation_list';
   static const String viewQuotation = '/view_quotation';
   static const String editQuotation = '/edit_quotation';
+  static const String inventoryList = '/inventory_list';
+  static const String addProduct = '/add_product';
+  static const String editProduct = '/edit_product';
 }

@@ -283,6 +283,12 @@ class BusinessHomeView extends StatelessWidget {
             "account_settings".tr,
             Colors.blueGrey,
             () => Get.toNamed(RoutesName.businessProfile)),
+        _luxuryListTile(
+            Icons.inventory_2_rounded,
+            "Inventory Management",
+            "Products & Stock",
+            Colors.teal,
+            () => Get.toNamed(RoutesName.inventoryList)),
       ],
     );
   }

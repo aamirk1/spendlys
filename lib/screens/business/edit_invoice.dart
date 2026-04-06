@@ -15,6 +15,7 @@ class EditInvoiceController extends GetxController {
 
   final customers = [].obs;
   final items = <QuotationItem>[].obs;
+  final products = [].obs;
   
   final selectedCustomerId = Rxn<String>();
   final invoiceNumberController = TextEditingController();
@@ -45,6 +46,21 @@ class EditInvoiceController extends GetxController {
       ));
     }
     fetchCustomers();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      final response = await ApiService.get('/business/inventory/',
+          headers: {'x-user-id': userId});
+      if (response.statusCode == 200) {
+        products.value = jsonDecode(response.body);
+      }
+    } catch (e) {
+      debugPrint("Failed to fetch products: $e");
+    }
   }
 
   Future<void> fetchCustomers() async {
@@ -361,16 +377,63 @@ class EditInvoiceView extends StatelessWidget {
           key: k,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Add Item", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.indigo)),
+              const Text("Add Item",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo)),
               const SizedBox(height: 20),
-              TextFormField(controller: tDesc, validator: (v) => Validators.requiredField(v, "Description"), decoration: _inputDeco("Description", Icons.edit)),
+              if (controller.products.isNotEmpty) ...[
+                const Text("Select from Inventory",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54)),
+                const SizedBox(height: 10),
+                Container(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.products.length,
+                    itemBuilder: (ctx, i) {
+                      final p = controller.products[i];
+                      return ActionChip(
+                        label: Text(p['name']),
+                        onPressed: () {
+                          tDesc.text = p['name'];
+                          tPrice.text = p['price'].toString();
+                        },
+                        avatar:
+                            const Icon(Icons.inventory_2_outlined, size: 16),
+                        backgroundColor: Colors.indigo.shade50,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 15),
+                const Divider(),
+                const SizedBox(height: 15),
+              ],
+              TextFormField(
+                  controller: tDesc,
+                  validator: (v) => Validators.requiredField(v, "Description"),
+                  decoration: _inputDeco("Description", Icons.edit)),
               const SizedBox(height: 15),
               Row(
                 children: [
-                  Expanded(child: TextFormField(controller: tQty, keyboardType: TextInputType.number, decoration: _inputDeco("Qty", Icons.numbers))),
+                  Expanded(
+                      child: TextFormField(
+                          controller: tQty,
+                          keyboardType: TextInputType.number,
+                          decoration: _inputDeco("Qty", Icons.numbers))),
                   const SizedBox(width: 15),
-                  Expanded(child: TextFormField(controller: tPrice, keyboardType: TextInputType.number, decoration: _inputDeco("Price", Icons.currency_rupee))),
+                  Expanded(
+                      child: TextFormField(
+                          controller: tPrice,
+                          keyboardType: TextInputType.number,
+                          decoration: _inputDeco("Price", Icons.currency_rupee))),
                 ],
               ),
               const SizedBox(height: 30),
@@ -380,12 +443,18 @@ class EditInvoiceView extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     if (k.currentState!.validate()) {
-                      controller.addItem(tDesc.text.trim(), double.parse(tQty.text.trim()), double.parse(tPrice.text.trim()));
+                      controller.addItem(
+                          tDesc.text.trim(),
+                          double.parse(tQty.text.trim()),
+                          double.parse(tPrice.text.trim()));
                       Get.back();
                     }
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade500),
-                  child: const Text("ADD ITEM", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo.shade500),
+                  child: const Text("ADD ITEM",
+                      style:
+                          TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 20),

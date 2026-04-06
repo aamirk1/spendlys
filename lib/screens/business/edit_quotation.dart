@@ -16,6 +16,7 @@ class EditQuotationController extends GetxController {
 
   final customers = [].obs;
   final items = <QuotationItem>[].obs;
+  final products = [].obs;
 
   final selectedCustomerId = Rxn<String>();
   final quotationNumberController = TextEditingController();
@@ -44,6 +45,21 @@ class EditQuotationController extends GetxController {
     }
     advanceAmountController.text = (quot['advance_amount'] ?? 0.0).toString();
     fetchCustomers();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      final response = await ApiService.get('/business/inventory/',
+          headers: {'x-user-id': userId});
+      if (response.statusCode == 200) {
+        products.value = jsonDecode(response.body);
+      }
+    } catch (e) {
+      debugPrint("Failed to fetch products: $e");
+    }
   }
 
   Future<void> fetchCustomers() async {
@@ -442,6 +458,7 @@ class EditQuotationView extends StatelessWidget {
           key: k,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("Add Item",
                   style: TextStyle(
@@ -449,6 +466,37 @@ class EditQuotationView extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: Colors.teal)),
               const SizedBox(height: 20),
+              if (controller.products.isNotEmpty) ...[
+                const Text("Select from Inventory",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54)),
+                const SizedBox(height: 10),
+                Container(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.products.length,
+                    itemBuilder: (ctx, i) {
+                      final p = controller.products[i];
+                      return ActionChip(
+                        label: Text(p['name']),
+                        onPressed: () {
+                          tDesc.text = p['name'];
+                          tPrice.text = p['price'].toString();
+                        },
+                        avatar:
+                            const Icon(Icons.inventory_2_outlined, size: 16),
+                        backgroundColor: Colors.teal.shade50,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 15),
+                const Divider(),
+                const SizedBox(height: 15),
+              ],
               TextFormField(
                   controller: tDesc,
                   validator: (v) => Validators.requiredField(v, "Description"),

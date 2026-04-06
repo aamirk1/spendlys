@@ -1,0 +1,464 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/utils/utils.dart';
+import 'package:spendly/utils/validators.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
+class InventoryController extends GetxController {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final products = [].obs;
+  final isLoading = false.obs;
+
+  // For adding/editing
+  final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+  final priceController = TextEditingController();
+  final qtyController = TextEditingController(text: "0");
+  final unitController = TextEditingController(text: "pcs");
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response = await ApiService.get('/business/inventory/',
+          headers: {'x-user-id': userId});
+      if (response.statusCode == 200) {
+        products.value = jsonDecode(response.body);
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "Failed to load inventory: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> saveProduct({String? productId}) async {
+    if (!formKey.currentState!.validate()) return;
+
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    Get.back(); // Close bottom sheet
+    isLoading.value = true;
+    try {
+      final payload = {
+        "name": nameController.text.trim(),
+        "description": descController.text.trim(),
+        "price": double.tryParse(priceController.text.trim()) ?? 0.0,
+        "stock_quantity": double.tryParse(qtyController.text.trim()) ?? 0.0,
+        "unit": unitController.text.trim(),
+      };
+
+      if (productId == null) {
+        // Add
+        final response = await ApiService.post('/business/inventory/',
+            headers: {'Content-Type': 'application/json', 'x-user-id': userId},
+            body: payload);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          Utils.showSnackbar("Success", "Product added to inventory",
+              isError: false);
+          _clearControllers();
+          fetchProducts();
+        } else {
+          Utils.showSnackbar(
+              "Error", "Failed to add product: ${response.body}");
+        }
+      } else {
+        // Update
+        final response = await ApiService.put('/business/inventory/$productId',
+            headers: {'Content-Type': 'application/json', 'x-user-id': userId},
+            body: payload);
+        if (response.statusCode == 200) {
+          Utils.showSnackbar("Success", "Product updated", isError: false);
+          _clearControllers();
+          fetchProducts();
+        } else {
+          Utils.showSnackbar(
+              "Error", "Failed to update product: ${response.body}");
+        }
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "An error occurred: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response = await ApiService.delete(
+        '/business/inventory/$productId',
+        headers: {'x-user-id': userId},
+      );
+      if (response.statusCode == 200) {
+        Utils.showSnackbar("Deleted", "Product removed from inventory",
+            isError: false);
+        fetchProducts();
+      } else {
+        Utils.showSnackbar(
+            "Error", "Failed to delete product: ${response.body}");
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "An error occurred: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _clearControllers() {
+    nameController.clear();
+    descController.clear();
+    priceController.clear();
+    qtyController.text = "0";
+    unitController.text = "pcs";
+  }
+
+  void setForEdit(dynamic product) {
+    nameController.text = product['name'] ?? "";
+    descController.text = product['description'] ?? "";
+    priceController.text = (product['price'] ?? 0).toString();
+    qtyController.text = (product['stock_quantity'] ?? 0).toString();
+    unitController.text = product['unit'] ?? "pcs";
+  }
+}
+
+class InventoryListView extends StatelessWidget {
+  const InventoryListView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.put(InventoryController());
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Inventory Management",
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black87,
+        centerTitle: true,
+      ),
+      extendBodyBehindAppBar: true,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showProductSheet(context, controller),
+        backgroundColor: Colors.teal,
+        icon: const Icon(Icons.add_shopping_cart_rounded, color: Colors.white),
+        label: const Text("Add Product",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+      body: Container(
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE0F2F1), Color(0xFFB2DFDB)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Obx(() {
+            if (controller.isLoading.value && controller.products.isEmpty) {
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.teal));
+            }
+            if (controller.products.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inventory_2_outlined,
+                        size: 80, color: Colors.teal.withOpacity(0.5)),
+                    const SizedBox(height: 20),
+                    const Text("No products in inventory.",
+                        style: TextStyle(fontSize: 18, color: Colors.black54)),
+                  ],
+                ),
+              );
+            }
+            return AnimationLimiter(
+              child: ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+                        .copyWith(bottom: 80),
+                physics: const BouncingScrollPhysics(),
+                itemCount: controller.products.length,
+                itemBuilder: (context, index) {
+                  final prod = controller.products[index];
+                  return AnimationConfiguration.staggeredList(
+                    position: index,
+                    duration: const Duration(milliseconds: 500),
+                    child: SlideAnimation(
+                      verticalOffset: 50.0,
+                      child: FadeInAnimation(
+                        child: _buildProductCard(context, prod, controller),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductCard(
+      BuildContext context, dynamic prod, InventoryController controller) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.teal.withOpacity(0.08),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, 6),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+                color: Colors.teal.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.category_rounded, color: Colors.teal),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  prod['name'] ?? 'Product',
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  prod['description'] ?? 'No description',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      "₹${prod['price']}",
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        "Stock: ${prod['stock_quantity']} ${prod['unit']}",
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(value: 'edit', child: Text("Edit")),
+              const PopupMenuItem(
+                  value: 'delete',
+                  child: Text("Delete", style: TextStyle(color: Colors.red))),
+            ],
+            onSelected: (val) {
+              if (val == 'edit') {
+                controller.setForEdit(prod);
+                _showProductSheet(context, controller, productId: prod['id']);
+              } else if (val == 'delete') {
+                _confirmDelete(context, prod, controller);
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(
+      BuildContext context, dynamic prod, InventoryController controller) {
+    Get.dialog(AlertDialog(
+      title: const Text("Delete Product?"),
+      content: Text(
+          "Are you sure you want to remove '${prod['name']}' from inventory?"),
+      actions: [
+        TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+        TextButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteProduct(prod['id']);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red))),
+      ],
+    ));
+  }
+
+  void _showProductSheet(BuildContext context, InventoryController controller,
+      {String? productId}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Form(
+            key: controller.formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(productId == null ? "Add New Product" : "Edit Product",
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal)),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: controller.nameController,
+                    validator: (v) =>
+                        Validators.requiredField(v, "Product Name"),
+                    decoration:
+                        _inputDeco("Product Name", Icons.shopping_bag_rounded),
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: controller.descController,
+                    maxLines: 2,
+                    decoration: _inputDeco(
+                        "Description (Optional)", Icons.description_rounded),
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: controller.priceController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d+\.?\d*'))
+                          ],
+                          validator: (v) =>
+                              Validators.requiredField(v, "Price"),
+                          decoration: _inputDeco(
+                              "Sell Price (₹)", Icons.currency_rupee_rounded),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: TextFormField(
+                          controller: controller.qtyController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d+\.?\d*'))
+                          ],
+                          decoration: _inputDeco(
+                              "Initial Stock", Icons.inventory_rounded),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: controller.unitController,
+                    decoration: _inputDeco(
+                        "Unit (e.g. pcs, kg, box)", Icons.straighten_rounded),
+                  ),
+                  const SizedBox(height: 25),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          controller.saveProduct(productId: productId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: Text(
+                          productId == null ? "SAVE PRODUCT" : "UPDATE PRODUCT",
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDeco(String hint, IconData icon) {
+    return InputDecoration(
+      labelText: hint,
+      prefixIcon: Icon(icon, color: Colors.teal),
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: Colors.teal, width: 2)),
+    );
+  }
+}

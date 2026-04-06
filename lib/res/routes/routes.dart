@@ -20,6 +20,8 @@ import 'package:spendly/screens/business/invoice_detail.dart';
 import 'package:spendly/screens/business/edit_invoice.dart';
 import 'package:spendly/screens/business/edit_quotation.dart';
 
+import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
+
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [
         GetPage(
@@ -197,5 +199,10 @@ class AppRoutes {
             page: () => const InvoiceDetailView(),
             transitionDuration: const Duration(milliseconds: 250),
             transition: Transition.rightToLeftWithFade),
+        GetPage(
+            name: RoutesName.inventoryList,
+            page: () => const InventoryListView(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transition: Transition.leftToRightWithFade),
       ];
 }
