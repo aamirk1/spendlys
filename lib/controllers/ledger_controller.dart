@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
@@ -10,6 +11,10 @@ enum LedgerType { business, loan, expense }
 class LedgerController extends GetxController {
   final selectedType = LedgerType.loan.obs;
   final isLoading = false.obs;
+
+  // Search and Filter
+  final searchQuery = ''.obs;
+  final dateRange = Rxn<DateTimeRange>();
 
   // We reuse existing controllers for data
   final LoanController loanController = Get.find<LoanController>();
@@ -95,5 +100,73 @@ class LedgerController extends GetxController {
       return customers[custId]!;
     }
     return "Unknown Customer";
+  }
+
+  // Filtered Getters
+  List get filteredBusiness => invoices.where((inv) {
+        if (searchQuery.value.isEmpty) return true;
+        final name = (inv['resolved_customer_name'] ?? '').toString().toLowerCase();
+        final id = (inv['invoice_number'] ?? '').toString().toLowerCase();
+        final matchesSearch =
+            name.contains(searchQuery.value.toLowerCase()) ||
+                id.contains(searchQuery.value.toLowerCase());
+
+        bool matchesDate = true;
+        if (dateRange.value != null && inv['date'] != null) {
+          final d = DateTime.parse(inv['date']);
+          matchesDate = d.isAfter(dateRange.value!.start
+                  .subtract(const Duration(seconds: 1))) &&
+              d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
+        }
+        return matchesSearch && matchesDate;
+      }).toList();
+
+  List get filteredLoans {
+    List all = [...loanController.borrowed, ...loanController.lent];
+    all.sort((a, b) => b.date.compareTo(a.date));
+
+    if (dateRange.value != null) {
+      all = all.where((l) {
+        return l.date.isAfter(dateRange.value!.start
+                .subtract(const Duration(seconds: 1))) &&
+            l.date.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
+      }).toList();
+    }
+
+    if (searchQuery.value.isEmpty) return all;
+    return all
+        .where((l) => l.personName
+            .toLowerCase()
+            .contains(searchQuery.value.toLowerCase()))
+        .toList();
+  }
+
+  List get filteredExpenses {
+    final incomes = incomeController.incomeList
+        .map((e) => {...e, 'ledgerType': 'INCOME'})
+        .toList();
+    final expenses = expenseController.expensesList
+        .map((e) => {...e, 'ledgerType': 'EXPENSE'})
+        .toList();
+    List all = [...incomes, ...expenses];
+    all.sort(
+        (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+    if (dateRange.value != null) {
+      all = all.where((item) {
+        final d = item['date'] as DateTime;
+        return d.isAfter(dateRange.value!.start
+                .subtract(const Duration(seconds: 1))) &&
+            d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
+      }).toList();
+    }
+
+    if (searchQuery.value.isEmpty) return all;
+    return all.where((item) {
+      final desc = (item['description'] ?? item['category'] ?? "Transaction")
+          .toString()
+          .toLowerCase();
+      return desc.contains(searchQuery.value.toLowerCase());
+    }).toList();
   }
 }

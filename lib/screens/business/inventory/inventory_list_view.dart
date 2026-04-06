@@ -21,6 +21,30 @@ class InventoryController extends GetxController {
   final qtyController = TextEditingController(text: "0");
   final unitController = TextEditingController(text: "pcs");
 
+  // Search and Filter
+  final searchQuery = ''.obs;
+  final minPriceFilter = Rxn<double>();
+  final maxPriceFilter = Rxn<double>();
+
+  List get filteredProducts {
+    return products.where((p) {
+      final matchesSearch = (p['name'] ?? '')
+          .toString()
+          .toLowerCase()
+          .contains(searchQuery.value.toLowerCase());
+      
+      bool matchesPrice = true;
+      if (minPriceFilter.value != null) {
+        matchesPrice = (p['price'] ?? 0.0) >= minPriceFilter.value!;
+      }
+      if (matchesPrice && maxPriceFilter.value != null) {
+        matchesPrice = (p['price'] ?? 0.0) <= maxPriceFilter.value!;
+      }
+
+      return matchesSearch && matchesPrice;
+    }).toList();
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -33,8 +57,12 @@ class InventoryController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await ApiService.get('/business/inventory/',
-          headers: {'x-user-id': userId});
+      String url = '/business/inventory/?';
+      if (searchQuery.value.isNotEmpty) url += 'search=${searchQuery.value}&';
+      if (minPriceFilter.value != null) url += 'min_price=${minPriceFilter.value}&';
+      if (maxPriceFilter.value != null) url += 'max_price=${maxPriceFilter.value}&';
+
+      final response = await ApiService.get(url, headers: {'x-user-id': userId});
       if (response.statusCode == 200) {
         products.value = jsonDecode(response.body);
       }
@@ -154,6 +182,16 @@ class InventoryListView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list_rounded),
+            onPressed: () => _showFilterSheet(context, controller),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () => controller.fetchProducts(),
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       floatingActionButton: FloatingActionButton.extended(
@@ -173,48 +211,177 @@ class InventoryListView extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Obx(() {
-            if (controller.isLoading.value && controller.products.isEmpty) {
-              return const Center(
-                  child: CircularProgressIndicator(color: Colors.teal));
-            }
-            if (controller.products.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.inventory_2_outlined,
-                        size: 80, color: Colors.teal.withOpacity(0.5)),
-                    const SizedBox(height: 20),
-                    const Text("No products in inventory.",
-                        style: TextStyle(fontSize: 18, color: Colors.black54)),
-                  ],
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextFormField(
+                  onChanged: (v) {
+                    controller.searchQuery.value = v;
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Search items name...",
+                    prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.8),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none),
+                  ),
                 ),
-              );
-            }
-            return AnimationLimiter(
-              child: ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
-                        .copyWith(bottom: 80),
-                physics: const BouncingScrollPhysics(),
-                itemCount: controller.products.length,
-                itemBuilder: (context, index) {
-                  final prod = controller.products[index];
-                  return AnimationConfiguration.staggeredList(
-                    position: index,
-                    duration: const Duration(milliseconds: 500),
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: _buildProductCard(context, prod, controller),
+              ),
+              const SizedBox(height: 10),
+              Obx(() => (controller.minPriceFilter.value != null ||
+                      controller.maxPriceFilter.value != null)
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          if (controller.minPriceFilter.value != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Chip(
+                                label: Text(
+                                    "Min: ₹${controller.minPriceFilter.value}"),
+                                onDeleted: () =>
+                                    controller.minPriceFilter.value = null,
+                                backgroundColor: Colors.teal.shade50,
+                              ),
+                            ),
+                          if (controller.maxPriceFilter.value != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Chip(
+                                label: Text(
+                                    "Max: ₹${controller.maxPriceFilter.value}"),
+                                onDeleted: () =>
+                                    controller.maxPriceFilter.value = null,
+                                backgroundColor: Colors.teal.shade50,
+                              ),
+                            ),
+                        ],
                       ),
+                    )
+                  : const SizedBox.shrink()),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isLoading.value && controller.products.isEmpty) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: Colors.teal));
+                  }
+                  if (controller.products.isEmpty && !controller.isLoading.value) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.inventory_2_outlined,
+                              size: 80, color: Colors.teal.withOpacity(0.5)),
+                          const SizedBox(height: 20),
+                          const Text("No products found.",
+                              style: TextStyle(fontSize: 18, color: Colors.black54)),
+                        ],
+                      ),
+                    );
+                  }
+                  final list = controller.filteredProducts;
+                  if (list.isEmpty) {
+                    return const Center(child: Text("No items match your search."));
+                  }
+                  return AnimationLimiter(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+                          .copyWith(bottom: 80),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: list.length,
+                      itemBuilder: (context, index) {
+                        final prod = list[index];
+                        return AnimationConfiguration.staggeredList(
+                          position: index,
+                          duration: const Duration(milliseconds: 500),
+                          child: SlideAnimation(
+                            verticalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: _buildProductCard(context, prod, controller),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
-                },
+                }),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFilterSheet(BuildContext context, InventoryController controller) {
+    final minC = TextEditingController(
+        text: controller.minPriceFilter.value?.toString() ?? "");
+    final maxC = TextEditingController(
+        text: controller.maxPriceFilter.value?.toString() ?? "");
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Filter Inventory",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: minC,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        labelText: "Min Price",
+                        prefixIcon: const Icon(Icons.arrow_downward)),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: TextFormField(
+                    controller: maxC,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        labelText: "Max Price",
+                        prefixIcon: const Icon(Icons.arrow_upward)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.minPriceFilter.value =
+                      double.tryParse(minC.text.trim());
+                  controller.maxPriceFilter.value =
+                      double.tryParse(maxC.text.trim());
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12))),
+                child: const Text("APPLY FILTERS",
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );

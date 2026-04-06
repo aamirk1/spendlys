@@ -36,7 +36,6 @@ class CreateInvoiceController extends GetxController {
   final quotations = [].obs;
   final products = [].obs;
 
-
   final selectedCustomerId = Rxn<String>();
   final invoiceNumberController = TextEditingController();
   final dueDateController = TextEditingController();
@@ -45,6 +44,25 @@ class CreateInvoiceController extends GetxController {
   final taxPercent = 0.0.obs;
 
   final isLoading = false.obs;
+
+  // Search
+  final customerSearchQuery = ''.obs;
+  final productSearchQuery = ''.obs;
+  final saveToInventory = false.obs;
+
+  List get filteredCustomers => customers
+      .where((c) => (c['name'] ?? '')
+          .toString()
+          .toLowerCase()
+          .contains(customerSearchQuery.value.toLowerCase()))
+      .toList();
+
+  List get filteredProducts => products
+      .where((p) => (p['name'] ?? '')
+          .toString()
+          .toLowerCase()
+          .contains(productSearchQuery.value.toLowerCase()))
+      .toList();
 
   @override
   void onInit() {
@@ -140,6 +158,30 @@ class CreateInvoiceController extends GetxController {
 
   void addItem(String desc, double qty, double price) {
     items.add(InvoiceItem(description: desc, quantity: qty, unitPrice: price));
+    if (saveToInventory.value) {
+      _saveProductToInventory(desc, price);
+      saveToInventory.value = false;
+    }
+    update();
+  }
+
+  Future<void> _saveProductToInventory(String name, double price) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      await ApiService.post('/business/inventory/', headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId
+      }, body: {
+        "name": name,
+        "price": price,
+        "stock_quantity": 0,
+        "unit": ""
+      });
+      fetchProducts();
+    } catch (e) {
+      debugPrint("Failed to save product to inventory: $e");
+    }
   }
 
   void removeItem(int index) => items.removeAt(index);
@@ -186,6 +228,24 @@ class CreateInvoiceController extends GetxController {
       Utils.showSnackbar("Error", "Exception generating invoice: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> quickAddCustomer(String name) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      final response = await ApiService.post('/business/customers',
+          headers: {'Content-Type': 'application/json', 'x-user-id': userId},
+          body: {"name": name});
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final newCust = jsonDecode(response.body);
+        await fetchCustomers();
+        selectedCustomerId.value = newCust['id'].toString();
+        Utils.showSnackbar("Success", "Customer $name added!", isError: false);
+      }
+    } catch (e) {
+      debugPrint("Quick add customer failed: $e");
     }
   }
 }
@@ -259,23 +319,50 @@ class CreateInvoiceView extends StatelessWidget {
                                       "Invoice Number", Icons.receipt_rounded),
                                 ),
                                 const SizedBox(height: 15),
-                                DropdownButtonFormField<String>(
-                                  initialValue:
-                                      controller.selectedCustomerId.value,
-                                  decoration: _inputDeco(
-                                      "Select Customer", Icons.person_rounded),
-                                  items: controller.customers.map((c) {
-                                    return DropdownMenuItem<String>(
-                                      value: c['id'].toString(),
-                                      child: Text(
-                                          c['name'] ?? 'Unknown Customer',
-                                          style: const TextStyle(fontSize: 15)),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) =>
-                                      controller.selectedCustomerId.value = val,
-                                  validator: (v) =>
-                                      v == null ? 'Customer required' : null,
+                                InkWell(
+                                  onTap: () =>
+                                      _showCustomerPicker(context, controller),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 15),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                            color: Colors.green.shade100)),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.person_rounded,
+                                            color: Colors.green.shade600),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            controller.customers.firstWhere(
+                                                    (c) =>
+                                                        c['id'].toString() ==
+                                                        controller
+                                                            .selectedCustomerId
+                                                            .value,
+                                                    orElse: () => {
+                                                          'name':
+                                                              'Select Customer'
+                                                        })['name'] ??
+                                                'Select Customer',
+                                            style: TextStyle(
+                                                fontSize: 15,
+                                                color: controller
+                                                            .selectedCustomerId
+                                                            .value ==
+                                                        null
+                                                    ? Colors.black54
+                                                    : Colors.black87),
+                                          ),
+                                        ),
+                                        const Icon(Icons.arrow_drop_down,
+                                            color: Colors.black54),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ]),
                               const SizedBox(height: 25),
@@ -455,6 +542,134 @@ class CreateInvoiceView extends StatelessWidget {
     );
   }
 
+  void _showCustomerPicker(
+      BuildContext context, CreateInvoiceController controller) {
+    controller.customerSearchQuery.value = '';
+    final searchCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+        child: Column(
+          children: [
+            const SizedBox(height: 15),
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(5)),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Select Customer",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green)),
+                  IconButton(
+                      onPressed: () =>
+                          _showAddCustomerForm(context, controller),
+                      icon: const Icon(Icons.person_add_alt_1_rounded,
+                          color: Colors.green)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextFormField(
+                controller: searchCtrl,
+                onChanged: (v) => controller.customerSearchQuery.value = v,
+                decoration: _inputDeco("Search Customers...", Icons.search),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Obx(() {
+                final filtered = controller.filteredCustomers;
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("No customers found."),
+                        TextButton(
+                            onPressed: () =>
+                                _showAddCustomerForm(context, controller),
+                            child: const Text("Add New Customer")),
+                      ],
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: filtered.length,
+                  itemBuilder: (c, i) {
+                    final cust = filtered[i];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.green.shade50,
+                        child: Text(cust['name'][0].toUpperCase(),
+                            style: const TextStyle(color: Colors.green)),
+                      ),
+                      title: Text(cust['name'] ?? 'Unknown',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(cust['phone'] ?? ''),
+                      onTap: () {
+                        controller.selectedCustomerId.value =
+                            cust['id'].toString();
+                        Get.back();
+                      },
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddCustomerForm(
+      BuildContext context, CreateInvoiceController controller) {
+    final nameCtrl = TextEditingController();
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: const Text("Add New Customer"),
+              content: TextFormField(
+                controller: nameCtrl,
+                decoration: _inputDeco("Customer Name", Icons.person),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Cancel")),
+                ElevatedButton(
+                    onPressed: () {
+                      if (nameCtrl.text.isNotEmpty) {
+                        controller.quickAddCustomer(nameCtrl.text.trim());
+                        Navigator.pop(ctx);
+                        Navigator.pop(context); // Close picker
+                      }
+                    },
+                    child: const Text("Add")),
+              ],
+            ));
+  }
+
   void _showQuotationPicker(
       BuildContext context, CreateInvoiceController controller) {
     showModalBottomSheet(
@@ -606,25 +821,37 @@ class CreateInvoiceView extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               color: Colors.black54)),
                       const SizedBox(height: 10),
-                      Container(
+                      TextFormField(
+                        decoration: _inputDeco("Search Items...", Icons.search),
+                        onChanged: (v) =>
+                            controller.productSearchQuery.value = v,
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
                         height: 60,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: controller.products.length,
-                          itemBuilder: (ctx, i) {
-                            final p = controller.products[i];
-                            return ActionChip(
-                              label: Text(p['name']),
-                              onPressed: () {
-                                tDesc.text = p['name'];
-                                tPrice.text = p['price'].toString();
-                              },
-                              avatar: const Icon(Icons.inventory_2_outlined,
-                                  size: 16),
-                              backgroundColor: Colors.green.shade50,
-                            );
-                          },
-                        ),
+                        child: Obx(() {
+                          final filtered = controller.filteredProducts;
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: filtered.length,
+                            itemBuilder: (ctx, i) {
+                              final p = filtered[i];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: ActionChip(
+                                  label: Text(p['name']),
+                                  onPressed: () {
+                                    tDesc.text = p['name'];
+                                    tPrice.text = p['price'].toString();
+                                  },
+                                  avatar: const Icon(Icons.inventory_2_outlined,
+                                      size: 16),
+                                  backgroundColor: Colors.green.shade50,
+                                ),
+                              );
+                            },
+                          );
+                        }),
                       ),
                       const SizedBox(height: 15),
                       const Divider(),

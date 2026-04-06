@@ -25,6 +25,10 @@ class LedgerScreen extends StatelessWidget {
         title: "global_ledger".tr,
         actions: [
           IconButton(
+            icon: const Icon(Icons.filter_list_rounded, color: Colors.white),
+            onPressed: () => _showFilterSheet(context, controller),
+          ),
+          IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
             tooltip: "export_pdf".tr,
             onPressed: () => _handleExport(controller, isPdf: true),
@@ -39,6 +43,13 @@ class LedgerScreen extends StatelessWidget {
       body: Column(
         children: [
           _buildTypeSelector(controller),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            child: CupertinoSearchTextField(
+              placeholder: "Search transactions...",
+              onChanged: (v) => controller.searchQuery.value = v,
+            ),
+          ),
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -114,12 +125,13 @@ class LedgerScreen extends StatelessWidget {
   }
 
   Widget _buildBusinessLedger(LedgerController controller) {
-    if (controller.invoices.isEmpty) return _emptyState("no_business_records".tr);
+    final list = controller.filteredBusiness;
+    if (list.isEmpty) return _emptyState("no_business_records".tr);
     return ListView.builder(
       padding: const EdgeInsets.all(15),
-      itemCount: controller.invoices.length,
+      itemCount: list.length,
       itemBuilder: (context, index) {
-        final inv = controller.invoices[index];
+        final inv = list[index];
         return _ledgerCard(
           title: inv['invoice_number'] ?? "INV-???",
           subtitle: inv['resolved_customer_name'] ?? "unknown_customer".tr,
@@ -133,14 +145,8 @@ class LedgerScreen extends StatelessWidget {
   }
 
   Widget _buildLoanLedger(LedgerController controller) {
-    final allLoans = [
-      ...controller.loanController.borrowed,
-      ...controller.loanController.lent
-    ];
+    final allLoans = controller.filteredLoans;
     if (allLoans.isEmpty) return _emptyState("no_loan_records".tr);
-
-    // Sort by date
-    allLoans.sort((a, b) => b.date.compareTo(a.date));
 
     return ListView.builder(
       padding: const EdgeInsets.all(15),
@@ -161,18 +167,9 @@ class LedgerScreen extends StatelessWidget {
   }
 
   Widget _buildExpenseLedger(LedgerController controller) {
-    final incomes = controller.incomeController.incomeList
-        .map((e) => {...e, 'ledgerType': 'INCOME'})
-        .toList();
-    final expenses = controller.expenseController.expensesList
-        .map((e) => {...e, 'ledgerType': 'EXPENSE'})
-        .toList();
-    final all = [...incomes, ...expenses];
+    final all = controller.filteredExpenses;
 
     if (all.isEmpty) return _emptyState("no_transaction_records".tr);
-
-    all.sort(
-        (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
 
     return ListView.builder(
       padding: const EdgeInsets.all(15),
@@ -331,5 +328,69 @@ class LedgerScreen extends StatelessWidget {
       print(e);
       Utils.showSnackbar("Error", "Export failed: $e");
     }
+  }
+
+  void _showFilterSheet(BuildContext context, LedgerController controller) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Global Filters",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            const Text("Filter by Date Range",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)),
+            const SizedBox(height: 10),
+            Obx(() => ListTile(
+                  leading: const Icon(Icons.calendar_month,
+                      color: AppColors.primary),
+                  title: Text(controller.dateRange.value == null
+                      ? "All Time"
+                      : "${DateFormat('dd MMM').format(controller.dateRange.value!.start)} - ${DateFormat('dd MMM yyyy').format(controller.dateRange.value!.end)}"),
+                  trailing: controller.dateRange.value != null
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => controller.dateRange.value = null,
+                        )
+                      : null,
+                  tileColor: AppColors.primary.withOpacity(0.05),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onTap: () async {
+                    final picked = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2022),
+                      lastDate: DateTime.now(),
+                      initialDateRange: controller.dateRange.value,
+                    );
+                    if (picked != null) {
+                      controller.dateRange.value = picked;
+                    }
+                  },
+                )),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12))),
+                child: const Text("APPLY FILTERS",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
   }
 }
