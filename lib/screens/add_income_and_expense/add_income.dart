@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/auth/components/my_text_field.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../../utils/colors.dart';
 
 class AddIncome extends StatelessWidget {
   AddIncome({super.key});
@@ -13,234 +16,361 @@ class AddIncome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Form(
-            key: controller.formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildInputForm(context),
+            _buildListHeader(context),
+            _buildRecentList(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  // Amount Field
-                  Obx(() => MyTextField(
-                        controller: controller.amountController,
-                        hintText: 'Amount',
-                        obscureText: false,
-                        keyboardType: TextInputType.number,
-                        errorMsg: controller.errorMsg.value,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) {
-                            return 'Please enter an amount';
-                          }
-                          if (double.tryParse(val) == null) {
-                            return 'Please enter a valid number';
-                          }
-                          return null;
-                        },
-                      )),
-
-                  const SizedBox(height: 10),
-
-                  // Description Field
-                  Obx(() => MyTextField(
-                        controller: controller.descriptionController,
-                        hintText: 'Write a description',
-                        obscureText: false,
-                        keyboardType: TextInputType.text,
-                        errorMsg: controller.errorMsg.value,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) {
-                            return 'Please enter a description';
-                          }
-                          return null;
-                        },
-                      )),
-
-                  const SizedBox(height: 10),
-
-                  // Category Dropdown
-                  Obx(() {
-                    return DropdownButtonFormField<String>(
-                      initialValue: controller.selectedCategory.value.isEmpty
-                          ? null
-                          : controller.selectedCategory.value,
-                      decoration: InputDecoration(
-                        hintText: 'Select a category',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.add),
-                        ),
-                      ),
-                      items: controller.incomeCategories
-                          .map<DropdownMenuItem<String>>((category) {
-                        return DropdownMenuItem<String>(
-                          value: category['name']
-                              as String, // Explicitly cast to String
-                          child: Row(
-                            children: [
-                              Icon(category['icon'] as IconData,
-                                  color: category['color'] as Color),
-                              SizedBox(width: 10),
-                              Text(category['name'] as String),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        controller.selectedCategory.value = value ?? '';
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a category';
-                        }
-                        return null;
-                      },
-                    );
-                  }),
-
-                  const SizedBox(height: 20),
-
-                  // Submit Button
-                  Obx(() => controller.isLoading.value
-                      ? const CircularProgressIndicator()
-                      : SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          child: TextButton(
-                            onPressed: () {
-                              if (controller.formKey.currentState!.validate()) {
-                                controller.addIncome();
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(60),
-                              ),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 25, vertical: 5),
-                              child: Text(
-                                'Add Income',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )),
-                ],
-              ),
-            ),
+  Widget _buildInputForm(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Last Ten Incomes',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Get.toNamed(RoutesName.viewAllIncome);
+        ],
+      ),
+      child: Form(
+        key: controller.formKey,
+        child: Column(
+          children: [
+            Obx(() => MyTextField(
+                  controller: controller.amountController,
+                  hintText: 'amount'.tr,
+                  obscureText: false,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: const Icon(Icons.currency_rupee_rounded,
+                      color: AppColors.primary),
+                  errorMsg: controller.errorMsg.value,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Please enter an amount';
+                    if (double.tryParse(val) == null)
+                      return 'Please enter a valid number';
+                    return null;
                   },
-                  child: Text(
-                    'All Incomes',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.outline,
-                        fontWeight: FontWeight.w400),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // const SizedBox(height: 5),
-// Show Last 10 Incomes
-          Obx(() {
-            final incomes = controller.incomeList;
-
-            if (incomes.isEmpty) {
-              return const Center(child: Text("No incomes found."));
-            }
-
-            // Convert to normal list and sort by date (latest first)
-            final recentIncomes = incomes.toList()
-              ..sort((a, b) => b['date'].compareTo(a['date']));
-
-            final last10Incomes = recentIncomes.take(10).toList();
-
-            return Expanded(
-              child: ListView.builder(
-                itemCount: last10Incomes.length,
-                itemBuilder: (context, int i) {
-                  var income = last10Incomes[i];
-                  String category = income['category'];
-                  double amount = income['amount'];
-                  DateTime date = income['date'];
-                  String description = income['description'];
-
-                  // Fetch category icon and color
-                  var categoryData = controller.incomeCategories.firstWhere(
-                    (element) => element['name'] == category,
-                    orElse: () => {
-                      'icon': Icons.attach_money,
-                      'color': Colors.grey
-                    }, // Default values
-                  );
-
-                  return Card(
-                    elevation: 2,
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: categoryData['color'],
-                        child: Icon(
-                          categoryData['icon'],
-                          color: Colors.white,
+                )),
+            const SizedBox(height: 16),
+            Obx(() => MyTextField(
+                  controller: controller.descriptionController,
+                  hintText: 'description'.tr,
+                  obscureText: false,
+                  keyboardType: TextInputType.text,
+                  prefixIcon: const Icon(Icons.description_outlined,
+                      color: AppColors.primary),
+                  errorMsg: controller.errorMsg.value,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Please enter a description';
+                    return null;
+                  },
+                )),
+            const SizedBox(height: 16),
+            _buildCategorySelector(context),
+            const SizedBox(height: 20),
+            Obx(() => controller.isLoading.value
+                ? const CupertinoActivityIndicator()
+                : SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (controller.formKey.currentState!.validate()) {
+                          controller.addIncome();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      title: Text(
-                        description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Text(
+                        'save_income'.tr,
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        DateFormat('dd/MM/yyyy hh:mm a').format(date),
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      trailing: Text(
-                        "₹${amount.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500),
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
-                  );
-                },
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector(BuildContext context) {
+    return Obx(() {
+      final selectedCategoryData = controller.incomeCategories.firstWhere(
+        (cat) => cat['name'] == controller.selectedCategory.value,
+        orElse: () => <String, dynamic>{},
+      );
+
+      return GestureDetector(
+        onTap: () => _showCategoryPicker(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.lightGrey.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: (selectedCategoryData['color'] as Color?) ??
+                    Colors.grey.shade400,
+                radius: 14,
+                child: Icon(
+                  (selectedCategoryData['icon'] as IconData?) ??
+                      Icons.category_outlined,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                controller.selectedCategory.value.isEmpty
+                    ? 'select_category'.tr
+                    : controller.selectedCategory.value,
+                style: TextStyle(
+                  color: controller.selectedCategory.value.isEmpty
+                      ? AppColors.textSecondary.withOpacity(0.5)
+                      : AppColors.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildListHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'recent_transactions'.tr,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B)),
+          ),
+          TextButton(
+            onPressed: () => Get.toNamed(RoutesName.viewAllIncome),
+            child: Text('view_all'.tr,
+                style: const TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentList() {
+    return Obx(() {
+      final incomes = controller.incomeList;
+      if (incomes.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.account_balance_wallet_outlined,
+                  size: 48, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              Text("no_recent_incomes".tr,
+                  style: TextStyle(color: Colors.grey.shade400)),
+            ],
+          ),
+        );
+      }
+
+      final last10Incomes = (incomes.toList()
+            ..sort((a, b) => b['date'].compareTo(a['date'])))
+          .take(10)
+          .toList();
+
+      return AnimationLimiter(
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: last10Incomes.length,
+          itemBuilder: (context, index) {
+            final income = last10Incomes[index];
+            final categoryData = controller.incomeCategories.firstWhere(
+              (element) => element['name'] == income['category'],
+              orElse: () => {'icon': Icons.attach_money, 'color': Colors.grey},
+            );
+
+            return AnimationConfiguration.staggeredList(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color:
+                              (categoryData['color'] as Color).withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(categoryData['icon'] as IconData,
+                            color: categoryData['color'] as Color, size: 20),
+                      ),
+                      title: Text(
+                        income['description'],
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Color(0xFF1E293B)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        DateFormat('dd MMM, hh:mm a').format(income['date']),
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500),
+                      ),
+                      trailing: Text(
+                        "+ ₹${NumberFormat('#,###').format(income['amount'])}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             );
-          })
-        ],
+          },
+        ),
+      );
+    });
+  }
+
+  void _showCategoryPicker(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        height: MediaQuery.of(context).size.height * 0.6,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text("select_category".tr,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(20),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  childAspectRatio: 1,
+                ),
+                itemCount: controller.incomeCategories.length,
+                itemBuilder: (context, index) {
+                  final category = controller.incomeCategories[index];
+                  return Obx(() {
+                    final isSelected =
+                        controller.selectedCategory.value == category['name'];
+                    return GestureDetector(
+                      onTap: () {
+                        controller.selectedCategory.value = category['name'];
+                        Get.back();
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (category['color'] as Color)
+                                  : (category['color'] as Color)
+                                      .withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(category['icon'] as IconData,
+                                color: isSelected
+                                    ? Colors.white
+                                    : category['color'] as Color,
+                                size: 24),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            category['name'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.grey.shade700,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    );
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

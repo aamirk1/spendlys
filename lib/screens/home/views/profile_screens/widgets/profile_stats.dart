@@ -108,7 +108,7 @@ class ProfileStats extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    net_balance.tr,
+                    'net_balance'.tr,
                     style: TextStyle(
                         color: Colors.white.withOpacity(0.9), fontSize: 13),
                   ),

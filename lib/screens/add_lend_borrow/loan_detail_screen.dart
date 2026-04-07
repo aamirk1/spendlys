@@ -3,12 +3,13 @@ import 'package:get/get.dart';
 import 'package:spendly/res/components/customBotton.dart';
 import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/loan_modal.dart';
-import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/info_column.dart';
-import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/overall_payment_status.dart';
 import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/payment_history_card.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/utils/colors.dart';
+import 'add_loan_screen.dart';
+import 'package:spendly/models/myuser.dart';
 
 class LoanDetailScreen extends StatelessWidget {
   final Loan loan;
@@ -21,205 +22,308 @@ class LoanDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          loan.personName,
-          style: const TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          "loan_details".tr,
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: Colors.indigo.shade700,
-        elevation: 3,
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => Get.to(() => AddLoanScreen(
+                  myUser: MyUser(
+                      userId: loan.userId,
+                      name: '',
+                      email: '',
+                      phoneNumber: '',
+                      lastLogin: loan.date.millisecondsSinceEpoch.toString()
+                          as dynamic), // Mock user with ID
+                  controller: controller,
+                  loan: loan, // Pass the loan to enable edit mode
+                )),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _showDeleteDialog(context),
+          ),
+        ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.indigo.shade100,
-              Colors.indigo.shade50,
-              Colors.white,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildOverviewCard(loan: loan),
-              const SizedBox(height: 20),
-              _buildPaymentInputCard(controller: controller, loanId: loan.id),
-              const SizedBox(height: 20),
-              // _buildPaymentHistoryCard(
-              //   loan: loan,
-              // ),
-              PaymentHistoryCard(loan: loan),
-              const SizedBox(height: 10),
-            ],
-          ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildQuickActions(context),
+                  const SizedBox(height: 25),
+                  PaymentHistoryCard(loan: loan),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-Widget _buildOverviewCard({required Loan loan}) {
-  final formattedAmount = NumberFormat('#,##0').format(loan.amount);
-  final formattedDueDate = loan.expectedReturnDate != null
-      ? DateFormat('dd MMM yyyy').format(loan.expectedReturnDate!)
-      : 'N/A';
-
-  return Card(
-    elevation: 4,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: Padding(
-      padding: const EdgeInsets.all(20),
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 30),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Obx(() {
             final remaining = loan.amount - loan.paidAmount.value;
-            final formattedRemainingObx =
-                NumberFormat('#,##0').format(remaining);
-            final percentagePaidObx =
-                loan.amount > 0 ? (loan.paidAmount.value / loan.amount) : 0;
-
-            Color progressColorObx;
-            if (remaining == 0) {
-              progressColorObx = Colors.greenAccent.shade400;
-            } else if (percentagePaidObx >= 0.75) {
-              progressColorObx = Colors.lightGreenAccent.shade400;
-            } else if (percentagePaidObx >= 0.3) {
-              progressColorObx = Colors.amberAccent.shade400;
-            } else {
-              progressColorObx = Colors.redAccent.shade400;
-            }
-
-            // Ensure the percentage is between 0.0 and 1.0
-            final clampedPercentage = percentagePaidObx.clamp(0.0, 1.0);
+            final percentagePaid =
+                loan.amount > 0 ? (loan.paidAmount.value / loan.amount) : 0.0;
+            final clampedPercentage = percentagePaid.clamp(0.0, 1.0);
 
             return CircularPercentIndicator(
-              radius: 85.0,
-              lineWidth: 10.0,
-              percent: clampedPercentage.toDouble(),
+              radius: 100.0,
+              lineWidth: 12.0,
+              percent: clampedPercentage,
+              animation: true,
+              animateFromLastPercent: true,
+              circularStrokeCap: CircularStrokeCap.round,
+              backgroundColor: Colors.white.withOpacity(0.1),
+              progressColor:
+                  remaining == 0 ? Colors.greenAccent : Colors.orangeAccent,
               center: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "₹$formattedRemainingObx",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 26,
-                      color: Colors.indigo,
-                    ),
+                    "balance_due".tr,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
-                  const Text(
-                    "Remaining",
-                    style: TextStyle(color: Colors.blueGrey),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        "₹${NumberFormat('#,##,###').format(remaining)}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              progressColor: progressColorObx,
-              backgroundColor: Colors.grey.shade200,
-              circularStrokeCap: CircularStrokeCap.round,
-              animation: true,
-              animateFromLastPercent: true,
             );
           }),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              InfoColumn(
-                  title: "Total",
-                  value: "₹$formattedAmount",
-                  color: Colors.indigo.shade700),
-              InfoColumn(
-                  title: "Due",
-                  value: formattedDueDate,
-                  color: Colors.indigo.shade700)
-              // _buildInfoColumn(
-              //     title: "Total",
-              //     value: "₹$formattedAmount",
-              //     color: Colors.indigo.shade700,
-              //     fontSize: 15),
-              // _buildInfoColumn(
-              //     title: "Due",
-              //     value: formattedDueDate,
-              //     color: Colors.deepPurple.shade700,
-              //     fontSize: 15),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // _buildOverallPaymentStatus(
-          //     loan.paidAmount.value, loan.amount, loan.expectedReturnDate),
-          OverallPaymentStatus(
-              paidAmount: loan.paidAmount.value,
-              totalAmount: loan.amount,
-              dueDate: loan.expectedReturnDate!),
-          if (loan.reason != null && loan.reason!.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text("Reason: ${loan.reason}",
-                style: const TextStyle(fontSize: 15, color: Colors.black87)),
-          ],
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildPaymentInputCard(
-    {required LoanController controller, String? loanId}) {
-  final paymentController = TextEditingController();
-  return Card(
-    elevation: 4,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextField(
-            controller: paymentController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: "Payment Amount",
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-              prefixIcon:
-                  const Icon(Icons.currency_rupee, color: Colors.indigo),
+          const SizedBox(height: 25),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _headerInfoItem("total_loan".tr,
+                    "₹${NumberFormat('#,###').format(loan.amount)}"),
+                Container(width: 1, height: 30, color: Colors.white24),
+                _headerInfoItem(
+                    "due_date".tr,
+                    loan.expectedReturnDate != null
+                        ? DateFormat('dd MMM').format(loan.expectedReturnDate!)
+                        : 'N/A'),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          CustomButton(
-            text: "Mark as Paid",
-            onPressed: () {
-              if (paymentController.text.isNotEmpty && loanId != null) {
-                final paymentAmount = double.tryParse(paymentController.text);
-                if (paymentAmount != null && paymentAmount > 0) {
-                  controller.updatePayment(loanId, paymentAmount).then((_) {
-                    paymentController.clear();
-                    Utils.showSnackbar("Success", "Payment recorded!", isError: false);
-                  });
+        ],
+      ),
+    );
+  }
+
+  Widget _headerInfoItem(String title, String value) {
+    return Column(
+      children: [
+        Text(title,
+            style: const TextStyle(color: Colors.white60, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "quick_actions".tr,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 15),
+        Row(
+          children: [
+            Expanded(
+              child: _actionButton(
+                "record_payment".tr,
+                Icons.add_card,
+                Colors.indigo.shade50,
+                Colors.indigo,
+                () => _showPaymentSheet(context),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: _actionButton(
+                "pay_full".tr,
+                Icons.check_circle,
+                Colors.green.shade50,
+                Colors.green,
+                () => _markAsFullyPaid(context),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _actionButton(
+      String label, IconData icon, Color bg, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.1)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(label,
+                style: TextStyle(
+                    color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentSheet(BuildContext context) {
+    final amountController = TextEditingController();
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(25),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "record_payment".tr,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: "enter_amount_hint".tr,
+                prefixText: "₹ ",
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 25),
+            CustomButton(
+              text: "record_payment".tr,
+              onPressed: () {
+                final amt = double.tryParse(amountController.text);
+                if (amt != null && amt > 0) {
+                  controller.updatePayment(loan.id, amt);
+                  Get.back();
                 } else {
-                  Utils.showSnackbar("Error", "Invalid amount");
+                  Utils.showSnackbar("error".tr, "enter_amount_hint".tr);
                 }
-              } else if (loanId == null) {
-                Utils.showSnackbar("Error", "Loan ID is missing");
-              }
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _markAsFullyPaid(BuildContext context) {
+    final remaining = loan.amount - loan.paidAmount.value;
+    if (remaining <= 0) {
+      Utils.showSnackbar("info".tr, "loan_fully_paid_msg".tr);
+      return;
+    }
+
+    Get.dialog(
+      AlertDialog(
+        title: Text("clear_full_balance".tr),
+        content: Text("clear_balance_desc".tr +
+            "₹${NumberFormat('#,###').format(remaining)}."),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text("cancel_btn".tr)),
+          TextButton(
+            onPressed: () {
+              controller.updatePayment(loan.id, remaining);
+              Get.back();
             },
-            backgroundColor: Colors.deepPurple.shade400,
-            textColor: Colors.white,
-            fontSize: 17,
-            borderRadius: 14,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            elevation: 3,
-            icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+            child: Text("confirm_btn".tr),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: Text("delete_record_title".tr),
+        content: Text("delete_record_desc".tr),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text("cancel_btn".tr)),
+          TextButton(
+            onPressed: () {
+              controller.deleteLoan(loan.id);
+              Get.back(); // Close dialog
+              Get.back(); // Go back to list
+            },
+            child: Text("delete_btn".tr, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 }

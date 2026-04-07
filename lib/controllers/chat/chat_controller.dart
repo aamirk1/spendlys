@@ -29,7 +29,7 @@ class ChatController extends GetxController {
 
   void loadChatConnects() {
     isLoading.value = true;
-    
+
     // Listen to chatrooms where the user is a member
     FirebaseFirestore.instance
         .collection(AppConstants.firestoreChatrooms)
@@ -38,17 +38,18 @@ class ChatController extends GetxController {
         .snapshots()
         .listen((snapshot) async {
       List<ChatConnectionModel> tempConnections = [];
-      
+
       for (var doc in snapshot.docs) {
         var data = doc.data();
         var members = data['members'] as List<dynamic>;
-        String otherUserId = members.firstWhere((id) => id != currentUserId, orElse: () => "");
-        
+        String otherUserId =
+            members.firstWhere((id) => id != currentUserId, orElse: () => "");
+
         if (otherUserId.isNotEmpty) {
           var user = await FireChatUtils.fetchUserData(otherUserId);
           String title = user?.name ?? "User";
           String? image = user?.image;
-          
+
           tempConnections.add(ChatConnectionModel(
             title: title,
             image: image,
@@ -63,7 +64,7 @@ class ChatController extends GetxController {
           ));
         }
       }
-      
+
       chatConnections.value = tempConnections;
       isLoading.value = false;
     });
@@ -80,7 +81,8 @@ class ChatController extends GetxController {
     try {
       List<MyUser> users = await FireChatUtils.searchUsers(query);
       // Exclude current user from search results
-      searchUserList.value = users.where((user) => user.userId != currentUserId).toList();
+      searchUserList.value =
+          users.where((user) => user.userId != currentUserId).toList();
     } catch (e) {
       debugPrint("Search Error: $e");
     } finally {
@@ -94,7 +96,7 @@ class ChatController extends GetxController {
       'connected': isConnected,
       'senderId': currentUserId,
     });
-    
+
     if (isConnected && model.lastsender != currentUserId && model.dot) {
       FireChatUtils.removeDot(false, model.id, receiverId: model.userID!);
     }
@@ -102,7 +104,8 @@ class ChatController extends GetxController {
 
   void startNewChat(MyUser user) {
     // Check if chat already exists locally first for better UX
-    var existing = chatConnections.firstWhereOrNull((conn) => conn.userID == user.userId);
+    var existing =
+        chatConnections.firstWhereOrNull((conn) => conn.userID == user.userId);
     if (existing != null) {
       gotoMessage(existing);
       return;
@@ -118,7 +121,7 @@ class ChatController extends GetxController {
       createdAt: Timestamp.now(),
       time: "",
     );
-    
+
     gotoMessage(model, isConnected: false);
   }
 }

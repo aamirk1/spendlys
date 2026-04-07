@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/controllers/localization_controller.dart';
 import 'package:spendly/controllers/theme_controller.dart';
+import 'package:spendly/services/app_update_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:in_app_review/in_app_review.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -45,7 +47,8 @@ class AppSettingsScreen extends StatelessWidget {
                   if (lang == 'hi') label = 'hindi'.tr;
                   if (lang == 'mr') label = 'marathi'.tr;
                   if (lang == 'gu') label = 'gujarati'.tr;
-                  return Text(label, style: TextStyle(color: Colors.grey.shade500));
+                  return Text(label,
+                      style: TextStyle(color: Colors.grey.shade500));
                 }),
                 onTap: () =>
                     _showLanguageDialog(context, localizationController),
@@ -67,15 +70,29 @@ class AppSettingsScreen extends StatelessWidget {
                 trailing: Obx(() => Switch(
                       value: themeController.isDarkMode,
                       onChanged: (val) => themeController.switchTheme(),
-                      activeColor: Theme.of(context).primaryColor,
+                      activeThumbColor: Theme.of(context).primaryColor,
                     )),
               ),
               const SizedBox(height: 20),
               _buildSectionHeader('system_info'.tr),
-              _buildSettingCard(
-                icon: Icons.info_outline_rounded,
-                title: 'app_version'.tr,
-                subtitle: Text('1.0.6+6', style: TextStyle(color: Colors.grey.shade500)),
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  return _buildSettingCard(
+                    icon: Icons.info_outline_rounded,
+                    title: 'app_version'.tr,
+                    subtitle: Text(
+                      snapshot.hasData
+                          ? "${snapshot.data!.version}+${snapshot.data!.buildNumber}"
+                          : "...",
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                    onTap: () {
+                      final updateService = Get.find<AppUpdateService>();
+                      updateService.checkForUpdate();
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 20),
               _buildSectionHeader('danger_zone'.tr),
@@ -119,7 +136,8 @@ class AppSettingsScreen extends StatelessWidget {
               Get.back();
             },
             child: Text('confirm'.tr,
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -153,8 +171,7 @@ class AppSettingsScreen extends StatelessWidget {
       color: Get.isDarkMode ? Colors.grey.shade900 : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -213,7 +230,8 @@ class AppSettingsScreen extends StatelessWidget {
 
   Widget _languageOption(String title, String langCode, String countryCode,
       LocalizationController controller) {
-    final isSelected = controller.currentLocale.value == '${langCode}_$countryCode';
+    final isSelected =
+        controller.currentLocale.value == '${langCode}_$countryCode';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(

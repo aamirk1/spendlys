@@ -72,7 +72,7 @@ class BusinessPdfHelper {
   }) async {
     final pdf = pw.Document();
 
-    // Load logo for watermark
+    // Load logo for watermark/branding
     pw.ImageProvider? watermarkImage;
     try {
       final logoBytes =
@@ -80,6 +80,18 @@ class BusinessPdfHelper {
       watermarkImage = pw.MemoryImage(logoBytes);
     } catch (e) {
       print("Error loading logo for PDF: $e");
+    }
+
+    // Load Business Logo if exists
+    pw.ImageProvider? businessLogo;
+    if (businessProfile['logo_url'] != null &&
+        businessProfile['logo_url'].toString().isNotEmpty &&
+        businessProfile['logo_url'].toString() != 'null') {
+      try {
+        businessLogo = await networkImage(businessProfile['logo_url']);
+      } catch (e) {
+        print("Error loading business logo: $e");
+      }
     }
 
     // Safe Numeric Parsing
@@ -168,10 +180,16 @@ class BusinessPdfHelper {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
+                    if (businessLogo != null)
+                      pw.Container(
+                        height: 50,
+                        margin: const pw.EdgeInsets.only(bottom: 5),
+                        child: pw.Image(businessLogo, fit: pw.BoxFit.contain),
+                      ),
                     pw.Text(
                       businessProfile['name'] ?? 'Your Business Name',
                       style: pw.TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
                           color: PdfColors.blue900),
                     ),
@@ -207,46 +225,32 @@ class BusinessPdfHelper {
             ),
             pw.Divider(thickness: 1, color: PdfColors.grey300, height: 40),
 
-            // Customer Info & Logo Header
-            pw.Row(
+            // Customer Info
+            pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('BILL TO:',
-                          style: pw.TextStyle(
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.blueGrey800)),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        finalCustomerName,
-                        style: pw.TextStyle(
-                            fontSize: 14, fontWeight: pw.FontWeight.bold),
-                      ),
-                      if (customer['address'] != null &&
-                          customer['address'].toString().isNotEmpty &&
-                          customer['address'] != 'null')
-                        pw.Text(customer['address'].toString()),
-                      if (customer['phone'] != null &&
-                          customer['phone'].toString().isNotEmpty &&
-                          customer['phone'] != 'null')
-                        pw.Text('Phone: ${customer['phone']}'),
-                      if (customer['email'] != null &&
-                          customer['email'].toString().isNotEmpty &&
-                          customer['email'] != 'null')
-                        pw.Text('Email: ${customer['email']}'),
-                    ],
-                  ),
+                pw.Text('BILL TO:',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blueGrey800)),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  finalCustomerName,
+                  style: pw.TextStyle(
+                      fontSize: 14, fontWeight: pw.FontWeight.bold),
                 ),
-                if (watermarkImage != null)
-                  pw.Container(
-                    width: 80,
-                    height: 80,
-                    child: pw.Image(watermarkImage, fit: pw.BoxFit.contain),
-                  ),
+                if (customer['address'] != null &&
+                    customer['address'].toString().isNotEmpty &&
+                    customer['address'] != 'null')
+                  pw.Text(customer['address'].toString()),
+                if (customer['phone'] != null &&
+                    customer['phone'].toString().isNotEmpty &&
+                    customer['phone'] != 'null')
+                  pw.Text('Phone: ${customer['phone']}'),
+                if (customer['email'] != null &&
+                    customer['email'].toString().isNotEmpty &&
+                    customer['email'] != 'null')
+                  pw.Text('Email: ${customer['email']}'),
               ],
             ),
             pw.SizedBox(height: 30),
@@ -408,11 +412,38 @@ class BusinessPdfHelper {
               ),
 
             pw.SizedBox(height: 20),
+            pw.SizedBox(height: 10),
             pw.Center(
               child: pw.Text(
                 'Thank you for your business!',
                 style: pw.TextStyle(
                     fontStyle: pw.FontStyle.italic, color: PdfColors.grey600),
+              ),
+            ),
+            pw.Divider(thickness: 0.5, color: PdfColors.grey300, height: 20),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                if (watermarkImage != null)
+                  pw.Container(
+                    width: 20,
+                    height: 20,
+                    margin: const pw.EdgeInsets.only(right: 5),
+                    child: pw.Image(watermarkImage),
+                  ),
+                pw.Text(
+                  'Powered by DailyBachat',
+                  style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.blue900),
+                ),
+              ],
+            ),
+            pw.Center(
+              child: pw.Text(
+                'Create professional invoices and manage expenses easily with DailyBachat.',
+                style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
               ),
             ),
           ];

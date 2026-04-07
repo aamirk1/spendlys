@@ -57,8 +57,41 @@ class LoanController extends GetxController {
 
   double get totalLent =>
       lent.fold(0, (sum, item) => sum + (item.amount - item.paidAmount.value));
-  double get totalBorrowed =>
-      borrowed.fold(0, (sum, item) => sum + (item.amount - item.paidAmount.value));
+  double get totalBorrowed => borrowed.fold(
+      0, (sum, item) => sum + (item.amount - item.paidAmount.value));
+
+  /// Update existing loan details
+  Future<void> updateLoan(Loan loan) async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response =
+          await ApiService.put('/loans/${loan.id}?user_id=$userId', body: {
+        'person_name': loan.personName,
+        'amount': loan.amount,
+        'type': loan.type,
+        'reason': loan.reason,
+        'expected_return_date': loan.expectedReturnDate?.toIso8601String(),
+        'date': loan.date.toIso8601String(),
+        'paid_amount': loan.paidAmount.value,
+        'status': loan.status.value,
+      });
+
+      if (response.statusCode == 200) {
+        Utils.showSnackbar('Success', 'Loan updated successfully!',
+            isError: false);
+        fetchLoans();
+      } else {
+        Utils.showSnackbar('Error', 'Failed to update loan: ${response.body}');
+      }
+    } catch (e) {
+      Utils.showSnackbar('Error', 'Error updating loan: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   /// Add a new loan
   Future<void> addLoan(Loan loan) async {
