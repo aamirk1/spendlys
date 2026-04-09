@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/core/bindings/initial_binding.dart';
 import 'package:spendly/res/routes/routes.dart';
-import 'package:spendly/utils/network_checker.dart';
 
 import 'package:spendly/controllers/localization_controller.dart';
 import 'package:spendly/controllers/theme_controller.dart';
@@ -31,7 +30,7 @@ class MyApp extends StatelessWidget {
       getPages: AppRoutes.appRoutes(),
       initialRoute: '/splash',
       builder: (context, child) {
-        return NetworkChecker(child: child!);
+        return child!;
       },
     );
   }

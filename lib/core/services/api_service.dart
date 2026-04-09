@@ -4,23 +4,39 @@ import 'package:get/get.dart';
 import 'package:spendly/res/app_constants.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
+import 'package:spendly/no_internet_screen.dart';
 
 class ApiService {
   static final String _baseUrl = AppConstants.baseUrl;
 
   static ConnectivityService get _conn => Get.find<ConnectivityService>();
 
+  /// صرف اس وقت NoInternetScreen دکھائیں جب API call ہو اور internet نہ ہو
+  static void _showNoInternetScreen() {
+    // اگر پہلے سے NoInternetScreen open ہے تو دوبارہ نہ کھولیں
+    if (Get.currentRoute == '/no-internet') return;
+    Get.to(
+      () => const NoInternetScreen(),
+      routeName: '/no-internet',
+      transition: Transition.fade,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
   static Future<http.Response> get(String endpoint, {Map<String, String>? headers, bool useCache = true}) async {
     final cacheKey = 'GET_$endpoint';
-    
-    // Check if offline
+
+    // Offline check
     if (!_conn.isOnline.value) {
       if (useCache) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) {
+          // Cache ملا — silently serve کریں، screen نہ دکھائیں
           return http.Response(jsonEncode(cachedData), 200);
         }
       }
+      // Cache نہیں، internet نہیں — NoInternetScreen دکھائیں
+      _showNoInternetScreen();
       return http.Response('{"error": "Offline", "message": "Check your internet connection"}', 503);
     }
 
@@ -34,11 +50,13 @@ class ApiService {
       }
       return resp;
     } catch (e) {
-      // API down or network error, return cache if available
+      // Network error — cache سے serve کریں اگر ملے
       if (useCache) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) return http.Response(jsonEncode(cachedData), 200);
       }
+      // Cache بھی نہیں — screen دکھائیں
+      _showNoInternetScreen();
       rethrow;
     }
   }

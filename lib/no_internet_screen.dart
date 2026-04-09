@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get/get.dart';
 
 class NoInternetScreen extends StatefulWidget {
   const NoInternetScreen({super.key});
@@ -16,7 +17,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
       _isChecking = true;
     });
 
-    await Future.delayed(const Duration(seconds: 1)); // simulate loading
+    await Future.delayed(const Duration(seconds: 1));
 
     var result = await Connectivity().checkConnectivity();
 
@@ -25,14 +26,16 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
     });
 
     if (result.isNotEmpty && !result.contains(ConnectivityResult.none)) {
-      // Pop this screen if internet is back
-      if (mounted) Navigator.of(context).pop();
+      // Internet واپس آیا — screen بند کریں
+      Get.back();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Still no connection'),
-          backgroundColor: Colors.red,
-        ),
+      Get.snackbar(
+        'No Connection',
+        'Still no internet. Please check your network.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade600,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     }
   }

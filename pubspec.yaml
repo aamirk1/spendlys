@@ -3,7 +3,7 @@ description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.0.11+11
+version: 1.0.13+13
 
 environment:
   sdk: ^3.6.2
@@ -35,10 +35,10 @@ dependencies:
   device_info_plus: ^12.3.0
   firebase_messaging: ^16.1.2
   image_picker: ^1.1.2
-  camera: ^0.12.0
-  image_cropper: ^11.0.0
+  # camera: ^0.12.0  # Removed: caused READ_MEDIA_VIDEO Play Store rejection; image_picker handles camera
+  image_cropper: ^8.0.0
   # google_ml_kit:
-  permission_handler: ^12.0.1
+  # permission_handler: ^12.0.1  # Removed: no usages found in codebase
   percent_indicator: ^4.2.5
   animations: ^2.0.11
   convert: ^3.1.2
@@ -49,6 +49,7 @@ dependencies:
   pinput: ^6.0.2
   pdf: ^3.12.0
   printing: ^5.14.3
+  pdf_thumbnail: 
   path_provider: ^2.1.5
   csv: ^7.2.0
   share_plus: ^12.0.1
@@ -98,17 +99,17 @@ flutter:
     - assets/logos/app_icon.png
     - assets/logos/logo.png
   #   - images/a_dot_ham.jpe
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
+    # fonts:
+    #   - family: Schyler
+    #     fonts:
+    #       - asset: fonts/Schyler-Regular.ttf
+    #       - asset: fonts/Schyler-Italic.ttf
+    #         style: italic
+    #   - family: Trajan Pro
+    #     fonts:
+    #       - asset: fonts/TrajanPro.ttf
+    #       - asset: fonts/TrajanPro_Bold.ttf
+    #         weight: 700
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

@@ -31,23 +31,23 @@ class _ProfileImageCaptureState extends State<ProfileImageCapture> {
   Future<void> _cropImage(File imageFile) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
-      // Rectangle crop style removed as 'cropStyle' is not a valid parameter
       compressFormat: ImageCompressFormat.jpg,
       compressQuality: 100,
-      aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1), // Square aspect ratio
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Image',
           toolbarColor: Colors.deepPurple,
           toolbarWidgetColor: Colors.white,
           initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true, // Lock aspect ratio to square
+          lockAspectRatio: true,
         ),
-        // IOSUiSettings(
-        //   minimumAspectRatio: 1.0,
-        //   resetButtonHidden: true,
-        //   showCancelControl: true,
-        // ),
+        IOSUiSettings(
+          title: 'Crop Image',
+          aspectRatioLockEnabled: true,
+          resetButtonHidden: true,
+          // showCancelControl: true,
+        ),
       ],
     );
 
