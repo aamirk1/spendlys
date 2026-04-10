@@ -14,14 +14,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Get.isDarkMode ? Colors.black : const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('profile'.tr,
             style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Get.isDarkMode ? Colors.white : Colors.black87,
       ),
       body: AnimationLimiter(
         child: ListView(
@@ -45,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Get.isDarkMode ? Colors.white38 : Colors.black38,
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
                     letterSpacing: 1.2,
                   ),
                 ),

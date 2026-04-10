@@ -204,7 +204,7 @@ class UserInfoSection extends StatelessWidget {
 
   Widget _buildInitialsAvatar(BuildContext context) {
     return CircleAvatar(
-      backgroundColor: Colors.blue.shade100,
+      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
       child: Text(
         myUser.name.isNotEmpty ? myUser.name[0].toUpperCase() : 'U',
         style: TextStyle(
@@ -221,7 +221,7 @@ class UserInfoSection extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: Get.isDarkMode ? Colors.grey.shade900 : Colors.white,
+          color: Theme.of(Get.context!).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(

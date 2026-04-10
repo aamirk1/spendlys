@@ -114,6 +114,9 @@ class AppTranslations extends Translations {
           'delete_account': 'Delete Account',
           'delete_account_confirm':
               'Are you sure you want to request account deletion? This action is irreversible.',
+          'please_enter_reason_for_deletion': 'Please enter a reason for account deletion',
+          'reason': 'Reason',
+          'submit': 'Submit',
           'update_required': 'Update Required',
           'update_desc':
               'A newer version of the app is available. Please update to continue using the app smoothly.',
@@ -190,6 +193,9 @@ class AppTranslations extends Translations {
           'delete_record_desc': 'This action cannot be undone. Are you sure?',
           'delete_btn': 'Delete',
           'loan_fully_paid_msg': 'Loan is already fully paid',
+          'feedback': 'Give Feedback',
+          'faqs': 'FAQs',
+          'contact_support': 'Contact Support',
         },
         'hi_IN': {
           'app_name': 'डेलीबचत',
@@ -303,6 +309,9 @@ class AppTranslations extends Translations {
           'delete_account': 'खाता हटाएं',
           'delete_account_confirm':
               'क्या आप वाकई खाता हटाने का अनुरोध करना चाहते हैं? यह क्रिया अपरिवर्तनीय है।',
+          'please_enter_reason_for_deletion': 'कृपया खाता हटाने का कारण दर्ज करें',
+          'reason': 'कारण',
+          'submit': 'प्रस्तुत करें',
           'update_required': 'अपडेट आवश्यक है',
           'update_desc':
               'ऐप का नया संस्करण उपलब्ध है। कृपया ऐप का सुचारू रूप से उपयोग जारी रखने के लिए अपडेट करें।',
@@ -379,6 +388,9 @@ class AppTranslations extends Translations {
               'इस कार्रवाई को पूर्ववत नहीं किया जा सकता है। क्या आप निश्चित हैं?',
           'delete_btn': 'हटाएं',
           'loan_fully_paid_msg': 'ऋण का पहले ही पूरा भुगतान कर दिया गया है',
+          'feedback': 'प्रतिक्रिया दें',
+          'faqs': 'सामान्य प्रश्न',
+          'contact_support': 'सहायता से संपर्क करें',
         },
         'mr_IN': {
           'app_name': 'डेलीबचत',
@@ -568,6 +580,9 @@ class AppTranslations extends Translations {
               'ही कृती पूर्ववत केली जाऊ शकत नाही. तुमची खात्री आहे का?',
           'delete_btn': 'हटवा',
           'loan_fully_paid_msg': 'कर्जाचे पूर्ण पेमेंट आधीच झाले आहे',
+          'feedback': 'अभिप्राय द्या',
+          'faqs': 'नेहमी विचारले जाणारे प्रश्न',
+          'contact_support': 'समर्थनाशी संपर्क साधा',
         },
         'gu_IN': {
           'app_name': 'ડેલીબચત',
@@ -754,6 +769,9 @@ class AppTranslations extends Translations {
           'delete_record_desc': 'આ પગલું ઉલટાવી શકાશે નહીં. શું તમે ચોક્કસ છો?',
           'delete_btn': 'ડિલીટ કરો',
           'loan_fully_paid_msg': 'લોન પહેલેથી જ પૂરેપૂરી ચૂકવવામાં આવી છે',
+          'feedback': 'પ્રતિસાદ આપો',
+          'faqs': 'વારંવાર પૂછાતા પ્રશ્નો',
+          'contact_support': 'સપોર્ટનો સંપર્ક કરો',
         },
       };
 }

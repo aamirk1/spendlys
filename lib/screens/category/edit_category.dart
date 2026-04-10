@@ -15,12 +15,13 @@ class EditCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
           backgroundColor: AppColors.primary,
           title: Center(
               child: Text(
             'Edit Category',
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

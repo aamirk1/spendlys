@@ -44,7 +44,7 @@ class _LoansScreenState extends State<LoansScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         backgroundColor: AppColors.primary,
         title: "digital_ledger_title".tr,
@@ -105,8 +105,8 @@ class _LoansScreenState extends State<LoansScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white,
-                    Colors.white.withOpacity(0.95),
+                    Theme.of(context).cardColor,
+                    Theme.of(context).cardColor.withOpacity(0.95),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -131,7 +131,7 @@ class _LoansScreenState extends State<LoansScreen>
                           Text(
                             "net_balance".tr,
                             style: TextStyle(
-                              color: Colors.grey,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -166,9 +166,9 @@ class _LoansScreenState extends State<LoansScreen>
                       ),
                     ],
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.1)),
                   ),
                   Row(
                     children: [
@@ -215,8 +215,8 @@ class _LoansScreenState extends State<LoansScreen>
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.grey,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -227,8 +227,8 @@ class _LoansScreenState extends State<LoansScreen>
           FittedBox(
             child: Text(
               "₹${NumberFormat('#,##,###').format(amount)}",
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -245,7 +245,7 @@ class _LoansScreenState extends State<LoansScreen>
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -278,13 +278,13 @@ class _LoansScreenState extends State<LoansScreen>
         height: 45,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFE2E8F0).withOpacity(0.5),
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
@@ -294,8 +294,8 @@ class _LoansScreenState extends State<LoansScreen>
               ),
             ],
           ),
-          labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.grey.shade600,
+          labelColor: Theme.of(context).primaryColor,
+          unselectedLabelColor: Theme.of(context).disabledColor,
           labelStyle:
               const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           unselectedLabelStyle:
@@ -369,8 +369,8 @@ class _LoansScreenState extends State<LoansScreen>
             searchQuery.value.isEmpty
                 ? "ledger_empty".tr
                 : "no_matching_records".tr,
-            style: const TextStyle(
-              color: Color(0xFF1E293B),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.titleLarge?.color,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -380,7 +380,7 @@ class _LoansScreenState extends State<LoansScreen>
             searchQuery.value.isEmpty
                 ? "empty_ledger_desc".tr
                 : "search_different_name".tr,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            style: TextStyle(color: Theme.of(context).disabledColor, fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
@@ -402,7 +402,7 @@ class _LoansScreenState extends State<LoansScreen>
         child: Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -447,17 +447,17 @@ class _LoansScreenState extends State<LoansScreen>
                                   children: [
                                     Text(
                                       loan.personName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Color(0xFF1E293B)),
+                                          color: Theme.of(context).textTheme.bodyLarge?.color),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       DateFormat('dd MMM yyyy')
                                           .format(loan.date),
                                       style: TextStyle(
-                                          color: Colors.grey.shade500,
+                                          color: Theme.of(context).textTheme.bodySmall?.color,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500),
                                     ),
@@ -469,10 +469,10 @@ class _LoansScreenState extends State<LoansScreen>
                                 children: [
                                   Text(
                                     "₹${NumberFormat('#,##,###').format(loan.amount)}",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Color(0xFF1E293B)),
+                                        color: Theme.of(context).textTheme.bodyLarge?.color),
                                   ),
                                   const SizedBox(height: 4),
                                   _buildStatusBadge(
@@ -489,15 +489,15 @@ class _LoansScreenState extends State<LoansScreen>
                                 text: TextSpan(
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade600),
+                                      color: Theme.of(context).textTheme.bodySmall?.color),
                                   children: [
                                     TextSpan(text: "${'paid_label'.tr}: "),
                                     TextSpan(
                                       text:
                                           "₹${NumberFormat('#,###').format(loan.paidAmount.value)}",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B)),
+                                          color: Theme.of(context).textTheme.bodyLarge?.color),
                                     ),
                                   ],
                                 ),
@@ -521,7 +521,7 @@ class _LoansScreenState extends State<LoansScreen>
                                 height: 8,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                  color: Theme.of(context).dividerColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -569,7 +569,7 @@ class _LoansScreenState extends State<LoansScreen>
                                         fontSize: 11,
                                         color: isOverdue
                                             ? Colors.red
-                                            : Colors.grey.shade600,
+                                            : Theme.of(context).textTheme.bodySmall?.color,
                                         fontWeight: isOverdue
                                             ? FontWeight.bold
                                             : FontWeight.normal,

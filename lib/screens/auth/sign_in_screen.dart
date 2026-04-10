@@ -15,7 +15,7 @@ class SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: Padding(
@@ -28,11 +28,11 @@ class SignInScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   'welcome_back'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.displayLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -40,11 +40,11 @@ class SignInScreen extends StatelessWidget {
                   'login_subtitle'.tr,
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
                 const SizedBox(height: 60),
-                _buildFieldLabel('email_address'.tr),
+                _buildFieldLabel(context, 'email_address'.tr),
                 Obx(() => MyTextField(
                       controller: controller.emailController,
                       hintText: 'example@mail.com',
@@ -66,7 +66,7 @@ class SignInScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildFieldLabel('password'.tr),
+                    _buildFieldLabel(context, 'password'.tr),
                     GestureDetector(
                       onTap: () => Get.toNamed(RoutesName.forgotPasswordView),
                       child: Text(
@@ -111,7 +111,7 @@ class SignInScreen extends StatelessWidget {
                       child: CustomButton(
                         text: 'sign_in'.tr,
                         onPressed: controller.signIn,
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         isLoading: controller.signInRequired.value,
                         borderRadius: 16,
                         fontSize: 18,
@@ -151,15 +151,15 @@ class SignInScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(BuildContext context, String label) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.8),
         ),
       ),
     );

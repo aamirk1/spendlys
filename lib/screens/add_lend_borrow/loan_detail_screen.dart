@@ -22,7 +22,7 @@ class LoanDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           "loan_details".tr,
@@ -173,7 +173,10 @@ class LoanDetailScreen extends StatelessWidget {
       children: [
         Text(
           "quick_actions".tr,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color),
         ),
         const SizedBox(height: 15),
         Row(
@@ -182,8 +185,8 @@ class LoanDetailScreen extends StatelessWidget {
               child: _actionButton(
                 "record_payment".tr,
                 Icons.add_card,
-                Colors.indigo.shade50,
-                Colors.indigo,
+                Theme.of(context).primaryColor.withOpacity(0.1),
+                Theme.of(context).primaryColor,
                 () => _showPaymentSheet(context),
               ),
             ),
@@ -192,7 +195,7 @@ class LoanDetailScreen extends StatelessWidget {
               child: _actionButton(
                 "pay_full".tr,
                 Icons.check_circle,
-                Colors.green.shade50,
+                Colors.green.withOpacity(0.1),
                 Colors.green,
                 () => _markAsFullyPaid(context),
               ),
@@ -233,9 +236,9 @@ class LoanDetailScreen extends StatelessWidget {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(25),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -243,7 +246,10 @@ class LoanDetailScreen extends StatelessWidget {
           children: [
             Text(
               "record_payment".tr,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 20, 
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.titleLarge?.color),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -254,11 +260,13 @@ class LoanDetailScreen extends StatelessWidget {
                 hintText: "enter_amount_hint".tr,
                 prefixText: "₹ ",
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).dividerColor.withOpacity(0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
                 ),
+                hintStyle: TextStyle(color: Theme.of(context).disabledColor),
+                prefixStyle: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
             ),
             const SizedBox(height: 25),

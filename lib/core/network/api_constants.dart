@@ -9,6 +9,7 @@ class ApiConstants {
   static const String sendOtp = '/auth/otp/send';
   static const String verifyOtp = '/auth/otp/verify';
   static const String syncUser = '/auth/sync';
+  static const String deleteRequest = '/auth/delete-request';
 
 
   // Transactions
@@ -22,4 +23,7 @@ class ApiConstants {
 
   // Stats
   static const String stats = '/stats';
+
+  // Feedback
+  static const String feedback = '/feedback';
 }

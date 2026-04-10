@@ -14,7 +14,7 @@ class SignUpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: Padding(
@@ -28,11 +28,11 @@ class SignUpScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   Text(
                     'create_account'.tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.displayLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -40,11 +40,11 @@ class SignUpScreen extends StatelessWidget {
                     'Join Spendly today and start tracking your expenses effortlessly.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 40),
-                  _buildFieldLabel('full_name'.tr),
+                  _buildFieldLabel(context, 'full_name'.tr),
                   MyTextField(
                     controller: controller.nameController,
                     hintText: 'John Doe',
@@ -55,7 +55,7 @@ class SignUpScreen extends StatelessWidget {
                         val!.isEmpty ? 'Please enter your name' : null,
                   ),
                   const SizedBox(height: 20),
-                  _buildFieldLabel('phone_number'.tr),
+                  _buildFieldLabel(context, 'phone_number'.tr),
                   MyTextField(
                     prefixIcon: const Icon(CupertinoIcons.phone, size: 22),
                     controller: controller.phoneNumberController,
@@ -71,7 +71,7 @@ class SignUpScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-                  _buildFieldLabel('email_address'.tr),
+                  _buildFieldLabel(context, 'email_address'.tr),
                   MyTextField(
                     prefixIcon: const Icon(CupertinoIcons.mail, size: 22),
                     controller: controller.emailController,
@@ -88,7 +88,7 @@ class SignUpScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-                  _buildFieldLabel('password'.tr),
+                  _buildFieldLabel(context, 'password'.tr),
                   MyTextField(
                     controller: controller.passwordController,
                     prefixIcon: const Icon(CupertinoIcons.lock, size: 22),
@@ -119,9 +119,9 @@ class SignUpScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade100),
+                      border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
                     ),
                     child: Column(
                       children: [
@@ -204,15 +204,15 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(BuildContext context, String label) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.8),
         ),
       ),
     );

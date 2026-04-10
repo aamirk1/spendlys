@@ -104,7 +104,7 @@ class SignUpController extends GetxController {
         data: {
           'name': nameController.text.trim(),
           'email': emailController.text.trim(),
-          'phone': phoneNumberController.text.trim(),
+          'phone_number': phoneNumberController.text.trim(),
           'password': passwordController.text.trim(),
         },
       );
@@ -113,7 +113,7 @@ class SignUpController extends GetxController {
         signUpRequired.value = false;
         // Step 2: Show OTP Dialog
         startResendTimer();
-        _showOtpDialog(emailController.text.trim());
+        _showOtpDialog(emailController.text.trim(), Get.context!);
       } else {
         throw Exception(
             response.data['detail'] ?? 'Registration request failed');
@@ -133,7 +133,7 @@ class SignUpController extends GetxController {
         data: {
           'name': nameController.text.trim(),
           'email': emailController.text.trim(),
-          'phone': phoneNumberController.text.trim(),
+          'phone_number': phoneNumberController.text.trim(),
           'password': passwordController.text.trim(),
         },
       );
@@ -152,19 +152,20 @@ class SignUpController extends GetxController {
     }
   }
 
-  void _showOtpDialog(String email) {
+  void _showOtpDialog(String email, BuildContext context) {
     final otpController = TextEditingController();
 
     final defaultPinTheme = PinTheme(
       width: 48,
       height: 56,
-      textStyle: const TextStyle(
+      textStyle: TextStyle(
         fontSize: 22,
-        color: Colors.black,
+        color:
+            Theme.of(Get.context!).textTheme.bodyLarge?.color ?? Colors.black,
         fontWeight: FontWeight.bold,
       ),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
+        color: Theme.of(Get.context!).dividerColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.transparent),
       ),
@@ -172,27 +173,29 @@ class SignUpController extends GetxController {
 
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        border: Border.all(color: const Color(0xFF00B2E7), width: 2),
-        color: Colors.white,
+        border: Border.all(
+            color: Theme.of(Get.context!).colorScheme.primary, width: 2),
+        color: Theme.of(Get.context!).cardColor,
       ),
     );
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        color: const Color(0xFF00B2E7).withOpacity(0.05),
-        border: Border.all(color: const Color(0xFF00B2E7).withOpacity(0.2)),
+        color: Theme.of(Get.context!).colorScheme.primary.withOpacity(0.05),
+        border: Border.all(
+            color: Theme.of(Get.context!).colorScheme.primary.withOpacity(0.2)),
       ),
     );
 
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        decoration: BoxDecoration(
+          color: Theme.of(Get.context!).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               spreadRadius: 5,
             ),
@@ -336,7 +339,7 @@ class SignUpController extends GetxController {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00B2E7),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -550,6 +553,4 @@ class SignUpController extends GetxController {
     final fcm = FirebaseMessaging.instance;
     return await fcm.getToken();
   }
-
 }
-

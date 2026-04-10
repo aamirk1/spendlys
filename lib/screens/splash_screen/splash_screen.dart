@@ -15,7 +15,7 @@ class SplashScreen extends StatelessWidget {
         width: double.infinity, // Ensure full width
         height: double.infinity, // Ensure full height
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).scaffoldBackgroundColor,
         ),
         child: SafeArea(
           child: Center(
@@ -126,7 +126,7 @@ class SplashScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           // ignore: deprecated_member_use
-                          color: Colors.white.withOpacity(0.9),
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9),
                           fontWeight: FontWeight.w400,
                         ),
                       ),

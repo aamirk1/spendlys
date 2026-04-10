@@ -40,8 +40,10 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   @override
   void initState() {
     super.initState();
-    personController = TextEditingController(text: widget.loan?.personName ?? "");
-    amountController = TextEditingController(text: widget.loan != null ? widget.loan!.amount.toString() : "");
+    personController =
+        TextEditingController(text: widget.loan?.personName ?? "");
+    amountController = TextEditingController(
+        text: widget.loan != null ? widget.loan!.amount.toString() : "");
     reasonController = TextEditingController(text: widget.loan?.reason ?? "");
     type = widget.loan?.type ?? 'borrowed';
     expectedReturnDate = widget.loan?.expectedReturnDate;
@@ -66,11 +68,11 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Theme.of(context).shadowColor.withOpacity(0.05),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -81,13 +83,17 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(
+            fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          labelStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14),
+          labelStyle: TextStyle(
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              fontSize: 14),
           prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: Colors.blueGrey.shade400, size: 20)
+              ? Icon(prefixIcon,
+                  color: Theme.of(context).textTheme.bodySmall?.color, size: 20)
               : null,
           border: InputBorder.none,
           contentPadding:
@@ -107,13 +113,15 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blueGrey.shade700)),
+                  color: Theme.of(context).textTheme.bodyLarge?.color)),
         ),
         Row(
           children: [
-            _typeCard('borrowed', "borrowed_label".tr, Icons.arrow_downward, Colors.orange),
+            _typeCard('borrowed', "borrowed_label".tr, Icons.arrow_downward,
+                Colors.orange),
             const SizedBox(width: 15),
-            _typeCard('lent', "lent_label".tr, Icons.arrow_upward, Colors.green),
+            _typeCard(
+                'lent', "lent_label".tr, Icons.arrow_upward, Colors.green),
           ],
         ),
       ],
@@ -129,28 +137,34 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Colors.white,
+            color: isSelected
+                ? color.withOpacity(0.1)
+                : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? color : Colors.grey.shade200,
+              color: isSelected
+                  ? color
+                  : Theme.of(context).dividerColor.withOpacity(0.1),
               width: 1.5,
             ),
           ),
           child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 16, color: isSelected ? color : Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? color : Colors.grey,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 14,
-                  ),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 16,
+                  color: isSelected ? color : Theme.of(context).disabledColor),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? color : Theme.of(context).disabledColor,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 14,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -165,7 +179,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
       onTap: () async {
         final pickedDate = await showDatePicker(
           context: context,
-          initialDate: expectedReturnDate ?? DateTime.now().add(const Duration(days: 30)),
+          initialDate: expectedReturnDate ??
+              DateTime.now().add(const Duration(days: 30)),
           firstDate: DateTime(2023),
           lastDate: DateTime(2030),
         );
@@ -177,19 +192,23 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.1)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 20, color: Colors.blueGrey),
+            const Icon(Icons.calendar_today_outlined,
+                size: 20, color: Colors.blueGrey),
             const SizedBox(width: 16),
             Expanded(
               child: Text(formattedDate,
                   style: TextStyle(
-                      fontSize: 16, 
-                      color: expectedReturnDate != null ? Colors.black87 : Colors.grey.shade400)),
+                      fontSize: 16,
+                      color: expectedReturnDate != null
+                          ? Theme.of(context).textTheme.bodyLarge?.color
+                          : Theme.of(context).disabledColor)),
             ),
             const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
           ],
@@ -201,7 +220,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: isEditMode ? 'edit_transaction'.tr : 'new_transaction'.tr,
         backgroundColor: AppColors.primary,
@@ -215,15 +234,17 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
             children: [
               Text(
                 isEditMode ? "update_record".tr : "digital_ledger_entry".tr,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87),
+                    color: Theme.of(context).textTheme.titleLarge?.color),
               ),
               const SizedBox(height: 8),
               Text(
                 "lending_borrowing_desc".tr,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).textTheme.bodySmall?.color),
               ),
               const SizedBox(height: 35),
               _buildInputField(
@@ -242,9 +263,11 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 Icons.currency_rupee_outlined,
                 TextInputType.number,
                 (value) {
-                   if (value == null || value.isEmpty) return 'amount_required'.tr;
-                   if (double.tryParse(value) == null) return 'invalid_amount'.tr;
-                   return null;
+                  if (value == null || value.isEmpty)
+                    return 'amount_required'.tr;
+                  if (double.tryParse(value) == null)
+                    return 'invalid_amount'.tr;
+                  return null;
                 },
               ),
               const SizedBox(height: 20),
@@ -262,10 +285,10 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 8, bottom: 10),
                 child: Text("expected_return_date".tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF455A64))),
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
               ),
               _buildDatePicker(context),
               const SizedBox(height: 50),
@@ -277,7 +300,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       Utils.showSnackbar("warning".tr, "set_return_date".tr);
                       return;
                     }
-                    
+
                     if (isEditMode) {
                       final updatedLoan = widget.loan!.copyWith(
                         personName: personController.text,

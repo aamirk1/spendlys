@@ -32,10 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -53,8 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
             showSelectedLabels: true,
             showUnselectedLabels: true,
             selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Colors.grey,
+            unselectedItemColor: Theme.of(context).disabledColor,
             elevation: 0,
+            backgroundColor: Theme.of(context).cardColor,
             type: BottomNavigationBarType.fixed,
             items: [
               BottomNavigationBarItem(
@@ -136,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

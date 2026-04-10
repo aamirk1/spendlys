@@ -154,7 +154,7 @@ class ProfileStats extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Get.isDarkMode ? Colors.grey.shade900 : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -180,7 +180,7 @@ class ProfileStats extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
               fontWeight: FontWeight.w500,
             ),
           ),

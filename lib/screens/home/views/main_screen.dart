@@ -87,10 +87,12 @@ class MainScreen extends StatelessWidget {
               children: [
                 Text("welcome".tr,
                     style:
-                        TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color)),
                 Text(myUser.name,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.titleLarge?.color)),
               ],
             ),
           ],
@@ -209,10 +211,10 @@ class MainScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("feature_modules".tr,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87)),
+                color: Theme.of(context).textTheme.titleLarge?.color)),
         const SizedBox(height: 15),
         Row(
           children: [
@@ -257,7 +259,7 @@ class MainScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
@@ -278,10 +280,10 @@ class MainScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87)),
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
               const SizedBox(height: 4),
               Text(subtitle,
                   style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
@@ -303,10 +305,10 @@ class MainScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text('recent_transactions'.tr,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87)),
+                color: Theme.of(context).textTheme.titleLarge?.color)),
         GestureDetector(
           onTap: () => Get.toNamed(RoutesName.viewAllExpenses),
           child: Text('view_history'.tr,
@@ -343,7 +345,7 @@ class MainScreen extends StatelessWidget {
                   size: 60, color: Colors.grey.shade300),
               const SizedBox(height: 10),
               Text("no_transactions".tr,
-                  style: TextStyle(color: Colors.grey.shade400)),
+                  style: TextStyle(color: Theme.of(context).disabledColor)),
             ],
           ),
         );
@@ -362,7 +364,7 @@ class MainScreen extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
@@ -386,19 +388,21 @@ class MainScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(category,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14)),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 14,
+                              color: Theme.of(context).textTheme.bodyLarge?.color)),
                       Text(DateFormat('dd MMM').format(date),
                           style: TextStyle(
-                              fontSize: 11, color: Colors.grey.shade500)),
+                              fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color)),
                     ],
                   ),
                 ),
                 Text("₹${total.toStringAsFixed(0)}",
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
-                        color: Colors.black87)),
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
               ],
             ),
           );

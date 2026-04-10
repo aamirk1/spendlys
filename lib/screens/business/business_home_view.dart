@@ -55,14 +55,13 @@ class BusinessHomeView extends StatelessWidget {
     final controller = Get.put(BusinessHomeController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text("business_center_title".tr,
             style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black,
         actions: [
           IconButton(
             onPressed: () => controller.fetchSummary(),
@@ -78,17 +77,17 @@ class BusinessHomeView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(context),
               const SizedBox(height: 25),
               _buildQuickActions(context),
               const SizedBox(height: 30),
-              _buildAnalyticsSummary(controller),
+              _buildAnalyticsSummary(context, controller),
               const SizedBox(height: 30),
               Text("management".tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey)),
+                      color: Theme.of(context).textTheme.bodySmall?.color)),
               const SizedBox(height: 15),
               _buildModuleList(context),
             ],
@@ -98,16 +97,18 @@ class BusinessHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xFF2061e5), Color(0xFF4a8cf5)]),
+        gradient: LinearGradient(colors: [
+          Theme.of(context).primaryColor,
+          Theme.of(context).primaryColor.withOpacity(0.8),
+        ]),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.blue.withOpacity(0.3),
+              color: Theme.of(context).primaryColor.withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 8))
         ],
@@ -131,7 +132,8 @@ class BusinessHomeView extends StatelessWidget {
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
                 Text("business_header_subtitle".tr,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -160,7 +162,7 @@ class BusinessHomeView extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -179,8 +181,9 @@ class BusinessHomeView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(label,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black87)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
             ],
           ),
         ),
@@ -188,7 +191,8 @@ class BusinessHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAnalyticsSummary(BusinessHomeController controller) {
+  Widget _buildAnalyticsSummary(
+      BuildContext context, BusinessHomeController controller) {
     return Obx(() {
       final String monthYear = DateFormat('MMMM yyyy').format(DateTime.now());
 
@@ -196,7 +200,7 @@ class BusinessHomeView extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -212,12 +216,13 @@ class BusinessHomeView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("monthly_revenue".tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87)),
+                        color: Theme.of(context).textTheme.titleLarge?.color)),
                 Text(monthYear,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                    style: TextStyle(
+                        fontSize: 12, color: Theme.of(context).disabledColor)),
               ],
             ),
             const SizedBox(height: 20),
@@ -232,14 +237,10 @@ class BusinessHomeView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _statItem(
-                      "total_amount".tr,
-                      "₹${controller.totalRevenue.value.toStringAsFixed(2)}",
-                      Colors.blue),
-                  Container(width: 1, height: 40, color: Colors.grey[100]),
-                  _statItem(
                       "pending".tr,
                       "₹${controller.pendingAmount.value.toStringAsFixed(2)}",
-                      Colors.redAccent),
+                      Colors.redAccent,
+                      context),
                 ],
               ),
           ],
@@ -248,14 +249,18 @@ class BusinessHomeView extends StatelessWidget {
     });
   }
 
-  Widget _statItem(String label, String value, Color color) {
+  Widget _statItem(
+      String label, String value, Color color, BuildContext context) {
     return Column(
       children: [
         Text(value,
             style: TextStyle(
                 color: color, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        Text(label,
+            style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12)),
       ],
     );
   }
@@ -263,27 +268,36 @@ class BusinessHomeView extends StatelessWidget {
   Widget _buildModuleList(BuildContext context) {
     return Column(
       children: [
-        _luxuryListTile(Icons.group_rounded, "customers".tr, "clients_ledgers".tr,
-            Colors.indigo, () => Get.toNamed(RoutesName.customersList)),
         _luxuryListTile(
+            context,
+            Icons.group_rounded,
+            "customers".tr,
+            "clients_ledgers".tr,
+            Colors.indigo,
+            () => Get.toNamed(RoutesName.customersList)),
+        _luxuryListTile(
+            context,
             Icons.history_rounded,
             "invoice_history".tr,
             "past_transactions".tr,
             Colors.deepPurple,
             () => Get.toNamed(RoutesName.invoiceList)),
         _luxuryListTile(
+            context,
             Icons.request_quote_outlined,
             "quotation_history".tr,
             "view_past_quotes".tr,
             Colors.teal,
             () => Get.toNamed(RoutesName.quotationList)),
         _luxuryListTile(
+            context,
             Icons.settings_suggest_rounded,
             "business_profile".tr,
             "account_settings".tr,
             Colors.blueGrey,
             () => Get.toNamed(RoutesName.businessProfile)),
         _luxuryListTile(
+            context,
             Icons.inventory_2_rounded,
             "Inventory Management",
             "Products & Stock",
@@ -293,12 +307,12 @@ class BusinessHomeView extends StatelessWidget {
     );
   }
 
-  Widget _luxuryListTile(IconData icon, String title, String subtitle,
-      Color color, VoidCallback onTap) {
+  Widget _luxuryListTile(BuildContext context, IconData icon, String title,
+      String subtitle, Color color, VoidCallback onTap) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -317,10 +331,13 @@ class BusinessHomeView extends StatelessWidget {
           child: Icon(icon, color: color, size: 24),
         ),
         title: Text(title,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.black87)),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color)),
         subtitle: Text(subtitle,
-            style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+            style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12)),
         trailing: const Icon(Icons.arrow_forward_ios_rounded,
             size: 16, color: Colors.grey),
         onTap: onTap,

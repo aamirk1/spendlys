@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dio/dio.dart';
 import 'package:spendly/utils/utils.dart';
 
 class AppErrorHandler {
@@ -39,6 +40,19 @@ class AppErrorHandler {
           break;
         default:
           message = error.message ?? message;
+      }
+    } else if (error is DioException) {
+      if (error.response != null) {
+        final data = error.response?.data;
+        if (data is Map && data.containsKey('detail')) {
+          message = data['detail'].toString();
+        } else if (data is Map && data.containsKey('message')) {
+          message = data['message'].toString();
+        } else {
+          message = "Server error: ${error.response?.statusCode}. Please try again later.";
+        }
+      } else {
+        message = "Network error: ${error.message}";
       }
     } else if (error is Map && error.containsKey('detail')) {
       message = error['detail'].toString();

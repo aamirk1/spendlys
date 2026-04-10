@@ -22,7 +22,7 @@ class AddIncome extends StatelessWidget {
           children: [
             _buildInputForm(context),
             _buildListHeader(context),
-            _buildRecentList(),
+            _buildRecentList(context),
           ],
         ),
       ),
@@ -34,7 +34,7 @@ class AddIncome extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -126,7 +126,7 @@ class AddIncome extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.lightGrey.withOpacity(0.2),
+            color: Theme.of(context).dividerColor.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -148,9 +148,9 @@ class AddIncome extends StatelessWidget {
                     ? 'select_category'.tr
                     : controller.selectedCategory.value,
                 style: TextStyle(
-                  color: controller.selectedCategory.value.isEmpty
-                      ? AppColors.textSecondary.withOpacity(0.5)
-                      : AppColors.textPrimary,
+                  color: controller.selectedCategory.value.isEmpty 
+                      ? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5) 
+                      : Theme.of(context).textTheme.bodyLarge?.color,
                   fontSize: 16,
                 ),
               ),
@@ -174,7 +174,7 @@ class AddIncome extends StatelessWidget {
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B)),
+                color: Theme.of(context).textTheme.titleLarge?.color),
           ),
           TextButton(
             onPressed: () => Get.toNamed(RoutesName.viewAllIncome),
@@ -187,7 +187,7 @@ class AddIncome extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentList() {
+  Widget _buildRecentList(BuildContext context) {
     return Obx(() {
       final incomes = controller.incomeList;
       if (incomes.isEmpty) {
@@ -199,7 +199,7 @@ class AddIncome extends StatelessWidget {
                   size: 48, color: Colors.grey.shade300),
               const SizedBox(height: 12),
               Text("no_recent_incomes".tr,
-                  style: TextStyle(color: Colors.grey.shade400)),
+                  style: TextStyle(color: Theme.of(context).disabledColor)),
             ],
           ),
         );
@@ -231,17 +231,17 @@ class AddIncome extends StatelessWidget {
                 child: FadeInAnimation(
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
@@ -257,17 +257,17 @@ class AddIncome extends StatelessWidget {
                       ),
                       title: Text(
                         income['description'],
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Color(0xFF1E293B)),
+                            color: Theme.of(context).textTheme.bodyLarge?.color),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
                         DateFormat('dd MMM, hh:mm a').format(income['date']),
                         style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade500),
+                            fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
                       ),
                       trailing: Text(
                         "+ ₹${NumberFormat('#,###').format(income['amount'])}",
@@ -302,12 +302,15 @@ class AddIncome extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: Theme.of(context).dividerColor,
                     borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Text("select_category".tr,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleLarge?.color)),
             ),
             Expanded(
               child: GridView.builder(
@@ -356,7 +359,7 @@ class AddIncome extends StatelessWidget {
                                   : FontWeight.normal,
                               color: isSelected
                                   ? AppColors.primary
-                                  : Colors.grey.shade700,
+                                  : Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                             textAlign: TextAlign.center,
                             maxLines: 1,

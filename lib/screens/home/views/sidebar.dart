@@ -22,7 +22,7 @@ class AnimatedSidebar extends StatelessWidget {
           duration: Duration(milliseconds: 300),
           width: controller.isExpanded.value ? 250 : 70,
           decoration: BoxDecoration(
-            color: Colors.blueGrey[900],
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(20),
                 bottomRight: Radius.circular(20)),
@@ -31,33 +31,33 @@ class AnimatedSidebar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               IconButton(
-                icon: Icon(Icons.menu, color: Colors.white),
+                icon: Icon(Icons.menu, color: Theme.of(context).iconTheme.color),
                 onPressed: controller.toggleSidebar,
               ),
               SizedBox(height: 20),
-              sidebarButton(Icons.category, "Category", onTap: () {}),
-              sidebarButton(Icons.business_center, "Business Center", onTap: () => Get.toNamed(RoutesName.businessHome)),
-              sidebarButton(Icons.message, "Messages", onTap: () => Get.toNamed(RoutesName.chatListView)),
-              sidebarButton(Icons.settings, "Settings", onTap: () {}),
-              sidebarButton(Icons.logout, "Logout", onTap: () => signInController.logout()),
+              sidebarButton(Icons.category, "Category", onTap: () {}, context: context),
+              sidebarButton(Icons.business_center, "Business Center", onTap: () => Get.toNamed(RoutesName.businessHome), context: context),
+              sidebarButton(Icons.message, "Messages", onTap: () => Get.toNamed(RoutesName.chatListView), context: context),
+              sidebarButton(Icons.settings, "Settings", onTap: () {}, context: context),
+              sidebarButton(Icons.logout, "Logout", onTap: () => signInController.logout(), context: context),
 
             ],
           ),
         ));
   }
 
-  Widget sidebarButton(IconData icon, String label, {required VoidCallback onTap}) {
+  Widget sidebarButton(IconData icon, String label, {required VoidCallback onTap, required BuildContext context}) {
     return Obx(() => InkWell(
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
             child: Row(
               children: [
-                Icon(icon, color: Colors.white, size: 30),
+                Icon(icon, color: Theme.of(context).iconTheme.color, size: 30),
                 if (controller.isExpanded.value) const SizedBox(width: 10),
                 if (controller.isExpanded.value)
                   Text(label,
-                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 18)),
               ],
             ),
           ),

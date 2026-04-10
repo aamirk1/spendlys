@@ -16,9 +16,12 @@ class StatScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Transactions',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 20, 
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleLarge?.color),
               ),
               const SizedBox(height: 5),
 
@@ -27,7 +30,7 @@ class StatScreen extends StatelessWidget {
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.50,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Padding(
@@ -42,7 +45,7 @@ class StatScreen extends StatelessWidget {
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.35,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Padding(

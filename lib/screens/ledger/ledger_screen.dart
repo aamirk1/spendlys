@@ -19,7 +19,7 @@ class LedgerScreen extends StatelessWidget {
     final controller = Get.put(LedgerController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         backgroundColor: AppColors.primary,
         title: "global_ledger".tr,
@@ -42,7 +42,7 @@ class LedgerScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          _buildTypeSelector(controller),
+          _buildTypeSelector(controller, context),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             child: CupertinoSearchTextField(
@@ -57,11 +57,11 @@ class LedgerScreen extends StatelessWidget {
               }
               switch (controller.selectedType.value) {
                 case LedgerType.business:
-                  return _buildBusinessLedger(controller);
+                  return _buildBusinessLedger(controller, context);
                 case LedgerType.loan:
-                  return _buildLoanLedger(controller);
+                  return _buildLoanLedger(controller, context);
                 case LedgerType.expense:
-                  return _buildExpenseLedger(controller);
+                  return _buildExpenseLedger(controller, context);
               }
             }),
           ),
@@ -70,25 +70,25 @@ class LedgerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTypeSelector(LedgerController controller) {
+  Widget _buildTypeSelector(LedgerController controller, BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
       color: AppColors.primary.withOpacity(0.05),
       child: Obx(() => Row(
             children: [
               _typeButton(controller, LedgerType.business, "business".tr,
-                  Icons.business_center),
-              _typeButton(
-                  controller, LedgerType.loan, "loans".tr, Icons.handshake),
+                  Icons.business_center, context),
+              _typeButton(controller, LedgerType.loan, "loans".tr,
+                  Icons.handshake, context),
               _typeButton(controller, LedgerType.expense, "expenses".tr,
-                  Icons.account_balance_wallet),
+                  Icons.account_balance_wallet, context),
             ],
           )),
     );
   }
 
   Widget _typeButton(LedgerController controller, LedgerType type, String label,
-      IconData icon) {
+      IconData icon, BuildContext context) {
     final isSelected = controller.selectedType.value == type;
     return Expanded(
       child: InkWell(
@@ -97,12 +97,14 @@ class LedgerScreen extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.white,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               if (isSelected)
                 BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4))
             ],
@@ -124,9 +126,10 @@ class LedgerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBusinessLedger(LedgerController controller) {
+  Widget _buildBusinessLedger(
+      LedgerController controller, BuildContext context) {
     final list = controller.filteredBusiness;
-    if (list.isEmpty) return _emptyState("no_business_records".tr);
+    if (list.isEmpty) return _emptyState("no_business_records".tr, context);
     return ListView.builder(
       padding: const EdgeInsets.all(15),
       itemCount: list.length,
@@ -139,14 +142,15 @@ class LedgerScreen extends StatelessWidget {
           date: inv['date'],
           status: inv['status'],
           color: Colors.blue,
+          context: context,
         );
       },
     );
   }
 
-  Widget _buildLoanLedger(LedgerController controller) {
+  Widget _buildLoanLedger(LedgerController controller, BuildContext context) {
     final allLoans = controller.filteredLoans;
-    if (allLoans.isEmpty) return _emptyState("no_loan_records".tr);
+    if (allLoans.isEmpty) return _emptyState("no_loan_records".tr, context);
 
     return ListView.builder(
       padding: const EdgeInsets.all(15),
@@ -161,15 +165,17 @@ class LedgerScreen extends StatelessWidget {
           date: loan.date.toIso8601String(),
           status: isLent ? "lent_caps".tr : "borrowed_caps".tr,
           color: isLent ? Colors.orange : Colors.deepPurple,
+          context: context,
         );
       },
     );
   }
 
-  Widget _buildExpenseLedger(LedgerController controller) {
+  Widget _buildExpenseLedger(
+      LedgerController controller, BuildContext context) {
     final all = controller.filteredExpenses;
 
-    if (all.isEmpty) return _emptyState("no_transaction_records".tr);
+    if (all.isEmpty) return _emptyState("no_transaction_records".tr, context);
 
     return ListView.builder(
       padding: const EdgeInsets.all(15),
@@ -184,6 +190,7 @@ class LedgerScreen extends StatelessWidget {
           date: item['date'].toString(),
           status: isIncome ? "income_caps".tr : "expense_caps".tr,
           color: isIncome ? Colors.green : Colors.red,
+          context: context,
         );
       },
     );
@@ -195,7 +202,8 @@ class LedgerScreen extends StatelessWidget {
       required String amount,
       String? date,
       String? status,
-      required Color color}) {
+      required Color color,
+      required BuildContext context}) {
     String formattedDate = "N/A";
     if (date != null) {
       try {
@@ -207,11 +215,11 @@ class LedgerScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 10,
               offset: const Offset(0, 4))
         ],
@@ -230,11 +238,14 @@ class LedgerScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
                 Text(subtitle,
-                    style:
-                        TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontSize: 12)),
               ],
             ),
           ),
@@ -245,7 +256,13 @@ class LedgerScreen extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16, color: color)),
               Text(formattedDate,
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
+                      fontSize: 10)),
             ],
           ),
         ],
@@ -253,7 +270,7 @@ class LedgerScreen extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(String message) {
+  Widget _emptyState(String message, BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -261,7 +278,8 @@ class LedgerScreen extends StatelessWidget {
           Icon(Icons.layers_clear_outlined,
               size: 60, color: Colors.grey.shade300),
           const SizedBox(height: 10),
-          Text(message, style: TextStyle(color: Colors.grey.shade400)),
+          Text(message,
+              style: TextStyle(color: Theme.of(context).disabledColor)),
         ],
       ),
     );
@@ -341,11 +359,17 @@ class LedgerScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Global Filters",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text("Global Filters",
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleLarge?.color)),
             const SizedBox(height: 20),
-            const Text("Filter by Date Range",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)),
+            Text("Filter by Date Range",
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodySmall?.color)),
             const SizedBox(height: 10),
             Obx(() => ListTile(
                   leading: const Icon(Icons.calendar_month,
@@ -360,7 +384,8 @@ class LedgerScreen extends StatelessWidget {
                         )
                       : null,
                   tileColor: AppColors.primary.withOpacity(0.05),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   onTap: () async {
                     final picked = await showDateRangePicker(
                       context: context,
@@ -384,7 +409,8 @@ class LedgerScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12))),
                 child: const Text("APPLY FILTERS",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 10),

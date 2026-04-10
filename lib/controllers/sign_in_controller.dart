@@ -8,12 +8,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/utils.dart';
-import 'package:spendly/core/error/app_error_handler.dart';
+import 'package:spendly/core/network/api_client.dart';
+import 'package:spendly/core/network/api_constants.dart';
 
 class SignInController extends GetxController {
+  final ApiClient _apiClient = Get.find<ApiClient>();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -34,6 +38,32 @@ class SignInController extends GetxController {
     iconPassword.value = obscurePassword.value
         ? CupertinoIcons.eye_fill
         : CupertinoIcons.eye_slash_fill;
+  }
+
+  Future<void> requestAccountDeletion(String reason) async {
+    if (reason.isEmpty) {
+      Utils.showSnackbar("Error", "Please provide a reason for deletion");
+      return;
+    }
+
+    try {
+      Utils.showLoadingDialog();
+      final user = _auth.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      await _apiClient.post(ApiConstants.deleteRequest, data: {
+        'user_id': user.uid,
+        'reason': reason,
+      });
+
+      Get.back(); // Close loading dialog
+      Utils.showSnackbar(
+          "Success", "Deletion request submitted. Admin will review it.",
+          isError: false);
+    } catch (e) {
+      Get.back(); // Close loading dialog
+      Utils.showSnackbar("Error", "Failed to submit request: $e");
+    }
   }
 
   Future<MyUser> _getUserData(String uid) async {

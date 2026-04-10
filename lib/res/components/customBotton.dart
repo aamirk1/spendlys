@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color? backgroundColor;
+  final Color? textColor;
   final double fontSize;
   final double borderRadius;
   final EdgeInsets padding;
@@ -18,8 +18,8 @@ class CustomButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.backgroundColor = Colors.deepPurpleAccent,
-    this.textColor = Colors.white,
+    this.backgroundColor,
+    this.textColor,
     this.fontSize = 16,
     this.borderRadius = 12,
     this.padding = const EdgeInsets.symmetric(vertical: 14),
@@ -32,21 +32,28 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBackgroundColor = backgroundColor ?? Theme.of(context).primaryColor;
+    final effectiveTextColor = textColor ?? Colors.white;
+
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         minimumSize: Size(width, height),
-        backgroundColor: backgroundColor,
+        backgroundColor: effectiveBackgroundColor,
         padding: padding,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         elevation: elevation,
-        // ignore: deprecated_member_use
-        shadowColor: backgroundColor.withOpacity(0.3),
+        shadowColor: effectiveBackgroundColor.withOpacity(0.3),
       ),
       child: isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                  color: Colors.white, strokeWidth: 2),
+            )
           : Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -58,7 +65,7 @@ class CustomButton extends StatelessWidget {
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w600,
-                    color: textColor,
+                    color: effectiveTextColor,
                   ),
                 ),
               ],

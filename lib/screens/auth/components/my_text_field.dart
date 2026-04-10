@@ -43,9 +43,13 @@ class MyTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         prefixIcon: prefixIcon,
         hintText: hintText,
-        hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 16),
+        hintStyle: TextStyle(
+          color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+          fontSize: 16,
+        ),
         filled: true,
-        fillColor: AppColors.lightGrey.withOpacity(0.2),
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor ??
+            Theme.of(context).dividerColor.withOpacity(0.05),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -53,7 +57,7 @@ class MyTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

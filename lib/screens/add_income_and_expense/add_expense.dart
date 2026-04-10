@@ -22,7 +22,7 @@ class AddExpense extends StatelessWidget {
           children: [
             _buildInputForm(context),
             _buildListHeader(context),
-            _buildRecentList(),
+            _buildRecentList(context),
           ],
         ),
       ),
@@ -34,7 +34,7 @@ class AddExpense extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -53,11 +53,14 @@ class AddExpense extends StatelessWidget {
                   hintText: 'amount'.tr,
                   obscureText: false,
                   keyboardType: TextInputType.number,
-                  prefixIcon: const Icon(Icons.currency_rupee_rounded, color: Colors.redAccent),
+                  prefixIcon: const Icon(Icons.currency_rupee_rounded,
+                      color: Colors.redAccent),
                   errorMsg: controller.errorMsg.value,
                   validator: (val) {
-                    if (val == null || val.isEmpty) return 'Please enter an amount';
-                    if (double.tryParse(val) == null) return 'Please enter a valid number';
+                    if (val == null || val.isEmpty)
+                      return 'Please enter an amount';
+                    if (double.tryParse(val) == null)
+                      return 'Please enter a valid number';
                     return null;
                   },
                 )),
@@ -67,10 +70,12 @@ class AddExpense extends StatelessWidget {
                   hintText: 'description'.tr,
                   obscureText: false,
                   keyboardType: TextInputType.text,
-                  prefixIcon: const Icon(Icons.description_outlined, color: Colors.redAccent),
+                  prefixIcon: const Icon(Icons.description_outlined,
+                      color: Colors.redAccent),
                   errorMsg: controller.errorMsg.value,
                   validator: (val) {
-                    if (val == null || val.isEmpty) return 'Please enter a description';
+                    if (val == null || val.isEmpty)
+                      return 'Please enter a description';
                     return null;
                   },
                 )),
@@ -98,7 +103,8 @@ class AddExpense extends StatelessWidget {
                       ),
                       child: Text(
                         'save_expense'.tr,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   )),
@@ -120,25 +126,35 @@ class AddExpense extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.lightGrey.withOpacity(0.2),
+            color: Theme.of(context).dividerColor.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: (selectedCategoryData['color'] as Color?) ?? Colors.grey.shade400,
+                backgroundColor: (selectedCategoryData['color'] as Color?) ??
+                    Colors.grey.shade400,
                 radius: 14,
                 child: Icon(
-                  (selectedCategoryData['icon'] as IconData?) ?? Icons.category_outlined,
+                  (selectedCategoryData['icon'] as IconData?) ??
+                      Icons.category_outlined,
                   color: Colors.white,
                   size: 16,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                controller.selectedCategory.value.isEmpty ? 'select_category'.tr : controller.selectedCategory.value,
+                controller.selectedCategory.value.isEmpty
+                    ? 'select_category'.tr
+                    : controller.selectedCategory.value,
                 style: TextStyle(
-                  color: controller.selectedCategory.value.isEmpty ? AppColors.textSecondary.withOpacity(0.5) : AppColors.textPrimary,
+                  color: controller.selectedCategory.value.isEmpty
+                      ? Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.5)
+                      : Theme.of(context).textTheme.bodyLarge?.color,
                   fontSize: 16,
                 ),
               ),
@@ -159,117 +175,147 @@ class AddExpense extends StatelessWidget {
         children: [
           Text(
             'recent_transactions'.tr,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleLarge?.color),
           ),
           TextButton(
             onPressed: () => Get.toNamed(RoutesName.viewAllExpenses),
-            child: Text('view_all'.tr, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+            child: Text('view_all'.tr,
+                style: const TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRecentList() {
+  Widget _buildRecentList(BuildContext context) {
     return Obx(() {
       final expenses = controller.expensesList;
-        if (expenses.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey.shade300),
-                const SizedBox(height: 12),
-                Text("no_recent_expenses".tr, style: TextStyle(color: Colors.grey.shade400)),
-              ],
-            ),
-          );
-        }
+      if (expenses.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long_outlined,
+                  size: 48, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              Text("no_recent_expenses".tr,
+                  style: TextStyle(color: Theme.of(context).disabledColor)),
+            ],
+          ),
+        );
+      }
 
-        final last10Expenses = (expenses.toList()..sort((a, b) => b['date'].compareTo(a['date']))).take(10).toList();
+      final last10Expenses = (expenses.toList()
+            ..sort((a, b) => b['date'].compareTo(a['date'])))
+          .take(10)
+          .toList();
 
-        return AnimationLimiter(
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: last10Expenses.length,
-            itemBuilder: (context, index) {
-              final expense = last10Expenses[index];
-              final categoryData = controller.expenseCategories.firstWhere(
-                (element) => element['name'] == expense['category'],
-                orElse: () => {'icon': Icons.category, 'color': Colors.grey},
-              );
+      return AnimationLimiter(
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: last10Expenses.length,
+          itemBuilder: (context, index) {
+            final expense = last10Expenses[index];
+            final categoryData = controller.expenseCategories.firstWhere(
+              (element) => element['name'] == expense['category'],
+              orElse: () => {'icon': Icons.category, 'color': Colors.grey},
+            );
 
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+            return AnimationConfiguration.staggeredList(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color:
+                              (categoryData['color'] as Color).withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(categoryData['icon'] as IconData,
+                            color: categoryData['color'] as Color, size: 20),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        leading: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: (categoryData['color'] as Color).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(categoryData['icon'] as IconData, color: categoryData['color'] as Color, size: 20),
-                        ),
-                        title: Text(
-                          expense['description'],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          DateFormat('dd MMM, hh:mm a').format(expense['date']),
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                        ),
-                        trailing: Text(
-                          "- ₹${NumberFormat('#,###').format(expense['amount'])}",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.redAccent),
-                        ),
+                      title: Text(
+                        expense['description'],
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color:
+                                Theme.of(context).textTheme.bodyLarge?.color),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        DateFormat('dd MMM, hh:mm a').format(expense['date']),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                Theme.of(context).textTheme.bodySmall?.color),
+                      ),
+                      trailing: Text(
+                        "- ₹${NumberFormat('#,###').format(expense['amount'])}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.redAccent),
                       ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        );
-      });
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 
   void _showCategoryPicker(BuildContext context) {
     Get.bottomSheet(
       Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Text("select_category".tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("select_category".tr,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             Expanded(
               child: GridView.builder(
@@ -284,7 +330,8 @@ class AddExpense extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final category = controller.expenseCategories[index];
                   return Obx(() {
-                    final isSelected = controller.selectedCategory.value == category['name'];
+                    final isSelected =
+                        controller.selectedCategory.value == category['name'];
                     return GestureDetector(
                       onTap: () {
                         controller.selectedCategory.value = category['name'];
@@ -295,18 +342,32 @@ class AddExpense extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isSelected ? (category['color'] as Color) : (category['color'] as Color).withOpacity(0.1),
+                              color: isSelected
+                                  ? (category['color'] as Color)
+                                  : (category['color'] as Color)
+                                      .withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(category['icon'] as IconData, color: isSelected ? Colors.white : category['color'] as Color, size: 24),
+                            child: Icon(category['icon'] as IconData,
+                                color: isSelected
+                                    ? Colors.white
+                                    : category['color'] as Color,
+                                size: 24),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             category['name'],
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? Colors.redAccent : Colors.grey.shade700,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? Colors.redAccent
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color,
                             ),
                             textAlign: TextAlign.center,
                             maxLines: 1,
@@ -325,4 +386,3 @@ class AddExpense extends StatelessWidget {
     );
   }
 }
-
