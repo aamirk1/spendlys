@@ -128,6 +128,9 @@ class SignInController extends GetxController {
       signInRequired.value = false;
       Utils.showSnackbar("Success", "Sign-in successful!", isError: false);
 
+      // Sync with Backend
+      await syncUserWithBackend(myUser, deviceInfo, fcmToken);
+
       Get.offAllNamed(RoutesName.homeView, arguments: myUser);
     } catch (e) {
       signInRequired.value = false;
@@ -144,6 +147,23 @@ class SignInController extends GetxController {
       return 'iOS ${iosInfo.systemVersion}, ${iosInfo.name}';
     } else {
       return 'Unknown Device';
+    }
+  }
+
+  Future<void> syncUserWithBackend(
+      MyUser user, String deviceInfo, String? fcmToken) async {
+    try {
+      await _apiClient.post(ApiConstants.syncUser, data: {
+        'id': user.userId,
+        'email': user.email,
+        'name': user.name,
+        'phone_number': user.phoneNumber,
+        'device_info': deviceInfo,
+        'fcm_token': fcmToken,
+      });
+      print("User synced with backend successfully.");
+    } catch (e) {
+      print("Warning: Failed to sync user with backend: $e");
     }
   }
 
