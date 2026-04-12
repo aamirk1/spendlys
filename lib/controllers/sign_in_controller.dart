@@ -24,7 +24,7 @@ class SignInController extends GetxController {
   final SecureStorageService _secureStorage = Get.find<SecureStorageService>();
   final AuthService _authService = Get.find<AuthService>();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
 
@@ -44,7 +44,6 @@ class SignInController extends GetxController {
   var isEmailLogin = true.obs;
   var signInRequired = false.obs; // Keeping as alias for now if used elsewhere
   var obscurePassword = true.obs;
-  var isCaptchaVerified = false.obs;
   var errorMsg = Rx<String?>(null);
 
   // Phone Auth Variables
@@ -76,7 +75,6 @@ class SignInController extends GetxController {
     nameController.clear();
     isLoading.value = false;
     signInRequired.value = false;
-    isCaptchaVerified.value = false;
     errorMsg.value = null;
     // Reset password strength badges
     containsUpperCase.value = false;
@@ -107,7 +105,7 @@ class SignInController extends GetxController {
 
     try {
       Utils.showLoadingDialog();
-      final user = _auth.currentUser;
+      final user = auth.currentUser;
       if (user == null) throw Exception("User not logged in");
 
       await _apiClient.post(ApiConstants.deleteRequest, data: {
@@ -156,7 +154,7 @@ class SignInController extends GetxController {
 
       // Sign in to Firebase using Custom Token
       if (customToken != null) {
-        await _auth
+        await auth
             .signInWithCustomToken(customToken)
             .timeout(const Duration(seconds: 30));
       }
@@ -167,8 +165,9 @@ class SignInController extends GetxController {
       await _secureStorage.saveCredentials(
           emailController.text.trim(), passwordController.text.trim());
     } catch (e) {
-      signInRequired.value = false;
       AppErrorHandler.handleError(e);
+    } finally {
+      signInRequired.value = false;
     }
   }
 
@@ -216,17 +215,20 @@ class SignInController extends GetxController {
         phoneNumber: formattedPhone,
         codeSent: (id) {
           verificationId.value = id;
-          isLoading.value = false; // Reset on success
+          isLoading.value = false;
+          signInRequired.value = false;
           Get.toNamed(RoutesName.otpVerifyView,
               arguments: {'fromSignIn': true});
         },
         verificationFailed: (e) {
-          isLoading.value = false; // Reset on failure
+          isLoading.value = false;
+          signInRequired.value = false;
           AppErrorHandler.handleError(e);
         },
       );
     } catch (e) {
       isLoading.value = false;
+      signInRequired.value = false;
       AppErrorHandler.handleError(e);
     }
   }
@@ -324,6 +326,7 @@ class SignInController extends GetxController {
       email: userData['email'] ?? '',
       phoneNumber: userData['phone_number'] ?? '',
       lastLogin: Timestamp.now(),
+      isPremium: userData['is_premium'] ?? false,
     );
 
     box.write("isLoggedIn", true);
@@ -331,6 +334,7 @@ class SignInController extends GetxController {
     box.write("name", myUser.name);
     box.write("email", myUser.email);
     box.write("phoneNumber", myUser.phoneNumber);
+    box.write("isPremium", myUser.isPremium);
     box.write("deviceInfo", deviceInfo);
     box.write("fcmToken", fcmToken);
     box.write("hasSeenOnboarding", true);
@@ -371,10 +375,10 @@ class SignInController extends GetxController {
   }
 
   Future<void> logout() async {
-    await _auth.signOut();
+    await auth.signOut();
     await _secureStorage.clearAll();
     box.erase();
-    Get.deleteAll(force: true); // Dispose all controllers
+    Get.deleteAll(); // Dispose non-permanent controllers
     Get.offAllNamed(RoutesName.loginView);
   }
 }

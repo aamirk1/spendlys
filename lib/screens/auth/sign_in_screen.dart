@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/colors.dart';
-import 'package:spendly/res/components/premium_captcha.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -374,15 +373,6 @@ class _SignInScreenState extends State<SignInScreen>
 
                                   const SizedBox(height: 28),
 
-                                  // ── Captcha ──────────────────────
-                                  PremiumCaptcha(
-                                    onVerified: (val) {
-                                      controller.isCaptchaVerified.value = val;
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 28),
-
                                   // ── Action Button ────────────────
                                   AnimatedBuilder(
                                     animation: _contentController,
@@ -394,10 +384,7 @@ class _SignInScreenState extends State<SignInScreen>
                                           text: _getButtonText(),
                                           isLoading:
                                               controller.signInRequired.value,
-                                          onPressed: controller
-                                                  .isCaptchaVerified.value
-                                              ? _handleMainAction
-                                              : null,
+                                          onPressed: _handleMainAction,
                                         )),
                                   ),
 

@@ -13,10 +13,27 @@ import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
 import 'package:spendly/core/services/sync_service.dart';
+import 'package:uuid/uuid.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  if (message.notification != null) {
+    final storage = GetStorage();
+    final List<dynamic> stored = storage.read<List<dynamic>>('saved_notifications') ?? [];
+    
+    final newNotification = {
+      'id': Uuid().v4(),
+      'title': message.notification?.title ?? "No Title",
+      'body': message.notification?.body ?? "No Body",
+      'timestamp': DateTime.now().toIso8601String(),
+      'data': message.data,
+      'isRead': false,
+    };
+    
+    stored.insert(0, newNotification);
+    await storage.write('saved_notifications', stored);
+  }
   print("Handling a background message: ${message.messageId}");
 }
 

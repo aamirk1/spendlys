@@ -158,6 +158,7 @@ class LoanController extends GetxController {
 
   /// Update payment status
   Future<void> updatePayment(String loanId, double paymentAmount) async {
+    isLoading.value = true;
     try {
       final loan = loans.firstWhere((loan) => loan.id == loanId);
 
@@ -209,11 +210,14 @@ class LoanController extends GetxController {
     } catch (e) {
       errorMsg.value = 'Error updating payment: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   /// Delete loan from Firestore and local list
   Future<void> deleteLoan(String loanId) async {
+    isLoading.value = true;
     try {
       final userId = _auth.currentUser?.uid;
       final response =
@@ -233,12 +237,15 @@ class LoanController extends GetxController {
     } catch (e) {
       errorMsg.value = 'Error deleting loan: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   /// Edit payment
   Future<void> editPayment(
       String loanId, int paymentIndex, double newAmount) async {
+    isLoading.value = true;
     try {
       final loan = loans.firstWhere((loan) => loan.id == loanId);
       final oldAmount = loan.paymentHistory[paymentIndex]['amount'];
@@ -284,11 +291,14 @@ class LoanController extends GetxController {
     } catch (e) {
       errorMsg.value = 'Error editing payment: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   /// Delete payment
   Future<void> deletePayment(String loanId, int paymentIndex) async {
+    isLoading.value = true;
     try {
       final loan = loans.firstWhere((loan) => loan.id == loanId);
       final deletedAmount = loan.paymentHistory[paymentIndex]['amount'];
@@ -334,6 +344,8 @@ class LoanController extends GetxController {
     } catch (e) {
       errorMsg.value = 'Error deleting payment: $e';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
+    } finally {
+      isLoading.value = false;
     }
   }
 }

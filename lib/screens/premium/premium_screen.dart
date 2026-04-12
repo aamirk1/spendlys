@@ -28,7 +28,8 @@ class PremiumScreen extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     IconButton(
@@ -38,18 +39,18 @@ class PremiumScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              // const SizedBox(height: 10),
               const Icon(
                 Icons.stars_rounded,
                 size: 80,
                 color: Colors.amber,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               const Text(
-                'SPENDLY PREMIUM',
+                'DAILYBACHAT PREMIUM',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.5,
                 ),
@@ -73,99 +74,104 @@ class PremiumScreen extends StatelessWidget {
                       topRight: Radius.circular(32),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Unlock Features',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Unlock Features',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildFeatureItem(
-                        icon: Icons.auto_graph_rounded,
-                        title: 'Advanced Analytics',
-                        subtitle: 'Detailed insights into your spending patterns.',
-                      ),
-                      _buildFeatureItem(
-                        icon: Icons.picture_as_pdf_rounded,
-                        title: 'Custom Invoices',
-                        subtitle: 'Add your logo and branding to all exports.',
-                      ),
-                      _buildFeatureItem(
-                        icon: Icons.cloud_done_rounded,
-                        title: 'Cloud Backup',
-                        subtitle: 'Never lose your data with automatic sync.',
-                      ),
-                      _buildFeatureItem(
-                        icon: Icons.block_rounded,
-                        title: 'Ad-Free Experience',
-                        subtitle: 'Focus on your finances without distractions.',
-                      ),
-                      const Spacer(),
-                      const Text(
-                        'Choose Plan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 24),
+                        _buildFeatureItem(
+                          icon: Icons.auto_graph_rounded,
+                          title: 'Advanced Analytics',
+                          subtitle:
+                              'Detailed insights into your spending patterns.',
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.blue, width: 2),
+                        _buildFeatureItem(
+                          icon: Icons.picture_as_pdf_rounded,
+                          title: 'Custom Invoices',
+                          subtitle:
+                              'Add your logo and branding to all exports.',
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Lifetime Access',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                        _buildFeatureItem(
+                          icon: Icons.cloud_done_rounded,
+                          title: 'Cloud Backup',
+                          subtitle: 'Never lose your data with automatic sync.',
+                        ),
+                        _buildFeatureItem(
+                          icon: Icons.block_rounded,
+                          title: 'Ad-Free Experience',
+                          subtitle:
+                              'Focus on your finances without distractions.',
+                        ),
+                        const SizedBox(height: 32),
+                        const Text(
+                          'Choose Plan',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.blue, width: 2),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Lifetime Access',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
-                                ),
-                                Text('One-time payment'),
-                              ],
-                            ),
-                            Obx(() => Text(
-                              '₹${controller.premiumAmount.value}',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[900],
+                                  Text('One-time payment'),
+                                ],
                               ),
-                            )),
-                          ],
+                              Obx(() => Text(
+                                    '₹${controller.premiumAmount.value}',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[900],
+                                    ),
+                                  )),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Obx(() => CustomButton(
-                            text: controller.isPremium.value
-                                ? 'ALREADY PREMIUM'
-                                : 'UPGRADE NOW',
-                            isLoading: controller.isLoading.value,
-                            onPressed: controller.isPremium.value
-                                ? null
-                                : () {
-                                    controller.initiateOrder(
-                                        controller.premiumAmount.value);
-                                  },
-                          )),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Secure payment via Razorpay',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        Obx(() => CustomButton(
+                              text: controller.isPremium.value
+                                  ? 'ALREADY PREMIUM'
+                                  : 'UPGRADE NOW',
+                              isLoading: controller.isLoading.value,
+                              onPressed: controller.isPremium.value
+                                  ? null
+                                  : () {
+                                      controller.initiateOrder(
+                                          controller.premiumAmount.value);
+                                    },
+                            )),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Secure payment via Razorpay',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

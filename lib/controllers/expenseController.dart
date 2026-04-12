@@ -255,6 +255,7 @@ class ExpenseController extends GetxController {
   // Update an existing expense
   Future<void> updateExpense(
       String docId, Map<String, dynamic> updatedData) async {
+    isLoading.value = true;
     try {
       final response = await ApiService.put('/transactions/$docId', body: updatedData);
       if (response.statusCode == 200) {
@@ -265,12 +266,14 @@ class ExpenseController extends GetxController {
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to update expense: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 
-
   // Delete an expense
   Future<void> deleteExpense(String docId) async {
+    isLoading.value = true;
     try {
       final response = await ApiService.delete('/transactions/$docId');
       if (response.statusCode == 200) {
@@ -281,6 +284,8 @@ class ExpenseController extends GetxController {
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to delete expense: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

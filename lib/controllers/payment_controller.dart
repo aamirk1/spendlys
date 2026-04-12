@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/res/app_constants.dart';
@@ -11,12 +12,15 @@ class PaymentController extends GetxController {
   late Razorpay _razorpay;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   var isLoading = false.obs;
-  var premiumAmount = 499.obs; // Default
+  var premiumAmount = 99.obs; // Default
   var isPremium = false.obs;
+
+  final GetStorage box = GetStorage();
 
   @override
   void onInit() {
     super.onInit();
+    isPremium.value = box.read("isPremium") ?? false;
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -27,7 +31,7 @@ class PaymentController extends GetxController {
 
   Future<void> checkPremiumStatus() async {
     try {
-      final userId = _auth.currentUser?.uid;
+      final userId = box.read("userId");
       final response = await ApiService.get(
         '/auth/me',
         headers: {'x-user-id': userId ?? ''},
@@ -35,6 +39,7 @@ class PaymentController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         isPremium.value = data['is_premium'] ?? false;
+        box.write("isPremium", isPremium.value);
       }
     } catch (e) {
       debugPrint('Error checking premium status: $e');
@@ -71,10 +76,17 @@ class PaymentController extends GetxController {
   Future<void> initiateOrder(int amount) async {
     isLoading.value = true;
     try {
-      final response = await ApiService.post('/payment/initiate-order', body: {
-        'amount': amount * 100, // convert to paise
-        'currency': 'INR',
-      });
+      final userId = box.read("userId");
+      final response = await ApiService.post(
+        '/payment/initiate-order',
+        headers: {
+          'x-user-id': userId ?? '',
+        },
+        body: {
+          'amount': amount * 100, // convert to paise
+          'currency': 'INR',
+        },
+      );
 
       if (response.statusCode == 200) {
         final orderData = jsonDecode(response.body);
@@ -93,7 +105,7 @@ class PaymentController extends GetxController {
     var options = {
       'key': AppConstants.razorpayKey,
       'amount': orderData['amount'],
-      'name': 'Spendly Premium',
+      'name': 'DailyBacaht Premium',
       'order_id': orderData['order_id'],
       'description': 'Unlock all premium features',
       'prefill': {
@@ -115,7 +127,7 @@ class PaymentController extends GetxController {
   Future<void> verifyPayment(PaymentSuccessResponse response) async {
     isLoading.value = true;
     try {
-      final userId = _auth.currentUser?.uid;
+      final userId = box.read("userId");
       final verifyResp = await ApiService.post(
         '/payment/verify-payment',
         headers: {
@@ -130,11 +142,22 @@ class PaymentController extends GetxController {
       );
 
       if (verifyResp.statusCode == 200) {
+        final data = jsonDecode(verifyResp.body);
+        isPremium.value = data['is_premium'] ?? true;
+        box.write("isPremium", isPremium.value);
+        
         Utils.showSnackbar('Success', 'Welcome to Premium!', isError: false);
-        // Refresh user info if needed
-        Get.back(); // Close premium screen
+        
+        // Refresh the status from server just to be sure everything is synced
+        await checkPremiumStatus();
+        
+        // If we are on the premium screen, go back
+        if (Get.currentRoute.contains('premium')) {
+          Get.back();
+        }
       } else {
-        Utils.showSnackbar('Error', 'Payment verification failed');
+        final errorMsg = jsonDecode(verifyResp.body)['detail'] ?? 'Payment verification failed';
+        Utils.showSnackbar('Error', errorMsg);
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Verification error: $e');

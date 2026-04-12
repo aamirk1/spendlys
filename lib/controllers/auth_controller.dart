@@ -2,22 +2,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:spendly/services/auth_service.dart';
-import 'package:spendly/services/auth_storage_service.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io';
-
 import 'package:spendly/core/storage/secure_storage_service.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
-  final AuthStorageService _storageService = Get.put(AuthStorageService());
   final SecureStorageService _secureStorage = Get.find<SecureStorageService>();
   final ApiClient _apiClient = Get.find<ApiClient>();
+  final GetStorage box = GetStorage();
   final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
@@ -26,7 +25,6 @@ class AuthController extends GetxController {
   var verificationId = "".obs;
   var phoneNumber = "".obs;
   var name = "".obs;
-  var isCaptchaVerified = false.obs;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -40,7 +38,6 @@ class AuthController extends GetxController {
     nameController.clear();
     phoneController.clear();
     isLoading.value = false;
-    isCaptchaVerified.value = false;
     errorMsg.value = null;
   }
 
@@ -103,31 +100,24 @@ class AuthController extends GetxController {
         // Check if user is new from Firebase perspective
         bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
+        await syncUserWithBackend(user);
+        box.write("isLoggedIn", true);
+
         if (isNewUser) {
-          // It's a Signup flow - collect info first
-          isLoading.value = false;
-          // You can create a new route for this, for now we will sync with default and go to home
-          // but in a real app, you'd go to RoutesName.completeProfile
-          await syncUserWithBackend(user);
-          await _storageService.saveUser(user.uid);
-          Get.offAllNamed(RoutesName.homeView);
           Fluttertoast.showToast(msg: "Welcome! Account created successfully.");
         } else {
-          // It's a Login flow
-          await syncUserWithBackend(user);
-          await _storageService.saveUser(user.uid);
-          isLoading.value = false;
-          Get.offAllNamed(RoutesName.homeView);
           Fluttertoast.showToast(msg: "Welcome back!");
         }
+        Get.offAllNamed(RoutesName.homeView);
       }
     } catch (e) {
-      isLoading.value = false;
       Fluttertoast.showToast(
         msg: "Invalid OTP. Please try again.",
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -146,7 +136,7 @@ class AuthController extends GetxController {
           "email": user.email ?? "${user.phoneNumber}@dailybachat.com",
           "name":
               name.value.isNotEmpty ? name.value : (user.displayName ?? "User"),
-          "password": "firebase_phone_auth",
+          "password": "user.password",
           "device_info": deviceInfo,
           "fcm_token": fcmToken,
         },
@@ -155,10 +145,17 @@ class AuthController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         final accessToken = data['access_token'];
-        
-        // Save the backend JWT token for future ApiClient calls
         if (accessToken != null) {
           await _secureStorage.saveToken(accessToken);
+        }
+
+        final userData = data['user'];
+        if (userData != null) {
+          box.write("userId", userData['id'] ?? '');
+          box.write("name", userData['name'] ?? '');
+          box.write("email", userData['email'] ?? '');
+          box.write("phoneNumber", userData['phone_number'] ?? '');
+          box.write("isPremium", userData['is_premium'] ?? false);
         }
 
         print("Backend sync successful: ${response.data}");
@@ -183,7 +180,7 @@ class AuthController extends GetxController {
   // Logout
   Future<void> logout() async {
     await _authService.signOut();
-    await _storageService.clearUser();
+    box.erase();
     await _secureStorage.clearAll();
     Get.offAllNamed(RoutesName.loginView);
   }

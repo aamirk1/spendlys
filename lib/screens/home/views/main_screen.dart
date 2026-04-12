@@ -8,6 +8,7 @@ import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/business/business_home_view.dart';
+import 'package:spendly/controllers/payment_controller.dart';
 
 class MainScreen extends StatelessWidget {
   MainScreen({super.key, required this.myUser});
@@ -16,7 +17,9 @@ class MainScreen extends StatelessWidget {
   final ExpenseController expenseController = Get.find<ExpenseController>();
   final IncomeController incomeController = Get.find<IncomeController>();
   final LoanController loanController = Get.find<LoanController>();
-  final BusinessHomeController businessController = Get.find<BusinessHomeController>();
+  final BusinessHomeController businessController =
+      Get.find<BusinessHomeController>();
+  final PaymentController paymentController = Get.put(PaymentController());
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +29,7 @@ class MainScreen extends StatelessWidget {
           await Future.wait([
             businessController.fetchSummary(),
             loanController.fetchLoans(),
+            paymentController.checkPremiumStatus(),
           ]);
         },
         child: SingleChildScrollView(
@@ -37,7 +41,15 @@ class MainScreen extends StatelessWidget {
               _buildAppBar(context),
               const SizedBox(height: 25),
               RepaintBoundary(child: _buildBalanceCard(context)),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
+              Obx(() => paymentController.isPremium.value
+                  ? const SizedBox.shrink()
+                  : Column(
+                      children: [
+                        _buildPremiumBanner(context),
+                        const SizedBox(height: 30),
+                      ],
+                    )),
               _buildFeaturesOverview(context),
               const SizedBox(height: 30),
               _buildTransactionHeader(context),
@@ -85,11 +97,12 @@ class MainScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("welcome".tr,
-                    style:
-                        TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color)),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodySmall?.color)),
                 Text(myUser.name,
                     style: TextStyle(
-                        fontSize: 18, 
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).textTheme.titleLarge?.color)),
               ],
@@ -287,7 +300,8 @@ class MainScreen extends StatelessWidget {
                         color: Theme.of(context).textTheme.bodyLarge?.color)),
                 const SizedBox(height: 4),
                 Text(subtitle,
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                    style:
+                        TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                 const SizedBox(height: 8),
                 Obx(() => Text(valueObx(),
                     style: TextStyle(
@@ -363,55 +377,127 @@ class MainScreen extends StatelessWidget {
           );
 
           return RepaintBoundary(
-           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x05000000), // black ~2% opacity
-                    blurRadius: 5,
-                    offset: Offset(0, 2))
-              ],
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor:
-                      (categoryData['color'] as Color).withOpacity(0.15),
-                  child: Icon(categoryData['icon'] as IconData,
-                      color: categoryData['color'] as Color, size: 22),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(category,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              fontSize: 14,
-                              color: Theme.of(context).textTheme.bodyLarge?.color)),
-                      Text(DateFormat('dd MMM').format(date),
-                          style: TextStyle(
-                              fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color)),
-                    ],
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x05000000), // black ~2% opacity
+                      blurRadius: 5,
+                      offset: Offset(0, 2))
+                ],
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor:
+                        (categoryData['color'] as Color).withOpacity(0.15),
+                    child: Icon(categoryData['icon'] as IconData,
+                        color: categoryData['color'] as Color, size: 22),
                   ),
-                ),
-                Text("₹${total.toStringAsFixed(0)}",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Theme.of(context).textTheme.bodyLarge?.color)),
-              ],
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(category,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color)),
+                        Text(DateFormat('dd MMM').format(date),
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color)),
+                      ],
+                    ),
+                  ),
+                  Text("₹${total.toStringAsFixed(0)}",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Theme.of(context).textTheme.bodyLarge?.color)),
+                ],
+              ),
             ),
-           ),
           );
         }).toList(),
       );
     });
+  }
+
+  Widget _buildPremiumBanner(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.amber.shade700, Colors.orange.shade800],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Get.toNamed(RoutesName.premiumView),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.workspace_premium_rounded,
+                      color: Colors.white, size: 30),
+                ),
+                const SizedBox(width: 15),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unlock Full Potential',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Get premium features & insights',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    color: Colors.white, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

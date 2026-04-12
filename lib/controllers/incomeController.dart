@@ -222,6 +222,7 @@ class IncomeController extends GetxController {
 
   Future<void> updateIncome(
       String docId, Map<String, dynamic> updatedData) async {
+    isLoading(true);
     try {
       final response = await ApiService.put('/transactions/$docId', body: updatedData);
       if (response.statusCode == 200) {
@@ -232,11 +233,13 @@ class IncomeController extends GetxController {
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to update income: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
-
   Future<void> deleteIncome(String docId) async {
+    isLoading(true);
     try {
       final response = await ApiService.delete('/transactions/$docId');
       if (response.statusCode == 200) {
@@ -247,6 +250,8 @@ class IncomeController extends GetxController {
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to delete income: $e');
+    } finally {
+      isLoading(false);
     }
   }
 

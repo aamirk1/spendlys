@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/auth_controller.dart';
-import 'package:spendly/res/components/premium_captcha.dart';
 
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/components/shimmer_loading.dart';
@@ -94,20 +93,13 @@ class PhoneInputScreen extends StatelessWidget {
                       ],
                     );
                   }),
-                  const SizedBox(height: 32),
-                  // ── Captcha ──────────────────────
-                  PremiumCaptcha(
-                    onVerified: (val) {
-                      controller.isCaptchaVerified.value = val;
-                    },
-                  ),
+                
                   const SizedBox(height: 32),
                   Obx(() => SizedBox(
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: (controller.isLoading.value ||
-                                  !controller.isCaptchaVerified.value)
+                          onPressed: (controller.isLoading.value )
                               ? null
                               : () {
                                   if (controller

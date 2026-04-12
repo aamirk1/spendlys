@@ -8,6 +8,8 @@ import 'package:spendly/res/components/customAppBar.dart';
 import 'package:spendly/utils/colors.dart';
 import 'package:spendly/utils/ledger_export_helper.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/controllers/payment_controller.dart';
+import 'package:spendly/widgets/premium_dialogs.dart';
 
 class LedgerScreen extends StatelessWidget {
   final MyUser myUser;
@@ -287,6 +289,13 @@ class LedgerScreen extends StatelessWidget {
 
   Future<void> _handleExport(LedgerController controller,
       {required bool isPdf}) async {
+    // Premium Check
+    final paymentController = Get.put(PaymentController());
+    if (!paymentController.isPremium.value) {
+      PremiumDialogs.showPremiumRequiredDialog();
+      return;
+    }
+
     List data = [];
     switch (controller.selectedType.value) {
       case LedgerType.business:

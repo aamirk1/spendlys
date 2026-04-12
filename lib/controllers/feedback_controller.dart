@@ -47,7 +47,6 @@ class FeedbackController extends GetxController {
       });
 
       Get.back(); // Close loading dialog
-      isLoading.value = false;
       
       Utils.showSnackbar(
         "Thank You!", 
@@ -66,9 +65,10 @@ class FeedbackController extends GetxController {
       });
 
     } catch (e) {
-      Get.back(); // Close loading dialog
-      isLoading.value = false;
+      if (Get.isOverlaysOpen) Get.back(); // Close loading dialog if open
       Utils.showSnackbar("Error", "Failed to submit feedback: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 

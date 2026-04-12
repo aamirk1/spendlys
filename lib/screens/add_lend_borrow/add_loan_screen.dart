@@ -346,7 +346,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 backgroundColor: AppColors.primary,
                 textColor: Colors.white,
                 borderRadius: 16,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                // padding: const EdgeInsets.symmetric(vertical: 18),
               ),
             ],
           ),

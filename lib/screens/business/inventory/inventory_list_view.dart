@@ -7,6 +7,9 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/controllers/payment_controller.dart';
+import 'package:spendly/utils/business_export_helper.dart';
+import 'package:spendly/widgets/premium_dialogs.dart';
 
 class InventoryController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -188,6 +191,16 @@ class InventoryListView extends StatelessWidget {
             onPressed: () => _showFilterSheet(context, controller),
           ),
           IconButton(
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+            tooltip: "Export PDF",
+            onPressed: () => _handleExport(context, controller, isPdf: true),
+          ),
+          IconButton(
+            icon: const Icon(Icons.table_view_rounded),
+            tooltip: "Export CSV",
+            onPressed: () => _handleExport(context, controller, isPdf: false),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => controller.fetchProducts(),
           ),
@@ -316,6 +329,44 @@ class InventoryListView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleExport(BuildContext context, InventoryController controller, {required bool isPdf}) async {
+    final paymentController = Get.put(PaymentController());
+    if (!paymentController.isPremium.value) {
+      PremiumDialogs.showPremiumRequiredDialog(
+        message: "Exporting inventory details is a premium feature. Upgrade now to unlock professional branding and unlimited exports."
+      );
+      return;
+    }
+
+    if (controller.products.isEmpty) {
+      Utils.showSnackbar("No Data", "There are no products to export.");
+      return;
+    }
+
+    Utils.showLoadingDialog();
+
+    try {
+      if (isPdf) {
+        final pdfData = await BusinessExportHelper.generatePdfData(
+          type: BusinessExportType.inventory,
+          data: controller.products,
+        );
+        Get.back(); // Close loading dialog
+        await BusinessExportHelper.showPrintPreview(pdfData, BusinessExportType.inventory);
+      } else {
+        final csvPath = await BusinessExportHelper.generateCsvFile(
+          type: BusinessExportType.inventory,
+          data: controller.products,
+        );
+        Get.back(); // Close loading dialog
+        await BusinessExportHelper.showShareSheet(csvPath, BusinessExportType.inventory);
+      }
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) Get.back();
+      Utils.showSnackbar("Error", "Export failed: $e");
+    }
   }
 
   void _showFilterSheet(BuildContext context, InventoryController controller) {

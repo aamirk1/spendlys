@@ -8,6 +8,8 @@ import 'package:spendly/screens/business/quotation_list.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'dart:convert';
 import 'package:spendly/utils/business_pdf_helper.dart';
+import 'package:spendly/controllers/payment_controller.dart';
+import 'package:spendly/widgets/premium_dialogs.dart';
 
 class QuotationDetailView extends StatelessWidget {
   const QuotationDetailView({super.key});
@@ -15,15 +17,18 @@ class QuotationDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> quot = Get.arguments;
-    
+
     // Safer item handling
     final dynamic itemsData = quot['items'] ?? [];
     final List items = itemsData is String ? jsonDecode(itemsData) : itemsData;
 
     String formatDate(dynamic d) {
       if (d == null || d.toString().isEmpty || d == 'null') return "N/A";
-      try { return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString())); } 
-      catch (_) { return "N/A"; }
+      try {
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));
+      } catch (_) {
+        return "N/A";
+      }
     }
 
     final String dateFormatted = formatDate(quot['date']);
@@ -183,7 +188,8 @@ class QuotationDetailView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
-        subtitle: Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
+        subtitle:
+            Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
         trailing: Text(
           "\u20b9${item['amount']}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
@@ -273,6 +279,13 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   Future<void> _downloadPdf(Map<String, dynamic> quot) async {
+    // Premium Check
+    final paymentController = Get.put(PaymentController());
+    if (!paymentController.isPremium.value) {
+      PremiumDialogs.showPremiumRequiredDialog();
+      return;
+    }
+
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
@@ -329,6 +342,13 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   Future<void> _sharePdf(Map<String, dynamic> quot) async {
+    // Premium Check
+    final paymentController = Get.put(PaymentController());
+    if (!paymentController.isPremium.value) {
+      PremiumDialogs.showPremiumRequiredDialog();
+      return;
+    }
+
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 

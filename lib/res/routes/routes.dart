@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:spendly/core/bindings/home_binding.dart';
+import 'package:spendly/core/bindings/auth_binding.dart';
 import 'package:spendly/screens/home/views/home_screen.dart';
 import 'package:spendly/screens/add_income_and_expense/income_expense_home.dart';
 import 'package:spendly/res/routes/views_routes.dart';
@@ -56,21 +57,25 @@ class AppRoutes {
         GetPage(
             name: RoutesName.loginView,
             page: () => SignInScreen(),
+            binding: AuthBinding(),
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
             name: RoutesName.signupView,
             page: () => SignInScreen(),
+            binding: AuthBinding(),
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
             name: RoutesName.otpVerifyView,
             page: () => OtpVerificationScreen(),
+            binding: AuthBinding(),
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
             name: RoutesName.forgotPasswordView,
             page: () => ForgotPasswordScreen(),
+            binding: AuthBinding(),
             transitionDuration: _kFast,
             transition: _kTransition),
 

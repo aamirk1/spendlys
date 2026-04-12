@@ -7,6 +7,7 @@ class MyUser {
   final String phoneNumber;
   final Timestamp lastLogin;
   final String? image;
+  final bool isPremium;
 
   MyUser(
       {required this.userId,
@@ -14,7 +15,8 @@ class MyUser {
       required this.email,
       required this.phoneNumber,
       required this.lastLogin,
-      this.image});
+      this.image,
+      this.isPremium = false});
 
   // Empty factory constructor
   static final empty = MyUser(
@@ -23,7 +25,8 @@ class MyUser {
       email: '',
       phoneNumber: '',
       lastLogin: Timestamp.now(),
-      image: null);
+      image: null,
+      isPremium: false);
 
   // copyWith method
   MyUser copyWith(
@@ -32,14 +35,16 @@ class MyUser {
       String? email,
       String? phoneNumber,
       Timestamp? lastLogin,
-      String? image}) {
+      String? image,
+      bool? isPremium}) {
     return MyUser(
         userId: userId ?? this.userId,
         name: name ?? this.name,
         email: email ?? this.email,
         phoneNumber: phoneNumber ?? this.phoneNumber,
         lastLogin: lastLogin ?? this.lastLogin,
-        image: image ?? this.image);
+        image: image ?? this.image,
+        isPremium: isPremium ?? this.isPremium);
   }
 
   // fromMap method
@@ -51,6 +56,7 @@ class MyUser {
       phoneNumber: map['phoneNumber'] ?? '',
       lastLogin: map['lastLogin'] ?? Timestamp.now(),
       image: map['image'],
+      isPremium: map['isPremium'] ?? false,
     );
   }
 
@@ -63,6 +69,8 @@ class MyUser {
       'phoneNumber': phoneNumber,
       'lastLogin': lastLogin,
       'image': image,
+      'isPremium': isPremium,
     };
   }
 }
+

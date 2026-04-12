@@ -29,6 +29,31 @@ class LinksCard extends StatelessWidget {
           children: [
             const SizedBox(height: 8),
             _buildLinkItem(
+              icon: Icons.workspace_premium_rounded,
+              title: "Upgrade to Premium",
+              color: Colors.amber[800]!,
+              onPressed: () {
+                Get.toNamed(RoutesName.premiumView);
+              },
+              context: context,
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber[800],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'GO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            _buildDivider(context),
+            _buildLinkItem(
               icon: Icons.person_outline_rounded,
               title: "customer_profile_update".tr,
               color: Colors.blue,
@@ -146,6 +171,7 @@ class LinksCard extends StatelessWidget {
     required Color color,
     required VoidCallback onPressed,
     required BuildContext context,
+    Widget? trailing,
   }) {
     return Material(
       color: Colors.transparent,
@@ -163,7 +189,7 @@ class LinksCard extends StatelessWidget {
           title,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
-        trailing: Container(
+        trailing: trailing ?? Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.grey.withOpacity(0.1),
