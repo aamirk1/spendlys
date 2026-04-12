@@ -5,6 +5,7 @@ class RoutesName {
   static const String loginView = '/login_view';
   static const String signupView = '/signup_view';
   static const String forgotPasswordView = '/forgot_password_view';
+  static const String otpVerifyView = '/otp_verify_view';
 
 
 // ---------------------------------------------------------------
@@ -50,4 +51,5 @@ class RoutesName {
   static const String inventoryList = '/inventory_list';
   static const String addProduct = '/add_product';
   static const String editProduct = '/edit_product';
+  static const String premiumView = '/premium_view';
 }

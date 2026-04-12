@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:spendly/core/bindings/home_binding.dart';
+import 'package:spendly/screens/home/views/home_screen.dart';
 import 'package:spendly/screens/add_income_and_expense/income_expense_home.dart';
 import 'package:spendly/res/routes/views_routes.dart';
 import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
@@ -21,80 +23,98 @@ import 'package:spendly/screens/business/edit_invoice.dart';
 import 'package:spendly/screens/business/edit_quotation.dart';
 
 import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
+import 'package:spendly/screens/premium/premium_screen.dart';
+import 'package:spendly/screens/splash_screen.dart';
+import 'package:spendly/screens/auth/otp_verification_screen.dart';
+import 'package:spendly/screens/auth/sign_in_screen.dart';
+import 'package:spendly/screens/auth/welcome_screen.dart';
+import 'package:spendly/screens/setup_screen/onboarding_screen.dart';
+import 'package:spendly/screens/auth/forgot_password_screen.dart';
+
+/// Shared transition config — fadeIn at 200ms is the snappiest-feeling
+/// transition because it has zero layout work per frame (unlike slide).
+const _kFast = Duration(milliseconds: 200);
+const _kTransition = Transition.fadeIn;
 
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [
         GetPage(
             name: RoutesName.splashScreen,
-            page: () => SplashScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRight),
+            page: () => DailyBachatSplashScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.onboardingView,
             page: () => OnboardingScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRight),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.welcomeView,
             page: () => const WelcomeScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.loginView,
             page: () => SignInScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.signupView,
-            page: () => SignUpScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            page: () => SignInScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.otpVerifyView,
+            page: () => OtpVerificationScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.forgotPasswordView,
             page: () => ForgotPasswordScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
 
 // ---------------------------------------------------------------------------------
         GetPage(
             name: RoutesName.homeView,
-            page: () => HomeScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            page: () => const HomeScreen(),
+            binding: HomeBinding(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.profileView,
             page: () => ProfileScreen(
                   myUser: Get.arguments,
                 ),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
 
 // ---------------------------------------------------------------------------------
         GetPage(
             name: RoutesName.expenseView,
             page: () => AddExpense(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.incomeView,
             page: () => AddIncome(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.viewAllExpenses,
             page: () => ViewAllExpense(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.categorywiseviewAllExpenses,
             page: () => CategorywiseViewAllExpense(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.viewAllIncome,
             page: () => ViewAllIncome(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
 
 // ---------------------------------------------------------------------------------
         GetPage(
@@ -102,114 +122,119 @@ class AppRoutes {
             page: () => LoansScreen(
                   myUser: Get.arguments,
                 ),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.addLoanScreen,
             page: () => AddLoanScreen(
                   myUser: Get.arguments['myUser'],
                   controller: Get.arguments['controller'],
                 ),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.downToUp),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.chatListView,
             page: () => const ChatView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.messageView,
             page: () => const MessageView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.appSettingScreen,
             page: () => const AppSettingsScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.notificationsScreen,
             page: () => const NotificationsScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.needHelpScreen,
             page: () => const NeedHelpScreen(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.editProfile,
             page: () => EditProfileScreen(
                   myUser: Get.arguments,
                 ),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.rightToLeftWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
 
         // Business Module
         GetPage(
             name: RoutesName.businessHome,
             page: () => const BusinessHomeView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.businessProfile,
             page: () => const BusinessProfileView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.customersList,
             page: () => const CustomersListView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.incomeExpenseHome,
             page: () => const IncomeExpenseHome(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.createInvoice,
             page: () => const CreateInvoiceView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.downToUp),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.invoiceList,
             page: () => const InvoiceListView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.editInvoice,
             page: () => const EditInvoiceView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.rightToLeftWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.createQuotation,
             page: () => const CreateQuotationView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.downToUp),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.quotationList,
             page: () => const QuotationListView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.editQuotation,
             page: () => const EditQuotationView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.rightToLeftWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.viewQuotation,
             page: () => const QuotationDetailView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.rightToLeftWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.viewInvoice,
             page: () => const InvoiceDetailView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.rightToLeftWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
         GetPage(
             name: RoutesName.inventoryList,
             page: () => const InventoryListView(),
-            transitionDuration: const Duration(milliseconds: 250),
-            transition: Transition.leftToRightWithFade),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.premiumView,
+            page: () => const PremiumScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
       ];
 }

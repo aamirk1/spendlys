@@ -10,7 +10,9 @@ class ApiConstants {
   static const String verifyOtp = '/auth/otp/verify';
   static const String syncUser = '/auth/sync';
   static const String deleteRequest = '/auth/delete-request';
-
+  static const String forgotPasswordRequest = '/auth/forgot-password/request';
+  static const String forgotPasswordReset = '/auth/forgot-password/reset';
+  static const String changePassword = '/auth/change-password';
 
   // Transactions
   static const String transactions = '/transactions';

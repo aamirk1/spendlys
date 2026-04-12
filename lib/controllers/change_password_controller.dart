@@ -1,15 +1,13 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:spendly/models/myuser.dart';
+import 'package:spendly/core/network/api_client.dart';
+import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class ChangePasswordController extends GetxController {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ApiClient _apiClient = Get.find<ApiClient>();
 
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -47,67 +45,30 @@ class ChangePasswordController extends GetxController {
         : CupertinoIcons.eye_slash_fill;
   }
 
-  Future<void> changePassword(MyUser myUser) async {
+  Future<void> changePassword() async {
     if (!formKey.currentState!.validate()) return;
 
     isLoading.value = true;
 
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-
-      print(
-          "Current user email: ${user?.email}, MyUser email: ${myUser.email}");
-
-      if (user == null || user.email != myUser.email) {
-        throw FirebaseAuthException(code: 'user-not-found');
-      }
-
-      // Re-authenticate user with current password
-      AuthCredential credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: currentPasswordController.text.trim(),
+      final response = await _apiClient.post(
+        ApiConstants.changePassword,
+        data: {
+          'old_password': currentPasswordController.text.trim(),
+          'new_password': newPasswordController.text.trim(),
+        },
       );
 
-      await user.reauthenticateWithCredential(credential);
-
-      // Update password
-      await user.updatePassword(newPasswordController.text.trim());
-
-      await _firestore.collection('users').doc(user.uid).update({
-        'lastPasswordChange': FieldValue.serverTimestamp(),
-      });
-
-      Get.back();
-      Utils.showSnackbar("Success", "Password changed successfully!", isError: false);
-    } on FirebaseAuthException catch (e) {
-      print("FirebaseAuthException caught: ${e.code} - ${e.message}");
-      String errorMsg = _getFirebaseAuthError(e.code);
-      Utils.showSnackbar("Error", errorMsg);
-    } on SocketException {
-      Utils.showSnackbar(
-          "Network Error", "No internet connection. Please check your network.");
-    } on TimeoutException {
-      Utils.showSnackbar("Timeout", "Request timed out. Try again later.");
+      if (response.statusCode == 200) {
+        Get.back();
+        Utils.showSnackbar("Success", "Password changed successfully!", isError: false);
+      } else {
+        throw Exception(response.data['detail'] ?? 'Password change failed');
+      }
     } catch (e) {
-      print("Unexpected error: $e");
-      Utils.showSnackbar("Error", "Unexpected error: $e");
+      AppErrorHandler.handleError(e);
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  String _getFirebaseAuthError(String code) {
-    switch (code) {
-      case 'wrong-password':
-        return 'Your current password is incorrect.';
-      case 'weak-password':
-        return 'The new password is too weak.';
-      case 'requires-recent-login':
-        return 'Please sign in again and retry.';
-      case 'user-not-found':
-        return 'User not found. Please sign in again.';
-      default:
-        return 'Password change failed. Please try again.';
     }
   }
 

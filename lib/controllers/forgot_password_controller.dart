@@ -1,58 +1,76 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/core/network/api_client.dart';
+import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class ForgotPasswordController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ApiClient _apiClient = Get.find<ApiClient>();
+  
   final emailController = TextEditingController();
+  final otpController = TextEditingController();
+  final newPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  
   var isSending = false.obs;
+  var isResetting = false.obs;
+  var showOtpField = false.obs;
 
-  Future<void> sendPasswordResetEmail() async {
+  Future<void> requestPasswordReset() async {
     if (emailController.text.isEmpty) {
       Utils.showSnackbar('Error', 'Please enter your email.');
       return;
     }
 
     isSending.value = true;
-
     try {
-      await _auth
-          .sendPasswordResetEmail(email: emailController.text.trim())
-          .timeout(const Duration(seconds: 30));
+      final response = await _apiClient.post(
+        ApiConstants.forgotPasswordRequest,
+        data: {'email': emailController.text.trim()},
+      );
 
-      isSending.value = false;
-      Utils.showSnackbar('Success', 'Password reset email sent.', isError: false);
-      Get.back(); // go back to login screen
-    } on FirebaseAuthException catch (e) {
-      isSending.value = false;
-      Utils.showSnackbar('Error', _getFirebaseAuthError(e.code));
-    } on SocketException {
-      isSending.value = false;
-      Utils.showSnackbar('Network Error', 'No internet connection.');
-    } on TimeoutException {
-      isSending.value = false;
-      Utils.showSnackbar('Timeout', 'Request timed out. Try again.');
+      if (response.statusCode == 200) {
+        showOtpField.value = true;
+        Utils.showSnackbar('Success', 'Reset OTP sent to your email.', isError: false);
+      } else {
+        throw Exception(response.data['detail'] ?? 'Failed to request reset');
+      }
     } catch (e) {
+      AppErrorHandler.handleError(e);
+    } finally {
       isSending.value = false;
-      Utils.showSnackbar('Error', 'Unexpected error: $e');
     }
   }
 
-  String _getFirebaseAuthError(String code) {
-    switch (code) {
-      case 'invalid-email':
-        return 'Invalid email format.';
-      case 'user-not-found':
-        return 'No user found with this email.';
-      case 'network-request-failed':
-        return 'Network error.';
-      default:
-        return 'Failed to send reset email.';
+  Future<void> resetPassword() async {
+    if (otpController.text.length != 6 || newPasswordController.text.length < 6) {
+      Utils.showSnackbar('Error', 'Please enter a valid 6-digit OTP and a password (min 6 chars).');
+      return;
+    }
+
+    isResetting.value = true;
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.forgotPasswordReset,
+        data: {
+          'email': emailController.text.trim(),
+          'otp': otpController.text.trim(),
+          'new_password': newPasswordController.text.trim(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Utils.showSnackbar('Success', 'Password reset successfully!', isError: false);
+        Get.back(); // Return to Login
+      } else {
+        throw Exception(response.data['detail'] ?? 'Reset failed');
+      }
+    } catch (e) {
+      AppErrorHandler.handleError(e);
+    } finally {
+      isResetting.value = false;
     }
   }
 }

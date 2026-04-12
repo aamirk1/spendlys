@@ -39,6 +39,7 @@ class AnimatedSidebar extends StatelessWidget {
               sidebarButton(Icons.business_center, "Business Center", onTap: () => Get.toNamed(RoutesName.businessHome), context: context),
               sidebarButton(Icons.message, "Messages", onTap: () => Get.toNamed(RoutesName.chatListView), context: context),
               sidebarButton(Icons.settings, "Settings", onTap: () {}, context: context),
+              sidebarButton(Icons.stars, "Get Premium", onTap: () => Get.toNamed(RoutesName.premiumView), context: context),
               sidebarButton(Icons.logout, "Logout", onTap: () => signInController.logout(), context: context),
 
             ],

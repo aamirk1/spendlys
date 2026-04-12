@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/res/components/customBotton.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'components/my_text_field.dart';
 import 'package:spendly/controllers/sign_up_controller.dart';
 import 'package:spendly/utils/colors.dart';
@@ -170,30 +170,35 @@ class SignUpScreen extends StatelessWidget {
                       elevation: 0,
                     ),
                   ),
-                  // const SizedBox(height: 24),
-                  // Center(
-                  //   child: RichText(
-                  //     text: TextSpan(
-                  //       style: TextStyle(
-                  //           color: AppColors.textSecondary, fontSize: 14),
-                  //       children: [
-                  //         TextSpan(text: 'already_have_account'.tr),
-                  //         WidgetSpan(
-                  //           child: GestureDetector(
-                  //             onTap: () => Get.back(),
-                  //             child: Text(
-                  //               ' ${'sign_in'.tr}',
-                  //               style: const TextStyle(
-                  //                 color: AppColors.primary,
-                  //                 fontWeight: FontWeight.bold,
-                  //               ),
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withOpacity(0.7),
+                            fontSize: 14),
+                        children: [
+                          TextSpan(text: 'already_have_account'.tr),
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: () => Get.back(),
+                              child: Text(
+                                ' ${'sign_in'.tr}',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 30),
                 ],
               ),

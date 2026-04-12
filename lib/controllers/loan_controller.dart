@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/loan_modal.dart';
@@ -70,6 +71,7 @@ class LoanController extends GetxController {
       final response =
           await ApiService.put('/loans/${loan.id}?user_id=$userId', body: {
         'person_name': loan.personName,
+        'person_phone': loan.personPhone,
         'amount': loan.amount,
         'type': loan.type,
         'reason': loan.reason,
@@ -109,6 +111,7 @@ class LoanController extends GetxController {
         'id': uuid,
         'user_id': userId,
         'person_name': loan.personName,
+        'person_phone': loan.personPhone,
         'amount': loan.amount,
         'type': loan.type,
         'reason': loan.reason,
@@ -128,6 +131,20 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan added successfully!',
             isError: false);
         fetchLoans(); // Refresh list
+
+        // Schedule confirmation + due-date reminder notifications
+        if (loan.expectedReturnDate != null) {
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            await reminderSvc.scheduleLoanNotifications(
+              loanId: uuid,
+              personName: loan.personName,
+              amount: loan.amount,
+              type: loan.type,
+              dueDate: loan.expectedReturnDate!,
+            );
+          } catch (_) {}
+        }
       } else {
         Utils.showSnackbar('Error', 'Failed to add loan: ${response.body}');
       }
@@ -177,6 +194,13 @@ class LoanController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Success', 'Payment updated successfully',
             isError: false);
+        // If fully paid, cancel all reminders
+        if (loan.status.value == 'paid') {
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            await reminderSvc.cancelLoanReminders(loanId);
+          } catch (_) {}
+        }
         fetchLoans(); // Refresh list to be sure
       } else {
         Utils.showSnackbar(
@@ -197,6 +221,11 @@ class LoanController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Loan Deleted', 'The loan was removed successfully',
             isError: false);
+        // Cancel any scheduled reminders for this loan
+        try {
+          final reminderSvc = Get.find<ReminderNotificationService>();
+          await reminderSvc.cancelLoanReminders(loanId);
+        } catch (_) {}
         fetchLoans(); // Refresh list
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');

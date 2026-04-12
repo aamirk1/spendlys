@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "326503788214",
-    "project_id": "spendly-d3ce9",
-    "storage_bucket": "spendly-d3ce9.firebasestorage.app"
+    "project_number": "496969072737",
+    "project_id": "dailybachat",
+    "storage_bucket": "dailybachat.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:326503788214:android:83d1d183e5f699a51bc017",
+        "mobilesdk_app_id": "1:496969072737:android:4664c238751a708cf36a20",
         "android_client_info": {
           "package_name": "com.technosolz.dailybachat"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC07jZKuQbK5LVSs6y-DVAjHUR5OWcuhZs"
+          "current_key": "AIzaSyBZ2vZ3uzPiy4j3sAiKH9QFL2zbPcYrNno"
         }
       ],
       "services": {

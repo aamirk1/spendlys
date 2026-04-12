@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/res/components/customBotton.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/screens/add_lend_borrow/widgets/loan_details_screen_widgets/payment_history_card.dart';
@@ -174,7 +174,7 @@ class LoanDetailScreen extends StatelessWidget {
         Text(
           "quick_actions".tr,
           style: TextStyle(
-              fontSize: 18, 
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.titleLarge?.color),
         ),
@@ -247,7 +247,7 @@ class LoanDetailScreen extends StatelessWidget {
             Text(
               "record_payment".tr,
               style: TextStyle(
-                  fontSize: 20, 
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).textTheme.titleLarge?.color),
             ),
@@ -266,7 +266,8 @@ class LoanDetailScreen extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
                 hintStyle: TextStyle(color: Theme.of(context).disabledColor),
-                prefixStyle: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                prefixStyle: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
             ),
             const SizedBox(height: 25),
@@ -328,7 +329,8 @@ class LoanDetailScreen extends StatelessWidget {
               Get.back(); // Close dialog
               Get.back(); // Go back to list
             },
-            child: Text("delete_btn".tr, style: const TextStyle(color: Colors.red)),
+            child: Text("delete_btn".tr,
+                style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

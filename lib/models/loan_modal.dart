@@ -6,6 +6,7 @@ class Loan {
   String id;
   String userId;
   String personName;
+  String? personPhone;
   double amount;
   RxDouble paidAmount;
   RxString status;
@@ -19,6 +20,7 @@ class Loan {
     required this.id,
     required this.userId,
     required this.personName,
+    this.personPhone,
     required this.amount,
     required RxDouble paidAmount,
     required RxString status,
@@ -35,7 +37,8 @@ class Loan {
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
-      'personName': personName,
+      'person_name': personName,
+      'person_phone': personPhone,
       'amount': amount,
       'paidAmount': paidAmount.value,
       'status': status.value,
@@ -73,6 +76,7 @@ class Loan {
       id: id,
       userId: map['user_id']?.toString() ?? map['userId']?.toString() ?? '',
       personName: map['person_name']?.toString() ?? map['personName']?.toString() ?? 'Unknown',
+      personPhone: map['person_phone']?.toString() ?? map['personPhone']?.toString(),
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       paidAmount: (map['paid_amount'] as num? ?? map['paidAmount'] as num? ?? 0.0).toDouble().obs,
       status: (map['status']?.toString() ?? 'pending').obs,

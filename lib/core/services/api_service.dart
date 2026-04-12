@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
+import 'package:spendly/core/storage/secure_storage_service.dart';
 import 'package:spendly/res/app_constants.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
@@ -10,6 +11,17 @@ class ApiService {
   static final String _baseUrl = AppConstants.baseUrl;
 
   static ConnectivityService get _conn => Get.find<ConnectivityService>();
+
+  /// Builds headers with Authorization token if available.
+  static Future<Map<String, String>> _authHeaders(
+      [Map<String, String>? extra]) async {
+    final token = await Get.find<SecureStorageService>().getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      ...?extra,
+    };
+  }
 
   /// صرف اس وقت NoInternetScreen دکھائیں جب API call ہو اور internet نہ ہو
   static void _showNoInternetScreen() {
@@ -42,7 +54,8 @@ class ApiService {
 
     try {
       final url = Uri.parse('$_baseUrl$endpoint');
-      final resp = await http.get(url, headers: headers);
+      final mergedHeaders = await _authHeaders(headers);
+      final resp = await http.get(url, headers: mergedHeaders);
       _logResponse(endpoint, resp);
 
       if (resp.statusCode == 200 && useCache) {
@@ -91,9 +104,10 @@ class ApiService {
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
+    final mergedHeaders = await _authHeaders(headers);
     final resp = await http.post(
       url,
-      headers: headers ?? {'Content-Type': 'application/json'},
+      headers: mergedHeaders,
       body: body != null ? jsonEncode(body) : null,
     );
     _logResponse(endpoint, resp);
@@ -112,9 +126,10 @@ class ApiService {
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
+    final mergedHeaders = await _authHeaders(headers);
     final resp = await http.put(
       url,
-      headers: headers ?? {'Content-Type': 'application/json'},
+      headers: mergedHeaders,
       body: body != null ? jsonEncode(body) : null,
     );
     _logResponse(endpoint, resp);
@@ -132,7 +147,8 @@ class ApiService {
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
-    final resp = await http.delete(url, headers: headers);
+    final mergedHeaders = await _authHeaders(headers);
+    final resp = await http.delete(url, headers: mergedHeaders);
     _logResponse(endpoint, resp);
     return resp;
   }

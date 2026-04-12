@@ -33,11 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Color(0x0D000000), // black ~5% opacity
               blurRadius: 20,
-              offset: const Offset(0, -5),
+              offset: Offset(0, -5),
             ),
           ],
         ),
@@ -89,23 +89,22 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         shape: const CircleBorder(),
         elevation: 8,
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.tertiary,
-                Theme.of(context).colorScheme.secondary,
-                Theme.of(context).colorScheme.primary,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        child: Builder(builder: (context) {
+          final cs = Theme.of(context).colorScheme;
+          return Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [cs.tertiary, cs.secondary, cs.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-          ),
-          child: const Icon(CupertinoIcons.add, color: Colors.white, size: 30),
-        ),
+            child: const Icon(CupertinoIcons.add, color: Colors.white, size: 30),
+          );
+        }),
       ),
       body: IndexedStack(
         index: index,

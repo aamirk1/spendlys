@@ -19,8 +19,6 @@ import 'package:spendly/core/error/app_error_handler.dart';
 
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final ApiClient _apiClient = Get.find<ApiClient>();
   final SecureStorageService _secureStorage = Get.find<SecureStorageService>();
 
@@ -98,6 +96,10 @@ class SignUpController extends GetxController {
     signUpRequired.value = true;
 
     try {
+      // Fetch Device Info & FCM Token
+      String deviceInfo = await getDeviceInfo();
+      String? fcmToken = await getFcmToken();
+
       // Step 1: Request Registration & OTP from Backend
       final response = await _apiClient.post(
         ApiConstants.registerRequest,
@@ -106,6 +108,8 @@ class SignUpController extends GetxController {
           'email': emailController.text.trim(),
           'phone_number': phoneNumberController.text.trim(),
           'password': passwordController.text.trim(),
+          'device_info': deviceInfo,
+          'fcm_token': fcmToken,
         },
       );
 
@@ -389,30 +393,59 @@ class SignUpController extends GetxController {
   Future<void> verifyOtp(String email, String otp) async {
     signUpRequired.value = true;
     try {
+      String deviceInfo = await getDeviceInfo();
+      String? fcmToken = await getFcmToken();
+
       final response = await _apiClient.post(
         ApiConstants.registerVerify,
         data: {
           'email': email,
           'otp': otp,
+          'device_info': deviceInfo,
+          'fcm_token': fcmToken,
         },
       );
 
       if (response.statusCode == 200) {
-        // Step 3: Registration Complete on Backend
-        // For Chat, we still use Firebase, so let's also create the user in Firebase for Chat module
-        final myUser = await _completeFirebaseRegistration(
+        final data = response.data;
+        final userData = data['user'];
+        final accessToken = data['access_token'];
+        final customToken = data['firebase_custom_token'];
+
+        // Optional: Sign in to Firebase in background for Chat using Custom Token
+        if (customToken != null) {
+          try {
+            await _auth.signInWithCustomToken(customToken);
+          } catch (e) {
+            debugPrint("Firebase background auth failed: $e");
+          }
+        }
+
+        // Save JWT for future API calls
+        await _secureStorage.saveToken(accessToken);
+        await _secureStorage.saveCredentials(
             email, passwordController.text.trim());
 
-        if (myUser == null) {
-          throw Exception(
-              'Authentication failed. Please try signing in instead.');
-        }
+        MyUser myUser = MyUser(
+          userId: userData['id'] ?? '',
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          phoneNumber: userData['phone_number'] ?? '',
+          lastLogin: Timestamp.now(),
+        );
+
+        // Save locally
+        final box = GetStorage();
+        box.write("isLoggedIn", true);
+        box.write("userId", myUser.userId);
+        box.write("email", myUser.email);
+        box.write("name", myUser.name);
+        box.write('hasSeenOnboarding', true);
 
         Get.back(); // Close dialog
         Utils.showSnackbar('Success', 'Account verified successfully',
             isError: false);
-        final box = GetStorage();
-        box.write('hasSeenOnboarding', true);
+
         Get.offAllNamed(RoutesName.homeView, arguments: myUser);
       } else {
         throw Exception(response.data['detail'] ?? 'OTP verification failed');
@@ -423,115 +456,61 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<MyUser?> _completeFirebaseRegistration(
-      String email, String password) async {
-    MyUser? myUser;
+  /*
+  // FIREBASE MOBILE OTP LOGIC (Commented out as requested)
+  Future<void> signUpWithMobile() async {
+    if (phoneNumberController.text.isEmpty) {
+      Utils.showSnackbar('Error', 'Please enter phone number');
+      return;
+    }
+    
+    signUpRequired.value = true;
     try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      await _auth.verifyPhoneNumber(
+        phoneNumber: '+91${phoneNumberController.text.trim()}',
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+          // Handle automatic verification
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          signUpRequired.value = false;
+          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          signUpRequired.value = false;
+          _showMobileOtpDialog(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
-
-      User? user = userCredential.user;
-      if (user != null) {
-        myUser = MyUser.empty.copyWith(
-          userId: user.uid,
-          phoneNumber: phoneNumberController.text.trim(),
-          email: email,
-          name: nameController.text.trim(),
-        );
-
-        String deviceInfo = await getDeviceInfo();
-        String? fcmToken = await getFcmToken();
-        await setUserData(myUser, deviceInfo, fcmToken);
-
-        // Save locally
-        final box = GetStorage();
-        box.write("isLoggedIn", true);
-        box.write("userId", myUser.userId);
-        box.write("email", myUser.email);
-        box.write("name", myUser.name); // Also save name
-
-        // Sync with backend API to ensure user exists there with correct Firebase UID
-        try {
-          await _apiClient.post(
-            ApiConstants.syncUser,
-            data: {
-              'id': user.uid,
-              'email': email,
-              'name': nameController.text.trim(),
-              'phone_number': phoneNumberController.text.trim(),
-              'device_info': deviceInfo,
-              'fcm_token': fcmToken,
-            },
-          );
-          debugPrint("Backend sync successful for ${user.uid}");
-        } catch (apiError) {
-          debugPrint("Backend sync failed: $apiError");
-          // We don't throw here to avoid blocking the user if Firebase succeeded,
-          // but this sync is important for Business Profile.
-        }
-
-        // Save credentials securely for future API calls
-        await _secureStorage.saveCredentials(email, password);
-      }
-    } on FirebaseAuthException catch (firebaseError) {
-      debugPrint("Firebase shadow registration error: ${firebaseError.code}");
-      if (firebaseError.code == 'email-already-in-use') {
-        // User already in Firebase, try signing in to get their auth state
-        try {
-          UserCredential signinCredential =
-              await _auth.signInWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-          User? user = signinCredential.user;
-          if (user != null) {
-            myUser = MyUser(
-              userId: user.uid,
-              name: nameController.text.trim(),
-              email: email,
-              phoneNumber: phoneNumberController.text.trim(),
-              lastLogin: Timestamp.now(),
-            );
-
-            // Save locally
-            final box = GetStorage();
-            box.write("isLoggedIn", true);
-            box.write("userId", myUser.userId);
-            box.write("email", myUser.email);
-            box.write("name", myUser.name);
-            await _secureStorage.saveCredentials(email, password);
-          }
-        } catch (signInError) {
-          debugPrint("Firebase shadow signin also failed: $signInError");
-        }
-      }
     } catch (e) {
-      debugPrint("Shadow registration failed: $e");
-      AppErrorHandler.handleError(e);
+      signUpRequired.value = false;
+      Utils.showSnackbar('Error', e.toString());
     }
-    signUpRequired.value = false;
-    return myUser;
   }
 
-  Future<void> setUserData(
-      MyUser myUser, String deviceInfo, String? fcmToken) async {
+  void _showMobileOtpDialog(String verificationId) {
+    // Similar to Email OTP Dialog but calls verifyMobileOtp
+  }
+
+  Future<void> verifyMobileOtp(String verificationId, String smsCode) async {
+    signUpRequired.value = true;
     try {
-      await _firestore.collection('users').doc(myUser.userId).set({
-        'userId': myUser.userId,
-        'name': myUser.name,
-        'email': myUser.email,
-        'phoneNumber': myUser.phoneNumber,
-        'deviceInfo': deviceInfo,
-        'fcmToken': fcmToken,
-        'createdAt': FieldValue.serverTimestamp(),
-      }).timeout(const Duration(seconds: 10));
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      
+      if (userCredential.user != null) {
+        // After Firebase Mobile Auth is successful, sync with our backend
+        // await syncUserWithBackend(userCredential.user!);
+      }
     } catch (e) {
-      AppErrorHandler.handleError(e, customTitle: 'Data Save Error');
+      signUpRequired.value = false;
+      Utils.showSnackbar('Error', 'Invalid Mobile OTP');
     }
   }
+  */
 
   Future<String> getDeviceInfo() async {
     final deviceInfo = DeviceInfoPlugin();

@@ -76,7 +76,43 @@ class ForgotPasswordScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 32),
                       // Submit Button
-                      Obx(() => AnimatedContainer(
+                      Obx(() => controller.showOtpField.value 
+                        ? Column(
+                            children: [
+                              MyTextField(
+                                controller: controller.otpController,
+                                hintText: 'Enter 6-digit OTP',
+                                obscureText: false,
+                                keyboardType: TextInputType.number,
+                                prefixIcon: const Icon(Icons.lock_clock, color: AppColors.primary),
+                              ),
+                              const SizedBox(height: 16),
+                              MyTextField(
+                                controller: controller.newPasswordController,
+                                hintText: 'New Password',
+                                obscureText: true,
+                                keyboardType: TextInputType.visiblePassword,
+                                prefixIcon: const Icon(Icons.lock_reset, color: AppColors.primary),
+                              ),
+                              const SizedBox(height: 32),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed: controller.isResetting.value ? null : () => controller.resetPassword(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  ),
+                                  child: controller.isResetting.value 
+                                    ? const CircularProgressIndicator(color: Colors.white) 
+                                    : const Text('Reset Password'),
+                                ),
+                              ),
+                            ],
+                          )
+                        : AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             width: controller.isSending.value
                                 ? 60
@@ -88,7 +124,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                                   : () {
                                       if (controller.formKey.currentState!
                                           .validate()) {
-                                        controller.sendPasswordResetEmail();
+                                        controller.requestPasswordReset();
                                       }
                                     },
                               style: ElevatedButton.styleFrom(

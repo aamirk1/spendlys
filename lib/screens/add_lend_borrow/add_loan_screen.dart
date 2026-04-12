@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/components/customAppBar.dart';
-import 'package:spendly/res/components/customBotton.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import '../../models/loan_modal.dart';
 import '../../controllers/loan_controller.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +29,7 @@ class AddLoanScreen extends StatefulWidget {
 class _AddLoanScreenState extends State<AddLoanScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController personController;
+  late final TextEditingController phoneController;
   late final TextEditingController amountController;
   late final TextEditingController reasonController;
   late String type;
@@ -42,6 +43,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     super.initState();
     personController =
         TextEditingController(text: widget.loan?.personName ?? "");
+    phoneController =
+        TextEditingController(text: widget.loan?.personPhone ?? "");
     amountController = TextEditingController(
         text: widget.loan != null ? widget.loan!.amount.toString() : "");
     reasonController = TextEditingController(text: widget.loan?.reason ?? "");
@@ -53,6 +56,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   @override
   void dispose() {
     personController.dispose();
+    phoneController.dispose();
     amountController.dispose();
     reasonController.dispose();
     super.dispose();
@@ -257,6 +261,15 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               ),
               const SizedBox(height: 20),
               _buildInputField(
+                phoneController,
+                'phone'.tr,
+                'person_phone_hint'.tr,
+                Icons.phone_android_outlined,
+                TextInputType.phone,
+                null,
+              ),
+              const SizedBox(height: 20),
+              _buildInputField(
                 amountController,
                 'amount'.tr,
                 'Enter transaction amount', // Need key for this too if wanted, or just use amount.tr
@@ -304,6 +317,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                     if (isEditMode) {
                       final updatedLoan = widget.loan!.copyWith(
                         personName: personController.text,
+                        personPhone: phoneController.text,
                         amount: double.parse(amountController.text),
                         type: type,
                         reason: reasonController.text,
@@ -315,6 +329,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                         userId: widget.myUser.userId,
                         id: const Uuid().v4(),
                         personName: personController.text,
+                        personPhone: phoneController.text,
                         amount: double.parse(amountController.text),
                         paidAmount: 0.0.obs,
                         expectedReturnDate: expectedReturnDate!,
@@ -344,6 +359,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
 extension LoanExtension on Loan {
   Loan copyWith({
     String? personName,
+    String? personPhone,
     double? amount,
     String? type,
     String? reason,
@@ -353,6 +369,7 @@ extension LoanExtension on Loan {
       id: id,
       userId: userId,
       personName: personName ?? this.personName,
+      personPhone: personPhone ?? this.personPhone,
       amount: amount ?? this.amount,
       paidAmount: paidAmount,
       status: status,

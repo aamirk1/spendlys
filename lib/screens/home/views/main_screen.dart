@@ -13,11 +13,10 @@ class MainScreen extends StatelessWidget {
   MainScreen({super.key, required this.myUser});
   final MyUser myUser;
 
-  final ExpenseController expenseController = Get.put(ExpenseController());
-  final IncomeController incomeController = Get.put(IncomeController());
-  final LoanController loanController = Get.put(LoanController());
-  final BusinessHomeController businessController =
-      Get.put(BusinessHomeController());
+  final ExpenseController expenseController = Get.find<ExpenseController>();
+  final IncomeController incomeController = Get.find<IncomeController>();
+  final LoanController loanController = Get.find<LoanController>();
+  final BusinessHomeController businessController = Get.find<BusinessHomeController>();
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +36,13 @@ class MainScreen extends StatelessWidget {
             children: [
               _buildAppBar(context),
               const SizedBox(height: 25),
-              _buildBalanceCard(context),
+              RepaintBoundary(child: _buildBalanceCard(context)),
               const SizedBox(height: 30),
               _buildFeaturesOverview(context),
               const SizedBox(height: 30),
               _buildTransactionHeader(context),
               const SizedBox(height: 15),
-              _buildTransactionsList(context),
+              RepaintBoundary(child: _buildTransactionsList(context)),
             ],
           ),
         ),
@@ -121,11 +120,11 @@ class MainScreen extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.indigo.withOpacity(0.35),
+            color: Color(0x59305ABF), // Colors.indigo ~35% opacity
             blurRadius: 20,
-            offset: const Offset(0, 10),
+            offset: Offset(0, 10),
           )
         ],
       ),
@@ -254,46 +253,49 @@ class MainScreen extends StatelessWidget {
       required String Function() valueObx,
       required VoidCallback onTap}) {
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4))
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: color, size: 26),
-              ),
-              const SizedBox(height: 12),
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color)),
-              const SizedBox(height: 4),
-              Text(subtitle,
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-              const SizedBox(height: 8),
-              Obx(() => Text(valueObx(),
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: color))),
-            ],
+      child: RepaintBoundary(
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x0A000000), // black ~4% opacity
+                    blurRadius: 10,
+                    offset: Offset(0, 4))
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: color, size: 26),
+                ),
+                const SizedBox(height: 12),
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
+                const SizedBox(height: 4),
+                Text(subtitle,
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                const SizedBox(height: 8),
+                Obx(() => Text(valueObx(),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: color))),
+              ],
+            ),
           ),
         ),
       ),
@@ -360,17 +362,18 @@ class MainScreen extends StatelessWidget {
             orElse: () => {'icon': Icons.category, 'color': Colors.grey},
           );
 
-          return Container(
+          return RepaintBoundary(
+           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(18),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Color(0x05000000), // black ~2% opacity
                     blurRadius: 5,
-                    offset: const Offset(0, 2))
+                    offset: Offset(0, 2))
               ],
             ),
             child: Row(
@@ -405,6 +408,7 @@ class MainScreen extends StatelessWidget {
                         color: Theme.of(context).textTheme.bodyLarge?.color)),
               ],
             ),
+           ),
           );
         }).toList(),
       );

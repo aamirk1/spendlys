@@ -103,7 +103,7 @@ class ChangePasswordDialog extends StatelessWidget {
         Obx(() => ElevatedButton(
               onPressed: controller.isLoading.value
                   ? null
-                  : () => controller.changePassword(myUser),
+                  : () => controller.changePassword(),
               child: controller.isLoading.value
                   ? const SizedBox(
                       width: 20,

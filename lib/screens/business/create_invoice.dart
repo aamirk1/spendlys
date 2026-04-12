@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -39,6 +40,7 @@ class CreateInvoiceController extends GetxController {
   final selectedCustomerId = Rxn<String>();
   final invoiceNumberController = TextEditingController();
   final dueDateController = TextEditingController();
+  DateTime? selectedDueDate; // tracks the actual due date
 
   // Tax %
   final taxPercent = 0.0.obs;
@@ -210,6 +212,7 @@ class CreateInvoiceController extends GetxController {
         "tax": calculatedTax,
         "tax_percent": taxPercent.value,
         "total": total,
+        "due_date": selectedDueDate?.toIso8601String(),
         "items": items.map((i) => i.toJson()).toList()
       };
 
@@ -219,6 +222,24 @@ class CreateInvoiceController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Utils.showSnackbar("Success", "Invoice Generated!", isError: false);
+
+        // Fire creation confirmation + due-date reminders
+        try {
+          final invoiceId = jsonDecode(response.body)['id']?.toString() ?? '';
+          final customerName = customers.firstWhere(
+            (c) => c['id'].toString() == selectedCustomerId.value,
+            orElse: () => {'name': 'Customer'},
+          )['name'] as String;
+          final reminderSvc = Get.find<ReminderNotificationService>();
+          await reminderSvc.scheduleInvoiceNotifications(
+            invoiceId: invoiceId,
+            invoiceNumber: invoiceNumberController.text.trim(),
+            total: total,
+            customerName: customerName,
+            dueDate: selectedDueDate,
+          );
+        } catch (_) {}
+
         Get.back(); // return
       } else {
         Utils.showSnackbar(
@@ -318,6 +339,68 @@ class CreateInvoiceView extends StatelessWidget {
                                   decoration: _inputDeco(
                                       "Invoice Number", Icons.receipt_rounded),
                                 ),
+                                 const SizedBox(height: 15),
+                                // Due Date picker
+                                StatefulBuilder(builder: (ctx, setSt) {
+                                  return InkWell(
+                                    onTap: () async {
+                                      final picked = await showDatePicker(
+                                        context: ctx,
+                                        initialDate: controller.selectedDueDate ??
+                                            DateTime.now()
+                                                .add(const Duration(days: 30)),
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(2030),
+                                        helpText: 'Select Invoice Due Date',
+                                      );
+                                      if (picked != null) {
+                                        setSt(() =>
+                                            controller.selectedDueDate = picked);
+                                        controller.dueDateController.text =
+                                            '${picked.day}/${picked.month}/${picked.year}';
+                                      }
+                                    },
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 15),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                            color: controller.selectedDueDate !=
+                                                    null
+                                                ? Colors.green.shade400
+                                                : Colors.green.shade100),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.calendar_today_rounded,
+                                              color: controller.selectedDueDate !=
+                                                      null
+                                                  ? Colors.green.shade600
+                                                  : Colors.grey),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            controller.selectedDueDate != null
+                                                ? 'Due: ${controller.selectedDueDate!.day}/${controller.selectedDueDate!.month}/${controller.selectedDueDate!.year}'
+                                                : 'Set Due Date (optional)',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: controller.selectedDueDate !=
+                                                      null
+                                                  ? Colors.black87
+                                                  : Colors.black54,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          const Icon(Icons.chevron_right,
+                                              color: Colors.black38),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
                                 const SizedBox(height: 15),
                                 InkWell(
                                   onTap: () =>
