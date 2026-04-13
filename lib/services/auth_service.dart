@@ -7,18 +7,20 @@ class AuthService extends GetxService {
   // Send OTP
   Future<void> sendOTP({
     required String phoneNumber,
-    required Function(String verificationId) codeSent,
+    required Function(String verificationId, int? resendToken) codeSent,
     required Function(FirebaseAuthException e) verificationFailed,
+    int? forceResendingToken,
   }) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
+      forceResendingToken: forceResendingToken,
       verificationCompleted: (PhoneAuthCredential credential) async {
         // Auto-verification on Android
         await _auth.signInWithCredential(credential);
       },
       verificationFailed: verificationFailed,
       codeSent: (String verificationId, int? resendToken) {
-        codeSent(verificationId);
+        codeSent(verificationId, resendToken);
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
       timeout: const Duration(seconds: 60),

@@ -23,8 +23,28 @@ class AuthController extends GetxController {
   var isLoading = false.obs;
   var isSignUp = false.obs;
   var verificationId = "".obs;
+  var forceResendingToken = Rx<int?>(null);
   var phoneNumber = "".obs;
   var name = "".obs;
+  
+  // Timer Variables
+  var resendAfter = 60.obs;
+  var canResend = false.obs;
+  Timer? _timer;
+
+  void startResendTimer() {
+    canResend.value = false;
+    resendAfter.value = 60;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (resendAfter.value > 0) {
+        resendAfter.value--;
+      } else {
+        canResend.value = true;
+        _timer?.cancel();
+      }
+    });
+  }
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -59,10 +79,20 @@ class AuthController extends GetxController {
     try {
       await _authService.sendOTP(
         phoneNumber: formattedPhone,
-        codeSent: (id) {
+        forceResendingToken: forceResendingToken.value,
+        codeSent: (id, resendToken) {
           verificationId.value = id;
+          forceResendingToken.value = resendToken;
           isLoading.value = false;
-          Get.toNamed(RoutesName.otpVerifyView);
+          
+          // Only navigate if we are NOT already on the OTP screen
+          if (Get.currentRoute != RoutesName.otpVerifyView) {
+            startResendTimer();
+            Get.toNamed(RoutesName.otpVerifyView);
+          } else {
+            startResendTimer();
+            Fluttertoast.showToast(msg: "OTP resent successfully");
+          }
         },
         verificationFailed: (e) {
           isLoading.value = false;
@@ -179,6 +209,7 @@ class AuthController extends GetxController {
 
   // Logout
   Future<void> logout() async {
+    _timer?.cancel();
     await _authService.signOut();
     box.erase();
     await _secureStorage.clearAll();
@@ -187,6 +218,7 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
+    _timer?.cancel();
     nameController.dispose();
     phoneController.dispose();
     super.onClose();

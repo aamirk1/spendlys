@@ -48,6 +48,7 @@ class SignInController extends GetxController {
 
   // Phone Auth Variables
   var verificationId = "".obs;
+  var forceResendingToken = Rx<int?>(null);
   var phoneNumber = "".obs;
 
   // Password Strength (from SignUpController)
@@ -56,6 +57,25 @@ class SignInController extends GetxController {
   var containsNumber = false.obs;
   var containsSpecialChar = false.obs;
   var contains8Length = false.obs;
+
+  // Timer Variables
+  var resendAfter = 60.obs;
+  var canResend = false.obs;
+  Timer? _timer;
+
+  void startResendTimer() {
+    canResend.value = false;
+    resendAfter.value = 60;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (resendAfter.value > 0) {
+        resendAfter.value--;
+      } else {
+        canResend.value = true;
+        _timer?.cancel();
+      }
+    });
+  }
 
   void toggleAuthMode() {
     authMode.value =
@@ -213,12 +233,22 @@ class SignInController extends GetxController {
     try {
       await _authService.sendOTP(
         phoneNumber: formattedPhone,
-        codeSent: (id) {
+        forceResendingToken: forceResendingToken.value,
+        codeSent: (id, resendToken) {
           verificationId.value = id;
+          forceResendingToken.value = resendToken;
           isLoading.value = false;
           signInRequired.value = false;
-          Get.toNamed(RoutesName.otpVerifyView,
-              arguments: {'fromSignIn': true});
+          
+          // Only navigate if we are NOT already on the OTP screen
+          if (Get.currentRoute != RoutesName.otpVerifyView) {
+            startResendTimer();
+            Get.toNamed(RoutesName.otpVerifyView,
+                arguments: {'fromSignIn': true});
+          } else {
+            startResendTimer();
+            Utils.showSnackbar('Success', 'OTP resent successfully', isError: false);
+          }
         },
         verificationFailed: (e) {
           isLoading.value = false;
@@ -375,10 +405,17 @@ class SignInController extends GetxController {
   }
 
   Future<void> logout() async {
+    _timer?.cancel();
     await auth.signOut();
     await _secureStorage.clearAll();
     box.erase();
     Get.deleteAll(); // Dispose non-permanent controllers
     Get.offAllNamed(RoutesName.loginView);
+  }
+
+  @override
+  void onClose() {
+    _timer?.cancel();
+    super.onClose();
   }
 }

@@ -347,33 +347,45 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                   // Resend Option
                   FadeTransition(
                     opacity: _buttonFade,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Didn't receive code? ",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
-                            fontSize: 14,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              controller.sendOTP(controller.phoneNumber.value),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: const Text(
-                            "Resend",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                    child: Obx(() => Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              controller.canResend.value
+                                  ? "Didn't receive code? "
+                                  : "Resend code in ",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
+                            if (!controller.canResend.value)
+                              Text(
+                                "${controller.resendAfter.value}s",
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            if (controller.canResend.value)
+                              TextButton(
+                                onPressed: () => controller
+                                    .sendOTP(controller.phoneNumber.value),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: const Text(
+                                  "Resend",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )),
                   ),
                 ],
               ),
