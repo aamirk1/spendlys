@@ -9,7 +9,7 @@ import 'package:spendly/core/error/app_error_handler.dart';
 class ForgotPasswordController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
   
-  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final otpController = TextEditingController();
   final newPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -19,8 +19,8 @@ class ForgotPasswordController extends GetxController {
   var showOtpField = false.obs;
 
   Future<void> requestPasswordReset() async {
-    if (emailController.text.isEmpty) {
-      Utils.showSnackbar('Error', 'Please enter your email.');
+    if (phoneController.text.isEmpty) {
+      Utils.showSnackbar('Error', 'Please enter your phone number.');
       return;
     }
 
@@ -28,12 +28,12 @@ class ForgotPasswordController extends GetxController {
     try {
       final response = await _apiClient.post(
         ApiConstants.forgotPasswordRequest,
-        data: {'email': emailController.text.trim()},
+        data: {'phone_number': phoneController.text.trim()},
       );
 
       if (response.statusCode == 200) {
         showOtpField.value = true;
-        Utils.showSnackbar('Success', 'Reset OTP sent to your email.', isError: false);
+        Utils.showSnackbar('Success', 'Reset OTP sent to your phone.', isError: false);
       } else {
         throw Exception(response.data['detail'] ?? 'Failed to request reset');
       }
@@ -55,7 +55,7 @@ class ForgotPasswordController extends GetxController {
       final response = await _apiClient.post(
         ApiConstants.forgotPasswordReset,
         data: {
-          'email': emailController.text.trim(),
+          'phone_number': phoneController.text.trim(),
           'otp': otpController.text.trim(),
           'new_password': newPasswordController.text.trim(),
         },

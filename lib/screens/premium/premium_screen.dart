@@ -9,6 +9,8 @@ class PremiumScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(PaymentController());
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: Container(
@@ -67,9 +69,9 @@ class PremiumScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(32),
                       topRight: Radius.circular(32),
                     ),
@@ -77,38 +79,24 @@ class PremiumScreen extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Unlock Features',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildFeatureItem(
-                          icon: Icons.auto_graph_rounded,
-                          title: 'Advanced Analytics',
-                          subtitle:
-                              'Detailed insights into your spending patterns.',
-                        ),
-                        _buildFeatureItem(
-                          icon: Icons.picture_as_pdf_rounded,
-                          title: 'Custom Invoices',
-                          subtitle:
-                              'Add your logo and branding to all exports.',
-                        ),
-                        _buildFeatureItem(
-                          icon: Icons.cloud_done_rounded,
-                          title: 'Cloud Backup',
-                          subtitle: 'Never lose your data with automatic sync.',
-                        ),
-                        _buildFeatureItem(
-                          icon: Icons.block_rounded,
-                          title: 'Ad-Free Experience',
-                          subtitle:
-                              'Focus on your finances without distractions.',
-                        ),
+                        Obx(() => Column(
+                              children: controller.premiumFeatures
+                                  .map((feature) => _buildFeatureItem(
+                                        icon: _getIconData(feature.icon),
+                                        title: feature.title,
+                                        subtitle: feature.subtitle,
+                                      ))
+                                  .toList(),
+                            )),
                         const SizedBox(height: 32),
                         const Text(
                           'Choose Plan',
@@ -121,9 +109,10 @@ class PremiumScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: colorScheme.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blue, width: 2),
+                            border: Border.all(
+                                color: colorScheme.primary, width: 2),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -146,7 +135,7 @@ class PremiumScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue[900],
+                                      color: colorScheme.primary,
                                     ),
                                   )),
                             ],
@@ -166,9 +155,12 @@ class PremiumScreen extends StatelessWidget {
                                     },
                             )),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Secure payment via Razorpay',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -182,47 +174,73 @@ class PremiumScreen extends StatelessWidget {
     );
   }
 
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'auto_graph_rounded':
+        return Icons.auto_graph_rounded;
+      case 'picture_as_pdf_rounded':
+        return Icons.picture_as_pdf_rounded;
+      case 'cloud_done_rounded':
+        return Icons.cloud_done_rounded;
+      case 'block_rounded':
+        return Icons.block_rounded;
+      case 'star_rounded':
+        return Icons.star_rounded;
+      case 'diamond_rounded':
+        return Icons.diamond_rounded;
+      case 'workspace_premium_rounded':
+        return Icons.workspace_premium_rounded;
+      default:
+        return Icons.stars_rounded;
+    }
+  }
+
   Widget _buildFeatureItem({
     required IconData icon,
     required String title,
     required String subtitle,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              shape: BoxShape.circle,
+    return Builder(builder: (context) {
+      final theme = Theme.of(context);
+      final colorScheme = theme.colorScheme;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: colorScheme.primary),
             ),
-            child: Icon(icon, color: Colors.blue[800]),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 14,
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }

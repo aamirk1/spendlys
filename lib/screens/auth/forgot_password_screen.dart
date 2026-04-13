@@ -57,19 +57,18 @@ class ForgotPasswordScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
-                      // Email TextField
+                      // Phone Number TextField
                       MyTextField(
-                        controller: controller.emailController,
-                        hintText: 'example@mail.com',
+                        controller: controller.phoneController,
+                        hintText: 'Enter your phone number',
                         obscureText: false,
-                        keyboardType: TextInputType.emailAddress,
+                        keyboardType: TextInputType.phone,
                         prefixIcon:
-                            const Icon(Icons.email, color: AppColors.primary),
+                            const Icon(Icons.phone, color: AppColors.primary),
                         validator: (val) {
-                          if (val!.isEmpty) return 'Please enter your email';
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                              .hasMatch(val)) {
-                            return 'Please enter a valid email';
+                          if (val!.isEmpty) return 'Please enter your phone number';
+                          if (val.length < 10) {
+                            return 'Please enter a valid phone number';
                           }
                           return null;
                         },

@@ -53,15 +53,6 @@ class AppSettingsScreen extends StatelessWidget {
                 onTap: () =>
                     _showLanguageDialog(context, localizationController),
               ),
-              _buildSettingCard(
-                icon: Icons.star_outline_rounded,
-                title: 'rate_us'.tr,
-                onTap: () async {
-                  if (await inAppReview.isAvailable()) {
-                    inAppReview.requestReview();
-                  }
-                },
-              ),
               const SizedBox(height: 20),
               _buildSectionHeader('appearance'.tr),
               _buildSettingCard(
@@ -82,9 +73,7 @@ class AppSettingsScreen extends StatelessWidget {
                     icon: Icons.info_outline_rounded,
                     title: 'app_version'.tr,
                     subtitle: Text(
-                      snapshot.hasData
-                          ? "${snapshot.data!.version}+${snapshot.data!.buildNumber}"
-                          : "...",
+                      snapshot.hasData ? snapshot.data!.version : "...",
                       style: TextStyle(color: Colors.grey.shade500),
                     ),
                     onTap: () {
@@ -94,52 +83,9 @@ class AppSettingsScreen extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 20),
-              _buildSectionHeader('danger_zone'.tr),
-              _buildSettingCard(
-                icon: Icons.delete_forever_rounded,
-                title: 'delete_account'.tr,
-                onTap: () => _showDeleteConfirmation(context),
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(BuildContext context) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('delete_account'.tr,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('delete_account_confirm'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('cancel'.tr),
-          ),
-          TextButton(
-            onPressed: () async {
-              User? user = FirebaseAuth.instance.currentUser;
-              if (user != null) {
-                await FirebaseFirestore.instance
-                    .collection('delete_requests')
-                    .doc(user.uid)
-                    .set({
-                  'userId': user.uid,
-                  'email': user.email,
-                  'requestedAt': Timestamp.now(),
-                });
-                Get.snackbar('success'.tr, 'request_sent'.tr);
-              }
-              Get.back();
-            },
-            child: Text('confirm'.tr,
-                style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }
