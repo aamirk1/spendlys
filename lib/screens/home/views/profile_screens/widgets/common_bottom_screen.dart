@@ -4,10 +4,25 @@ import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/utils/colors.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/home/views/profile_screens/feedback_screen.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class CommonBottomScreen extends StatelessWidget {
   CommonBottomScreen({super.key});
   final controller = Get.put(SignInController());
+  final InAppReview inAppReview = InAppReview.instance;
+
+  Future<void> _requestReview() async {
+    try {
+      if (await inAppReview.isAvailable()) {
+        await inAppReview.requestReview();
+      } else {
+        // Fallback to open store if requested, but requestReview is usually enough
+        // inAppReview.openStoreListing(appStoreId: '...', microsoftStoreId: '...');
+      }
+    } catch (e) {
+      debugPrint("In-App Review Error: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +88,13 @@ class CommonBottomScreen extends StatelessWidget {
                   title: 'feedback'.tr,
                   color: Colors.green,
                   onTap: () => Get.to(() => const FeedbackScreen()),
+                  context: context,
+                ),
+                _buildOptionItem(
+                  icon: Icons.star_rate_rounded,
+                  title: 'rate_us'.tr.isEmpty ? 'Rate Us' : 'rate_us'.tr,
+                  color: Colors.orange,
+                  onTap: _requestReview,
                   context: context,
                 ),
                 _buildDivider(context),
