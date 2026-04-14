@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
@@ -141,6 +142,22 @@ class ApiService {
     return resp;
   }
 
+  static Future<http.StreamedResponse> postMultipart(
+      String endpoint, File file, String fieldName,
+      {Map<String, String>? headers}) async {
+    final url = Uri.parse('$_baseUrl$endpoint');
+    final request = http.MultipartRequest('POST', url);
+
+    final mergedHeaders = await _authHeaders(headers);
+    mergedHeaders.remove('Content-Type'); // Allow http to set multipart/form-data
+    request.headers.addAll(mergedHeaders);
+
+    request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
+
+    final resp = await request.send();
+    return resp;
+  }
+
   static Future<http.Response> put(String endpoint,
       {Map<String, String>? headers,
       dynamic body,
@@ -170,6 +187,42 @@ class ApiService {
       if (await _handle401()) {
         resp =
             await _retryRequest('PUT', endpoint, headers: headers, body: body);
+        _logResponse(endpoint, resp);
+      }
+    }
+
+    return resp;
+  }
+
+  static Future<http.Response> patch(String endpoint,
+      {Map<String, String>? headers,
+      dynamic body,
+      bool bypassCache = false}) async {
+    if (!_conn.isOnline.value && !bypassCache) {
+      await LocalCacheService.addPendingRequest(
+        endpoint: endpoint,
+        method: 'PATCH',
+        headers: headers,
+        body: body,
+      );
+      return http.Response(
+          '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
+          202);
+    }
+
+    final url = Uri.parse('$_baseUrl$endpoint');
+    final mergedHeaders = await _authHeaders(headers);
+    var resp = await http.patch(
+      url,
+      headers: mergedHeaders,
+      body: body != null ? jsonEncode(body) : null,
+    );
+    _logResponse(endpoint, resp);
+
+    if (resp.statusCode == 401) {
+      if (await _handle401()) {
+        resp =
+            await _retryRequest('PATCH', endpoint, headers: headers, body: body);
         _logResponse(endpoint, resp);
       }
     }
@@ -292,6 +345,10 @@ class ApiService {
             body: body != null ? jsonEncode(body) : null);
       case 'PUT':
         return await http.put(url,
+            headers: mergedHeaders,
+            body: body != null ? jsonEncode(body) : null);
+      case 'PATCH':
+        return await http.patch(url,
             headers: mergedHeaders,
             body: body != null ? jsonEncode(body) : null);
       case 'DELETE':

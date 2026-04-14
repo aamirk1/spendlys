@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
@@ -55,7 +56,7 @@ class InventoryController extends GetxController {
   }
 
   Future<void> fetchProducts() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -79,7 +80,7 @@ class InventoryController extends GetxController {
   Future<void> saveProduct({String? productId}) async {
     if (!formKey.currentState!.validate()) return;
 
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.back(); // Close bottom sheet
@@ -129,7 +130,7 @@ class InventoryController extends GetxController {
   }
 
   Future<void> deleteProduct(String productId) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;

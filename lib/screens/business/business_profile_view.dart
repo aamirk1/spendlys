@@ -1,13 +1,17 @@
 import 'dart:convert';
+import 'package:spendly/res/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class BusinessProfileController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -25,6 +29,9 @@ class BusinessProfileController extends GetxController {
 
   final selectedBank = Rxn<String>();
   final isLoading = false.obs;
+  final logoUrl = Rxn<String>();
+  final pickedLogo = Rxn<File>();
+  final ImagePicker _picker = ImagePicker();
 
   final RxList<String> bankNames = <String>[].obs;
   final _storage = GetStorage();
@@ -37,7 +44,7 @@ class BusinessProfileController extends GetxController {
   }
 
   Future<void> _fetchProfile() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -54,6 +61,8 @@ class BusinessProfileController extends GetxController {
         phoneController.text = data['phone'] ?? '';
         emailController.text = data['email'] ?? '';
         gstController.text = data['gst_number'] ?? '';
+        logoUrl.value = data['logo_url'];
+        debugPrint("Fetched Profile: logo_url = ${logoUrl.value}");
 
         if (data['payment_details'] != null &&
             data['payment_details'].isNotEmpty) {
@@ -98,6 +107,42 @@ class BusinessProfileController extends GetxController {
     }
   }
 
+  Future<void> pickLogo() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+    if (image != null) {
+      pickedLogo.value = File(image.path);
+    }
+  }
+
+  Future<String?> _uploadLogo(String userId) async {
+    if (pickedLogo.value == null) return logoUrl.value;
+
+    try {
+      final resp = await ApiService.postMultipart(
+        '/business/profile/logo',
+        pickedLogo.value!,
+        'file',
+        headers: {'x-user-id': userId},
+      );
+
+      final body = await resp.stream.bytesToString();
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final data = jsonDecode(body);
+        debugPrint("Upload Success: ${data['logo_url']}");
+        return data['logo_url'];
+      } else {
+        debugPrint("Upload failed (Status: ${resp.statusCode}): $body");
+        return logoUrl.value;
+      }
+    } catch (e) {
+      debugPrint("Error uploading logo: $e");
+      return logoUrl.value;
+    }
+  }
+
   Future<void> saveProfile() async {
     if (!formKey.currentState!.validate()) {
       return;
@@ -107,7 +152,7 @@ class BusinessProfileController extends GetxController {
       return;
     }
 
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) {
       Utils.showSnackbar("Error", "User not logged in");
       return;
@@ -122,7 +167,7 @@ class BusinessProfileController extends GetxController {
         "phone": phoneController.text.trim(),
         "email": emailController.text.trim(),
         "gst_number": gstController.text.trim(),
-        "logo_url": null,
+        "logo_url": await _uploadLogo(userId),
         "payment_details": [
           {
             "bank_name": selectedBank.value,
@@ -211,6 +256,67 @@ class BusinessProfileView extends StatelessWidget {
                               child: FadeInAnimation(child: widget),
                             ),
                             children: [
+                              Center(
+                                child: GestureDetector(
+                                  onTap: controller.pickLogo,
+                                  child: Obx(() => Container(
+                                        width: 100,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.blue.withOpacity(0.1),
+                                              blurRadius: 10,
+                                              spreadRadius: 2,
+                                            )
+                                          ],
+                                          image: controller.pickedLogo.value !=
+                                                  null
+                                              ? DecorationImage(
+                                                  image: FileImage(controller
+                                                      .pickedLogo.value!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : (controller.logoUrl.value !=
+                                                      null
+                                                  ? DecorationImage(
+                                                      image: NetworkImage(() {
+                                                        String url = controller.logoUrl.value!;
+                                                        if (!url.startsWith('http')) {
+                                                          url = "https://dailybachatapi.serwex.in$url";
+                                                        }
+                                                        String connector = url.contains('?') ? '&' : '?';
+                                                        return "$url${connector}t=${DateTime.now().millisecondsSinceEpoch}";
+                                                      }()),
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : null),
+                                        ),
+                                        child: controller.pickedLogo.value ==
+                                                    null &&
+                                                controller.logoUrl.value == null
+                                            ? const Icon(
+                                                Icons.add_a_photo_outlined,
+                                                size: 40,
+                                                color: Colors.blueAccent)
+                                            : null,
+                                      )),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Center(
+                                child: Text(
+                                  "Business Logo (Optional)",
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
                               _buildSectionTitle("General Information"),
                               _buildCard(
                                 children: [

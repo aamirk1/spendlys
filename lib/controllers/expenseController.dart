@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'dart:convert';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -146,7 +147,7 @@ class ExpenseController extends GetxController {
 
   // Real-time listener for expense updates
   Future<void> fetchExpenses() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -188,7 +189,7 @@ class ExpenseController extends GetxController {
 
   // Fetch filtered expense totals for charts (non-real-time)
   Future<void> fetchChartExpenseTotals(String filter) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     // For now, we fetch all and filter in app, or you can add filter params to API
@@ -200,7 +201,7 @@ class ExpenseController extends GetxController {
 
   // Add a new expense
   Future<void> addExpense() async {
-    final userId = _auth.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) {
       Utils.showSnackbar('Error', 'User not logged in.');
       return;

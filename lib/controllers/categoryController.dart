@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -41,7 +42,7 @@ class CategoryController extends GetxController {
   }
 
   Future<void> fetchCategories() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -62,7 +63,7 @@ class CategoryController extends GetxController {
 
 
   Future<void> addCategory() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     if (nameController.text.trim().isEmpty) {
@@ -98,7 +99,7 @@ class CategoryController extends GetxController {
 
 
   Future<void> editCategory(String categoryId) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     if (nameController.text.trim().isEmpty) {

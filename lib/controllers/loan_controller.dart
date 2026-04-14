@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +22,7 @@ class LoanController extends GetxController {
   }
 
   Future<void> fetchLoans() async {
-    final userId = _auth.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -63,7 +64,7 @@ class LoanController extends GetxController {
 
   /// Update existing loan details
   Future<void> updateLoan(Loan loan) async {
-    final userId = _auth.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -97,7 +98,7 @@ class LoanController extends GetxController {
 
   /// Add a new loan
   Future<void> addLoan(Loan loan) async {
-    final userId = _auth.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) {
       errorMsg.value = 'User not logged in';
       Utils.showSnackbar('Error', errorMsg.value ?? 'Unknown error occurred');
@@ -177,7 +178,7 @@ class LoanController extends GetxController {
         loan.status.value = 'partially paid';
       }
 
-      final userId = _auth.currentUser?.uid;
+      final userId = Get.find<AuthService>().currentUserId;
       final response =
           await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,
@@ -219,7 +220,7 @@ class LoanController extends GetxController {
   Future<void> deleteLoan(String loanId) async {
     isLoading.value = true;
     try {
-      final userId = _auth.currentUser?.uid;
+      final userId = Get.find<AuthService>().currentUserId;
       final response =
           await ApiService.delete('/loans/$loanId?user_id=$userId');
       if (response.statusCode == 200) {
@@ -265,7 +266,7 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      final userId = _auth.currentUser?.uid;
+      final userId = Get.find<AuthService>().currentUserId;
       final response =
           await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,
@@ -318,7 +319,7 @@ class LoanController extends GetxController {
         loan.status.value = 'unpaid';
       }
 
-      final userId = _auth.currentUser?.uid;
+      final userId = Get.find<AuthService>().currentUserId;
       final response =
           await ApiService.put('/loans/$loanId?user_id=$userId', body: {
         'paid_amount': loan.paidAmount.value,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
@@ -49,7 +50,7 @@ class EditQuotationController extends GetxController {
   }
 
   Future<void> fetchProducts() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.get('/business/inventory/',
@@ -63,7 +64,7 @@ class EditQuotationController extends GetxController {
   }
 
   Future<void> fetchCustomers() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.get('/business/customers',
@@ -98,7 +99,7 @@ class EditQuotationController extends GetxController {
       return;
     }
 
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;

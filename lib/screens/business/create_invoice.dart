@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -76,7 +77,7 @@ class CreateInvoiceController extends GetxController {
   }
 
   Future<void> fetchProducts() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.get('/business/inventory/',
@@ -90,7 +91,7 @@ class CreateInvoiceController extends GetxController {
   }
 
   Future<void> fetchCustomers() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.get('/business/customers',
@@ -104,7 +105,7 @@ class CreateInvoiceController extends GetxController {
   }
 
   Future<void> fetchQuotations() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.get('/business/quotations',
@@ -168,7 +169,7 @@ class CreateInvoiceController extends GetxController {
   }
 
   Future<void> _saveProductToInventory(String name, double price) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       await ApiService.post('/business/inventory/', headers: {
@@ -200,7 +201,7 @@ class CreateInvoiceController extends GetxController {
       return;
     }
 
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading.value = true;
@@ -253,7 +254,7 @@ class CreateInvoiceController extends GetxController {
   }
 
   Future<void> quickAddCustomer(String name) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.post('/business/customers',

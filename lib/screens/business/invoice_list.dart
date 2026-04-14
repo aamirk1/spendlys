@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +35,8 @@ class InvoiceListController extends GetxController {
 
   void setupScrollListener() {
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
         if (hasMoreData && !isMoreLoading.value && !isLoading.value) {
           fetchInvoices(loadMore: true);
         }
@@ -42,8 +44,9 @@ class InvoiceListController extends GetxController {
     });
   }
 
-  Future<void> fetchInvoices({bool loadMore = false, bool refresh = false}) async {
-    String? userId = _auth.currentUser?.uid;
+  Future<void> fetchInvoices(
+      {bool loadMore = false, bool refresh = false}) async {
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     if (refresh) {
@@ -59,11 +62,12 @@ class InvoiceListController extends GetxController {
 
     try {
       final endpoint = '/business/invoices?page=$currentPage&limit=$limit';
-      final response = await ApiService.get(endpoint, headers: {'x-user-id': userId});
-      
+      final response =
+          await ApiService.get(endpoint, headers: {'x-user-id': userId});
+
       if (response.statusCode == 200) {
         final List newData = jsonDecode(response.body);
-        
+
         if (refresh || !loadMore) {
           invoices.assignAll(newData);
         } else {
@@ -222,13 +226,15 @@ class InvoiceListView extends StatelessWidget {
                                 horizontal: 16, vertical: 10)
                             .copyWith(bottom: 20),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: items.length + (controller.isMoreLoading.value ? 1 : 0),
+                        itemCount: items.length +
+                            (controller.isMoreLoading.value ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == items.length) {
                             return const Center(
                                 child: Padding(
                               padding: EdgeInsets.all(15.0),
-                              child: CircularProgressIndicator(color: Colors.orange),
+                              child: CircularProgressIndicator(
+                                  color: Colors.orange),
                             ));
                           }
                           final inv = items[index];
@@ -259,7 +265,8 @@ class InvoiceListView extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(20),
                                       boxShadow: [
                                         BoxShadow(
-                                            color: Colors.orange.withOpacity(0.1),
+                                            color:
+                                                Colors.orange.withOpacity(0.1),
                                             blurRadius: 15,
                                             offset: const Offset(0, 8))
                                       ],
@@ -280,7 +287,8 @@ class InvoiceListView extends StatelessWidget {
                                                   inv['invoice_number'] ??
                                                       '#INV-???',
                                                   style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 16,
                                                       color: Colors.blueGrey),
                                                 ),
@@ -295,8 +303,10 @@ class InvoiceListView extends StatelessWidget {
                                               ],
                                             ),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
                                                 color: controller
                                                     .getStatusColor(
@@ -334,8 +344,8 @@ class InvoiceListView extends StatelessWidget {
                                               children: [
                                                 Text("Date",
                                                     style: TextStyle(
-                                                        color:
-                                                            Colors.grey.shade600,
+                                                        color: Colors
+                                                            .grey.shade600,
                                                         fontSize: 12)),
                                                 Text(dateFormatted,
                                                     style: const TextStyle(
@@ -350,17 +360,19 @@ class InvoiceListView extends StatelessWidget {
                                               children: [
                                                 Text("Amount",
                                                     style: TextStyle(
-                                                        color:
-                                                            Colors.grey.shade600,
+                                                        color: Colors
+                                                            .grey.shade600,
                                                         fontSize: 12)),
                                                 Text(
                                                   "₹${inv['total'] ?? '0.00'}",
                                                   style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 16,
                                                       color: Colors.black87),
                                                 ),
-                                                if ((inv['paid_amount'] ?? 0.0) >
+                                                if ((inv['paid_amount'] ??
+                                                            0.0) >
                                                         0 &&
                                                     inv['status'] != 'paid')
                                                   Text(

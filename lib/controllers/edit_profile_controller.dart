@@ -9,7 +9,7 @@ class EditProfileController extends GetxController {
   EditProfileController({required this.myUser});
 
   late TextEditingController nameController;
-  late TextEditingController phoneController;
+  late TextEditingController emailController;
   final formKey = GlobalKey<FormState>();
   final isLoading = false.obs;
 
@@ -17,7 +17,7 @@ class EditProfileController extends GetxController {
   void onInit() {
     super.onInit();
     nameController = TextEditingController(text: myUser.name);
-    phoneController = TextEditingController(text: myUser.phoneNumber);
+    emailController = TextEditingController(text: myUser.email);
   }
 
   Future<void> updateProfile() async {
@@ -30,7 +30,7 @@ class EditProfileController extends GetxController {
           .doc(myUser.userId)
           .update({
         'name': nameController.text.trim(),
-        'phoneNumber': phoneController.text.trim(),
+        'email': emailController.text.trim(),
       });
 
       Utils.showSnackbar("Success", "Profile updated successfully", isError: false);
@@ -45,7 +45,7 @@ class EditProfileController extends GetxController {
   @override
   void onClose() {
     nameController.dispose();
-    phoneController.dispose();
+    emailController.dispose();
     super.onClose();
   }
 }

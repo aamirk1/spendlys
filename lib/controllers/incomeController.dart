@@ -1,6 +1,7 @@
 // // ignore_for_file: file_names
 
 import 'dart:convert';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -105,7 +106,7 @@ class IncomeController extends GetxController {
   }
 
   Future<void> fetchIncomes() async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     isLoading(true);
@@ -151,7 +152,7 @@ class IncomeController extends GetxController {
 
   // Inside your IncomeController
   Future<void> fetchChartIncomeTotals(String filter) async {
-    String? userId = _auth.currentUser?.uid;
+    String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     await fetchIncomes();
@@ -169,7 +170,7 @@ class IncomeController extends GetxController {
   }
 
   Future<void> addIncome() async {
-    final userId = _auth.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) {
       Utils.showSnackbar('Error', 'User not logged in.');
       return;

@@ -414,8 +414,8 @@ class SignInController extends GetxController {
     box.write("hasSeenOnboarding", true);
 
     signInRequired.value = false;
-    Utils.showSnackbar("Success", "Authenticated successfully!",
-        isError: false);
+    // Utils.showSnackbar("Success", "Authenticated successfully!",
+    //     isError: false);
     Get.offAllNamed(RoutesName.homeView, arguments: myUser);
   }
 

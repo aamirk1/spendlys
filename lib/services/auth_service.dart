@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AuthService extends GetxService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GetStorage _box = GetStorage();
+
+  String? get currentUserId => _auth.currentUser?.uid ?? _box.read("userId");
 
   // Send OTP
   Future<void> sendOTP({
