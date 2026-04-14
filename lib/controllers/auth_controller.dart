@@ -114,8 +114,11 @@ class AuthController extends GetxController {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification on Android
           try {
-            UserCredential userCredential =
-                await FirebaseAuth.instance.signInWithCredential(credential);
+            // Avoid multiple calls
+            if (isLoading.value) return;
+            isLoading.value = true;
+
+            UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
             User? user = userCredential.user;
             if (user != null) {
               await syncUserWithBackend(user);
@@ -124,6 +127,8 @@ class AuthController extends GetxController {
             }
           } catch (e) {
             Fluttertoast.showToast(msg: e.toString());
+          } finally {
+            isLoading.value = false;
           }
         },
       );
@@ -185,15 +190,19 @@ class AuthController extends GetxController {
       String deviceInfo = await _getDeviceDetails();
       String? fcmToken = await _firebaseMessaging.getToken();
 
+      // Sanitize phone number for email fallback (remove +)
+      String safePhone = (user.phoneNumber ?? "").replaceAll("+", "");
+      if (safePhone.isEmpty) safePhone = user.uid.substring(0, 10);
+
       final response = await _apiClient.post(
         ApiConstants.syncUser,
         data: {
           "id": user.uid,
           "phone_number": user.phoneNumber,
-          "email": user.email ?? "${user.phoneNumber}@dailybachat.com",
+          "email": user.email ?? "$safePhone@dailybachat.com",
           "name":
               name.value.isNotEmpty ? name.value : (user.displayName ?? "User"),
-          "password": "user.password",
+          "password": "firebase_sync_placeholder",
           "device_info": deviceInfo,
           "fcm_token": fcmToken,
         },
@@ -201,6 +210,8 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
+        if (data == null) throw Exception("Empty response from server");
+
         final accessToken = data['access_token'];
         if (accessToken != null) {
           await _secureStorage.saveToken(accessToken);

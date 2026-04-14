@@ -240,7 +240,7 @@ class SignInController extends GetxController {
           forceResendingToken.value = resendToken;
           isLoading.value = false;
           signInRequired.value = false;
-          
+
           // Only navigate if we are NOT already on the OTP screen
           if (Get.currentRoute != RoutesName.otpVerifyView) {
             startResendTimer();
@@ -248,7 +248,8 @@ class SignInController extends GetxController {
                 arguments: {'fromSignIn': true});
           } else {
             startResendTimer();
-            Utils.showSnackbar('Success', 'OTP resent successfully', isError: false);
+            Utils.showSnackbar('Success', 'OTP resent successfully',
+                isError: false);
           }
         },
         verificationFailed: (e) {
@@ -259,9 +260,14 @@ class SignInController extends GetxController {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification on Android
           try {
-            UserCredential userCredential = await auth.signInWithCredential(credential);
+            UserCredential userCredential =
+                await auth.signInWithCredential(credential);
             User? user = userCredential.user;
             if (user != null) {
+              // Ensure we are not already processing another sync
+              if (isLoading.value) return;
+              isLoading.value = true;
+
               if (isSigningUpFlow.value) {
                 await syncSignUpWithBackend(user);
               } else {
@@ -270,6 +276,8 @@ class SignInController extends GetxController {
             }
           } catch (e) {
             AppErrorHandler.handleError(e);
+          } finally {
+            isLoading.value = false;
           }
         },
       );
@@ -340,16 +348,20 @@ class SignInController extends GetxController {
       String deviceInfo = await _getDeviceDetails();
       String? fcmToken = await _firebaseMessaging.getToken();
 
+      // Sanitize phone number for email fallback (remove +)
+      String safePhone = (firebaseUser.phoneNumber ?? "").replaceAll("+", "");
+      if (safePhone.isEmpty) safePhone = firebaseUser.uid.substring(0, 10);
+
       // Backend requires email and password in UserCreate schema used by /sync
       final response = await _apiClient.post(ApiConstants.syncUser, data: {
         'id': firebaseUser.uid,
         'email': firebaseUser.email ??
             (emailController.text.isNotEmpty
                 ? emailController.text.trim()
-                : "${firebaseUser.phoneNumber}@dailybachat.com"),
+                : "$safePhone@dailybachat.com"),
         'password': passwordController.text.isNotEmpty
             ? passwordController.text.trim()
-            : "",
+            : "firebase_sync_placeholder", // Don't send empty string to backend
         'phone_number': firebaseUser.phoneNumber,
         'name': firebaseUser.displayName ??
             (nameController.text.isNotEmpty
@@ -359,8 +371,12 @@ class SignInController extends GetxController {
         'fcm_token': fcmToken,
       });
 
-      await _finalizeLogin(response.data['user'], response.data['access_token'],
-          deviceInfo, fcmToken);
+      if (response.data != null && response.data['user'] != null) {
+        await _finalizeLogin(response.data['user'],
+            response.data['access_token'], deviceInfo, fcmToken);
+      } else {
+        throw Exception("Invalid response from server during sync");
+      }
     } catch (e) {
       AppErrorHandler.handleError(e);
       rethrow;
@@ -369,6 +385,11 @@ class SignInController extends GetxController {
 
   Future<void> _finalizeLogin(dynamic userData, String? accessToken,
       String deviceInfo, String? fcmToken) async {
+    if (userData == null) {
+      Utils.showSnackbar("Error", "User data not found. Please try again.");
+      return;
+    }
+
     if (accessToken != null) {
       await _secureStorage.saveToken(accessToken);
     }
