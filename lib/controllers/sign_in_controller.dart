@@ -236,6 +236,7 @@ class SignInController extends GetxController {
         forceResendingToken: forceResendingToken.value,
         codeSent: (id, resendToken) {
           verificationId.value = id;
+          box.write('verificationId', id); // Persist ID
           forceResendingToken.value = resendToken;
           isLoading.value = false;
           signInRequired.value = false;
@@ -255,6 +256,22 @@ class SignInController extends GetxController {
           signInRequired.value = false;
           AppErrorHandler.handleError(e);
         },
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification on Android
+          try {
+            UserCredential userCredential = await auth.signInWithCredential(credential);
+            User? user = userCredential.user;
+            if (user != null) {
+              if (isSigningUpFlow.value) {
+                await syncSignUpWithBackend(user);
+              } else {
+                await syncUserByFirebaseToken(user);
+              }
+            }
+          } catch (e) {
+            AppErrorHandler.handleError(e);
+          }
+        },
       );
     } catch (e) {
       isLoading.value = false;
@@ -266,6 +283,11 @@ class SignInController extends GetxController {
   Future<void> verifyOTP(String smsCode) async {
     isLoading.value = true;
     try {
+      // Try to get verificationId from storage if it's empty in memory
+      if (verificationId.value.isEmpty) {
+        verificationId.value = box.read('verificationId') ?? "";
+      }
+
       UserCredential userCredential = await _authService.verifyOTP(
         verificationId: verificationId.value,
         smsCode: smsCode,
@@ -273,6 +295,7 @@ class SignInController extends GetxController {
 
       User? user = userCredential.user;
       if (user != null) {
+        box.remove('verificationId'); // Clear storage on success
         if (isSigningUpFlow.value) {
           await syncSignUpWithBackend(user);
         } else {
@@ -280,7 +303,7 @@ class SignInController extends GetxController {
         }
       }
     } catch (e) {
-      Utils.showSnackbar("Error", "Invalid OTP. Please try again.");
+      AppErrorHandler.handleError(e);
     } finally {
       isLoading.value = false;
     }

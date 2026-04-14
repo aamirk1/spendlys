@@ -9,6 +9,7 @@ class AuthService extends GetxService {
     required String phoneNumber,
     required Function(String verificationId, int? resendToken) codeSent,
     required Function(FirebaseAuthException e) verificationFailed,
+    required Function(PhoneAuthCredential credential) verificationCompleted,
     int? forceResendingToken,
   }) async {
     await _auth.verifyPhoneNumber(
@@ -16,7 +17,7 @@ class AuthService extends GetxService {
       forceResendingToken: forceResendingToken,
       verificationCompleted: (PhoneAuthCredential credential) async {
         // Auto-verification on Android
-        await _auth.signInWithCredential(credential);
+        verificationCompleted(credential);
       },
       verificationFailed: verificationFailed,
       codeSent: (String verificationId, int? resendToken) {
@@ -32,6 +33,12 @@ class AuthService extends GetxService {
     required String verificationId,
     required String smsCode,
   }) async {
+    if (verificationId.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'invalid-verification-id',
+        message: 'Verification ID is missing. Please request a new OTP.',
+      );
+    }
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: smsCode,

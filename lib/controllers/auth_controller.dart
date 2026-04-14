@@ -27,7 +27,7 @@ class AuthController extends GetxController {
   var forceResendingToken = Rx<int?>(null);
   var phoneNumber = "".obs;
   var name = "".obs;
-  
+
   // Timer Variables
   var resendAfter = 60.obs;
   var canResend = false.obs;
@@ -83,9 +83,10 @@ class AuthController extends GetxController {
         forceResendingToken: forceResendingToken.value,
         codeSent: (id, resendToken) {
           verificationId.value = id;
+          box.write('verificationId', id); // Persist ID
           forceResendingToken.value = resendToken;
           isLoading.value = false;
-          
+
           // Only navigate if we are NOT already on the OTP screen
           if (Get.currentRoute != RoutesName.otpVerifyView) {
             startResendTimer();
@@ -110,6 +111,21 @@ class AuthController extends GetxController {
             textColor: Colors.white,
           );
         },
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification on Android
+          try {
+            UserCredential userCredential =
+                await FirebaseAuth.instance.signInWithCredential(credential);
+            User? user = userCredential.user;
+            if (user != null) {
+              await syncUserWithBackend(user);
+              box.write("isLoggedIn", true);
+              Get.offAllNamed(RoutesName.homeView);
+            }
+          } catch (e) {
+            Fluttertoast.showToast(msg: e.toString());
+          }
+        },
       );
     } catch (e) {
       isLoading.value = false;
@@ -121,6 +137,11 @@ class AuthController extends GetxController {
   Future<void> verifyOTP(String smsCode) async {
     isLoading.value = true;
     try {
+      // Try to get verificationId from storage if it's empty in memory
+      if (verificationId.value.isEmpty) {
+        verificationId.value = box.read('verificationId') ?? "";
+      }
+
       UserCredential userCredential = await _authService.verifyOTP(
         verificationId: verificationId.value,
         smsCode: smsCode,
@@ -128,6 +149,7 @@ class AuthController extends GetxController {
 
       User? user = userCredential.user;
       if (user != null) {
+        box.remove('verificationId'); // Clear storage on success
         // Check if user is new from Firebase perspective
         bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
@@ -142,8 +164,12 @@ class AuthController extends GetxController {
         Get.offAllNamed(RoutesName.homeView);
       }
     } catch (e) {
+      String msg = "Invalid OTP. Please try again.";
+      if (e is FirebaseAuthException && e.message != null) {
+        msg = e.message!;
+      }
       Fluttertoast.showToast(
-        msg: "Invalid OTP. Please try again.",
+        msg: msg,
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
