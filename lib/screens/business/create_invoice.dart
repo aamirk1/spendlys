@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
+import 'package:spendly/services/whatsapp_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -224,13 +225,42 @@ class CreateInvoiceController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Utils.showSnackbar("Success", "Invoice Generated!", isError: false);
 
-        // Fire creation confirmation + due-date reminders
+        // Resolve customer details for notifications
+        final invoiceId = jsonDecode(response.body)['id']?.toString() ?? '';
+        final selectedCustomer = customers.firstWhere(
+          (c) => c['id'].toString() == selectedCustomerId.value,
+          orElse: () => {'name': 'Customer', 'phone': ''},
+        );
+        final customerName = selectedCustomer['name'] as String? ?? 'Customer';
+        final customerPhone = selectedCustomer['phone'] as String? ?? '';
+
+        // ── WhatsApp utility template (best-effort) ────────────────────
+        if (customerPhone.isNotEmpty) {
+          try {
+            final String? dueDateStr = selectedDueDate != null
+                ? '${selectedDueDate!.day.toString().padLeft(2, '0')}-'
+                    '${selectedDueDate!.month.toString().padLeft(2, '0')}-'
+                    '${selectedDueDate!.year}'
+                : null;
+            final bizResp = await ApiService.get('/business/profile');
+            String businessName = 'Business';
+            if (bizResp.statusCode == 200) {
+              final bizData = jsonDecode(bizResp.body);
+              businessName = bizData['name']?.toString() ?? 'Business';
+            }
+            await WhatsAppService.sendInvoiceNotification(
+              customerPhone: customerPhone,
+              customerName: customerName,
+              businessName: businessName,
+              invoiceNumber: invoiceNumberController.text.trim(),
+              total: total,
+              dueDate: dueDateStr,
+            );
+          } catch (_) {}
+        }
+
+        // ── Local push + due-date reminders ───────────────────────────
         try {
-          final invoiceId = jsonDecode(response.body)['id']?.toString() ?? '';
-          final customerName = customers.firstWhere(
-            (c) => c['id'].toString() == selectedCustomerId.value,
-            orElse: () => {'name': 'Customer'},
-          )['name'] as String;
           final reminderSvc = Get.find<ReminderNotificationService>();
           await reminderSvc.scheduleInvoiceNotifications(
             invoiceId: invoiceId,
