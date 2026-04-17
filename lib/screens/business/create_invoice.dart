@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
@@ -234,31 +235,6 @@ class CreateInvoiceController extends GetxController {
         final customerName = selectedCustomer['name'] as String? ?? 'Customer';
         final customerPhone = selectedCustomer['phone'] as String? ?? '';
 
-        // ── WhatsApp utility template (best-effort) ────────────────────
-        if (customerPhone.isNotEmpty) {
-          try {
-            final String? dueDateStr = selectedDueDate != null
-                ? '${selectedDueDate!.day.toString().padLeft(2, '0')}-'
-                    '${selectedDueDate!.month.toString().padLeft(2, '0')}-'
-                    '${selectedDueDate!.year}'
-                : null;
-            final bizResp = await ApiService.get('/business/profile');
-            String businessName = 'Business';
-            if (bizResp.statusCode == 200) {
-              final bizData = jsonDecode(bizResp.body);
-              businessName = bizData['name']?.toString() ?? 'Business';
-            }
-            await WhatsAppService.sendInvoiceNotification(
-              customerPhone: customerPhone,
-              customerName: customerName,
-              businessName: businessName,
-              invoiceNumber: invoiceNumberController.text.trim(),
-              total: total,
-              dueDate: dueDateStr,
-            );
-          } catch (_) {}
-        }
-
         // ── Local push + due-date reminders ───────────────────────────
         try {
           final reminderSvc = Get.find<ReminderNotificationService>();
@@ -271,7 +247,7 @@ class CreateInvoiceController extends GetxController {
           );
         } catch (_) {}
 
-        Get.back(); // return
+        Get.offNamed(RoutesName.invoiceList);
       } else {
         Utils.showSnackbar(
             "Error", "Failed to generate invoice: ${response.body}");

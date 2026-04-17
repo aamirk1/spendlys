@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/notification_model.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/controllers/loan_controller.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationService extends GetxService {
@@ -155,6 +156,26 @@ class NotificationService extends GetxService {
       case 'loan_list':
         Get.toNamed(RoutesName.addLendBorrowView);
         break;
+      case 'view_loan':
+        // Try to find the loan in LoanController if it exists
+        if (data.containsKey('loan_id')) {
+          try {
+            final loanController = Get.find<LoanController>();
+            final loan = loanController.loans.firstWhere(
+              (l) => l.id == data['loan_id'],
+            );
+            Get.toNamed(RoutesName.viewLoan, arguments: {
+              'loan': loan,
+              'controller': loanController,
+            });
+          } catch (e) {
+            // If loan not found or controller not initialized, fall back to list
+            Get.toNamed(RoutesName.addLendBorrowView);
+          }
+        } else {
+          Get.toNamed(RoutesName.addLendBorrowView);
+        }
+        break;
       case 'premium':
         Get.toNamed(RoutesName.premiumView);
         break;
@@ -162,7 +183,7 @@ class NotificationService extends GetxService {
         Get.toNamed(RoutesName.businessHome);
         break;
       default:
-        // By default go to notifications screen if not specified
+        // By default go to main view or notifications screen
         Get.toNamed(RoutesName.notificationsScreen);
         break;
     }

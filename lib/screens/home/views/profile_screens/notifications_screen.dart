@@ -191,6 +191,8 @@ class NotificationsScreen extends StatelessWidget {
     switch (target) {
       case 'invoice_list':
         return Icons.receipt_long;
+      case 'quotation_list':
+        return Icons.description_outlined;
       case 'loan_list':
         return Icons.money;
       case 'premium':

@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:spendly/core/bindings/home_binding.dart';
 import 'package:spendly/core/bindings/auth_binding.dart';
-import 'package:spendly/screens/home/views/home_screen.dart';
+import 'package:spendly/screens/add_lend_borrow/loan_detail_screen.dart';
 import 'package:spendly/screens/add_income_and_expense/income_expense_home.dart';
 import 'package:spendly/res/routes/views_routes.dart';
 import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
@@ -27,10 +27,6 @@ import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
 import 'package:spendly/screens/premium/premium_screen.dart';
 import 'package:spendly/screens/splash_screen.dart';
 import 'package:spendly/screens/auth/otp_verification_screen.dart';
-import 'package:spendly/screens/auth/sign_in_screen.dart';
-import 'package:spendly/screens/auth/welcome_screen.dart';
-import 'package:spendly/screens/setup_screen/onboarding_screen.dart';
-import 'package:spendly/screens/auth/forgot_password_screen.dart';
 
 /// Shared transition config — fadeIn at 200ms is the snappiest-feeling
 /// transition because it has zero layout work per frame (unlike slide).
@@ -133,6 +129,14 @@ class AppRoutes {
             name: RoutesName.addLoanScreen,
             page: () => AddLoanScreen(
                   myUser: Get.arguments['myUser'],
+                  controller: Get.arguments['controller'],
+                ),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.viewLoan,
+            page: () => LoanDetailScreen(
+                  loan: Get.arguments['loan'],
                   controller: Get.arguments['controller'],
                 ),
             transitionDuration: _kFast,

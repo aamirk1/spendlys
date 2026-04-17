@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -166,7 +167,7 @@ class CreateQuotationController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Utils.showSnackbar("Success", "Quotation Generated Successfully!",
             isError: false);
-        Get.back(); // return to previous screen
+        Get.offNamed(RoutesName.quotationList);
       } else {
         Utils.showSnackbar(
             "Error", "Failed to generate quotation: ${response.body}");

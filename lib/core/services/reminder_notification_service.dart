@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:spendly/core/services/notification_service.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
@@ -38,8 +40,15 @@ class ReminderNotificationService extends GetxService {
 
     await _plugin.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: (response) {
-        // Handle tap — navigate if needed
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.payload != null) {
+          try {
+            final Map<String, dynamic> data = jsonDecode(response.payload!);
+            Get.find<NotificationService>().handleNavigation(data);
+          } catch (e) {
+            print("Error parsing payload in ReminderService: $e");
+          }
+        }
       },
     );
 
@@ -89,7 +98,11 @@ class ReminderNotificationService extends GetxService {
       body: isLent
           ? 'You lent $amountStr to $personName. Due: $dueDateStr'
           : 'You borrowed $amountStr from $personName. Due: $dueDateStr',
-      payload: 'loan:$loanId',
+      payload: jsonEncode({
+        'target_screen': 'view_loan',
+        'loan_id': loanId,
+        'type': 'loan_confirm'
+      }),
     );
 
     // 2. Schedule reminders
@@ -105,7 +118,11 @@ class ReminderNotificationService extends GetxService {
           ? '$personName hasn\'t paid $amountStr yet. Due TODAY!'
           : 'Today is the last day to repay $amountStr to $personName!',
       dueDate: dueDate,
-      payload: 'loan:$loanId',
+      payload: jsonEncode({
+        'target_screen': 'view_loan',
+        'loan_id': loanId,
+        'type': 'loan_reminder'
+      }),
     );
   }
 
@@ -136,7 +153,11 @@ class ReminderNotificationService extends GetxService {
       title: '🧾 Invoice Generated Successfully',
       body:
           'Invoice $invoiceNumber for $customerName — $totalStr created.',
-      payload: 'invoice:$invoiceId',
+      payload: jsonEncode({
+        'target_screen': 'invoice_list',
+        'invoice_id': invoiceId,
+        'type': 'invoice_confirm'
+      }),
     );
 
     // 2. Schedule reminders only if due date is set
@@ -149,7 +170,11 @@ class ReminderNotificationService extends GetxService {
         bodyOnDueDay:
             'Invoice $invoiceNumber ($totalStr) from $customerName is due TODAY! Follow up now.',
         dueDate: dueDate,
-        payload: 'invoice:$invoiceId',
+        payload: jsonEncode({
+          'target_screen': 'invoice_list',
+          'invoice_id': invoiceId,
+          'type': 'invoice_reminder'
+        }),
       );
     }
   }

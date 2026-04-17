@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
@@ -133,30 +134,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan added successfully!',
             isError: false);
         fetchLoans(); // Refresh list
-
-        // ── WhatsApp utility template (best-effort) ──────────────────────
-        if (loan.personPhone != null && loan.personPhone!.isNotEmpty) {
-          try {
-            final String? dueDateStr = loan.expectedReturnDate != null
-                ? '${loan.expectedReturnDate!.day.toString().padLeft(2, '0')}-'
-                    '${loan.expectedReturnDate!.month.toString().padLeft(2, '0')}-'
-                    '${loan.expectedReturnDate!.year}'
-                : null;
-
-            await WhatsAppService.sendLoanNotification(
-              phone: loan.personPhone!,
-              lenderName: loan.type == 'lent'
-                  ? (Get.find<AuthService>().currentUserId ?? 'DailyBachat User')
-                  : loan.personName,
-              borrowerName: loan.type == 'lent'
-                  ? loan.personName
-                  : (Get.find<AuthService>().currentUserId ?? 'DailyBachat User'),
-              amount: loan.amount,
-              dueDate: dueDateStr,
-              type: loan.type,
-            );
-          } catch (_) {}
-        }
+        Get.offNamed(RoutesName.addLendBorrowView);
 
         // ── Local push notification + due-date reminders ─────────────────
         if (loan.expectedReturnDate != null) {

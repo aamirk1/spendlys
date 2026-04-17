@@ -2,7 +2,7 @@ name: spendly
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.25+25
+version: 1.0.26+26
 
 environment:
   sdk: ^3.6.2
@@ -85,7 +85,7 @@ flutter_icons:
 
 
 flutter_launcher_name:
-  name: "DailyBachat"
+  name: "DailyBachaat"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

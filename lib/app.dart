@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       initialBinding: InitialBinding(),
       debugShowCheckedModeBanner: false,
-      title: "DailyBachat",
+      title: "DailyBachaat",
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
       themeMode: themeController.theme,
