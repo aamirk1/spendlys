@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
 import 'package:spendly/models/notification_model.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/controllers/loan_controller.dart';
@@ -146,6 +148,9 @@ class NotificationService extends GetxService {
     final target = data['target_screen'];
     print("Navigating to target: $target");
 
+    // Reconstruct MyUser from storage for screens that need it
+    final myUser = MyUser.fromStorage();
+
     switch (target) {
       case 'invoice_list':
         Get.toNamed(RoutesName.invoiceList);
@@ -154,7 +159,7 @@ class NotificationService extends GetxService {
         Get.toNamed(RoutesName.quotationList);
         break;
       case 'loan_list':
-        Get.toNamed(RoutesName.addLendBorrowView);
+        Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
         break;
       case 'view_loan':
         // Try to find the loan in LoanController if it exists
@@ -167,13 +172,14 @@ class NotificationService extends GetxService {
             Get.toNamed(RoutesName.viewLoan, arguments: {
               'loan': loan,
               'controller': loanController,
+              'myUser': myUser,
             });
           } catch (e) {
             // If loan not found or controller not initialized, fall back to list
-            Get.toNamed(RoutesName.addLendBorrowView);
+            Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
           }
         } else {
-          Get.toNamed(RoutesName.addLendBorrowView);
+          Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
         }
         break;
       case 'premium':

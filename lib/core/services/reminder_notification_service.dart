@@ -86,15 +86,12 @@ class ReminderNotificationService extends GetxService {
   }) async {
     final isLent = type == 'lent';
     final amountStr = '₹${amount.toStringAsFixed(0)}';
-    final dueDateStr =
-        '${dueDate.day}/${dueDate.month}/${dueDate.year}';
+    final dueDateStr = '${dueDate.day}/${dueDate.month}/${dueDate.year}';
 
     // 1. Immediate confirmation notification
     await _showImmediate(
       id: _loanConfirmId(loanId),
-      title: isLent
-          ? '💸 Amount Lent Recorded'
-          : '📥 Amount Borrowed Recorded',
+      title: isLent ? '💸 Amount Lent Recorded' : '📥 Amount Borrowed Recorded',
       body: isLent
           ? 'You lent $amountStr to $personName. Due: $dueDateStr'
           : 'You borrowed $amountStr from $personName. Due: $dueDateStr',
@@ -108,9 +105,7 @@ class ReminderNotificationService extends GetxService {
     // 2. Schedule reminders
     await _scheduleDueDateReminders(
       baseId: _loanReminderBaseId(loanId),
-      title: isLent
-          ? '🔔 Payment Due — $personName'
-          : '⚠️ Repayment Reminder',
+      title: isLent ? '🔔 Payment Due — $personName' : '⚠️ Repayment Reminder',
       bodyOneDayBefore: isLent
           ? '$personName owes you $amountStr. Due TOMORROW!'
           : 'You owe $amountStr to $personName. Due TOMORROW!',
@@ -151,8 +146,7 @@ class ReminderNotificationService extends GetxService {
     await _showImmediate(
       id: _invoiceConfirmId(invoiceId),
       title: '🧾 Invoice Generated Successfully',
-      body:
-          'Invoice $invoiceNumber for $customerName — $totalStr created.',
+      body: 'Invoice $invoiceNumber for $customerName — $totalStr created.',
       payload: jsonEncode({
         'target_screen': 'invoice_list',
         'invoice_id': invoiceId,
@@ -329,8 +323,7 @@ class ReminderNotificationService extends GetxService {
   }
 
   // ID computation — uses a stable int derived from the UUID string
-  int _loanConfirmId(String loanId) =>
-      1000 + loanId.hashCode.abs() % 999;
+  int _loanConfirmId(String loanId) => 1000 + loanId.hashCode.abs() % 999;
 
   int _loanReminderBaseId(String loanId) =>
       2000 + (loanId.hashCode.abs() % 99) * 10;

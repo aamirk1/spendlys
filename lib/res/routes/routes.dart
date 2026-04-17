@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:spendly/models/myuser.dart';
 import 'package:spendly/core/bindings/home_binding.dart';
 import 'package:spendly/core/bindings/auth_binding.dart';
 import 'package:spendly/screens/add_lend_borrow/loan_detail_screen.dart';
@@ -85,7 +86,7 @@ class AppRoutes {
         GetPage(
             name: RoutesName.profileView,
             page: () => ProfileScreen(
-                  myUser: Get.arguments,
+                  myUser: Get.arguments ?? MyUser.fromStorage(),
                 ),
             transitionDuration: _kFast,
             transition: _kTransition),
@@ -121,7 +122,7 @@ class AppRoutes {
         GetPage(
             name: RoutesName.addLendBorrowView,
             page: () => LoansScreen(
-                  myUser: Get.arguments,
+                  myUser: Get.arguments ?? MyUser.fromStorage(),
                 ),
             transitionDuration: _kFast,
             transition: _kTransition),
@@ -169,7 +170,7 @@ class AppRoutes {
         GetPage(
             name: RoutesName.editProfile,
             page: () => EditProfileScreen(
-                  myUser: Get.arguments,
+                  myUser: Get.arguments ?? MyUser.fromStorage(),
                 ),
             transitionDuration: _kFast,
             transition: _kTransition),

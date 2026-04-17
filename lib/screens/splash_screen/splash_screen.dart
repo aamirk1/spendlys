@@ -126,7 +126,11 @@ class SplashScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           // ignore: deprecated_member_use
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9),
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.color
+                              ?.withOpacity(0.9),
                           fontWeight: FontWeight.w400,
                         ),
                       ),

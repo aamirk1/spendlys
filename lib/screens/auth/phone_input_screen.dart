@@ -93,13 +93,12 @@ class PhoneInputScreen extends StatelessWidget {
                       ],
                     );
                   }),
-                
                   const SizedBox(height: 32),
                   Obx(() => SizedBox(
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: (controller.isLoading.value )
+                          onPressed: (controller.isLoading.value)
                               ? null
                               : () {
                                   if (controller

@@ -121,14 +121,14 @@ class BusinessPdfHelper {
       return "";
     }
 
-    final String finalCustomerName =
-        getName(customer, ['name', 'full_name', 'customer_name']).isNotEmpty
-            ? getName(customer, ['name', 'full_name', 'customer_name'])
-            : getName(docData, ['customer_name', 'name', 'full_name', 'customer'])
-                    .isNotEmpty
-                ? getName(
-                    docData, ['customer_name', 'name', 'full_name', 'customer'])
-                : 'Unknown Customer';
+    final String finalCustomerName = getName(
+            customer, ['name', 'full_name', 'customer_name']).isNotEmpty
+        ? getName(customer, ['name', 'full_name', 'customer_name'])
+        : getName(docData, ['customer_name', 'name', 'full_name', 'customer'])
+                .isNotEmpty
+            ? getName(
+                docData, ['customer_name', 'name', 'full_name', 'customer'])
+            : 'Unknown Customer';
 
     final String docNumber = isInvoice
         ? (docData['invoice_number'] ?? 'N/A')
@@ -142,7 +142,8 @@ class BusinessPdfHelper {
         ? (docData['due_date'] != null &&
                 docData['due_date'].toString().isNotEmpty &&
                 docData['due_date'] != 'null'
-            ? DateFormat('dd MMM yyyy').format(DateTime.parse(docData['due_date']))
+            ? DateFormat('dd MMM yyyy')
+                .format(DateTime.parse(docData['due_date']))
             : 'N/A')
         : (docData['expiry_date'] != null &&
                 docData['expiry_date'].toString().isNotEmpty &&
@@ -375,7 +376,8 @@ class BusinessPdfHelper {
                 padding: const pw.EdgeInsets.all(12),
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(color: PdfColors.grey300),
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                  borderRadius:
+                      const pw.BorderRadius.all(pw.Radius.circular(8)),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,

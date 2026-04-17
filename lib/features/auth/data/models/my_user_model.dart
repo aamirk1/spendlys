@@ -1,3 +1,5 @@
+import 'package:get_storage/get_storage.dart';
+
 class MyUser {
   final String userId;
   final String name;
@@ -5,6 +7,7 @@ class MyUser {
   final String phoneNumber;
   final DateTime lastLogin;
   final String? image;
+  final bool isPremium;
 
   MyUser({
     required this.userId,
@@ -13,6 +16,7 @@ class MyUser {
     required this.phoneNumber,
     required this.lastLogin,
     this.image,
+    required this.isPremium,
   });
 
   static final empty = MyUser(
@@ -22,6 +26,7 @@ class MyUser {
     phoneNumber: '',
     lastLogin: DateTime.now(),
     image: null,
+    isPremium: false,
   );
 
   MyUser copyWith({
@@ -31,6 +36,7 @@ class MyUser {
     String? phoneNumber,
     DateTime? lastLogin,
     String? image,
+    bool? isPremium,
   }) {
     return MyUser(
       userId: userId ?? this.userId,
@@ -39,6 +45,7 @@ class MyUser {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       lastLogin: lastLogin ?? this.lastLogin,
       image: image ?? this.image,
+      isPremium: isPremium ?? this.isPremium,
     );
   }
 
@@ -52,6 +59,7 @@ class MyUser {
           ? DateTime.parse(map['lastLogin'].toString())
           : DateTime.now(),
       image: map['image'],
+      isPremium: map['isPremium'] ?? false,
     );
   }
 
@@ -63,6 +71,19 @@ class MyUser {
       'phoneNumber': phoneNumber,
       'lastLogin': lastLogin.toIso8601String(),
       'image': image,
+      'isPremium': isPremium,
     };
+  }
+
+  factory MyUser.fromStorage() {
+    final box = GetStorage();
+    return MyUser(
+      userId: box.read("userId") ?? '',
+      name: box.read("name") ?? '',
+      email: box.read("email") ?? '',
+      phoneNumber: box.read("phoneNumber") ?? '',
+      lastLogin: DateTime.now(),
+      isPremium: box.read("isPremium") ?? false,
+    );
   }
 }

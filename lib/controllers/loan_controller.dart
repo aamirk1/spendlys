@@ -88,6 +88,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan updated successfully!',
             isError: false);
         fetchLoans();
+        Get.offNamed(RoutesName.addLendBorrowView);
       } else {
         Utils.showSnackbar('Error', 'Failed to update loan: ${response.body}');
       }
@@ -235,6 +236,7 @@ class LoanController extends GetxController {
           await reminderSvc.cancelLoanReminders(loanId);
         } catch (_) {}
         fetchLoans(); // Refresh list
+        Get.offNamed(RoutesName.addLendBorrowView);
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');
       }
@@ -288,6 +290,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Payment updated successfully',
             isError: false);
         fetchLoans(); // Refresh list
+        Get.offNamed(RoutesName.addLendBorrowView);
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to update payment: ${response.body}');

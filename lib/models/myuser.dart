@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get_storage/get_storage.dart';
 
 class MyUser {
   final String userId;
@@ -71,6 +72,19 @@ class MyUser {
       'image': image,
       'isPremium': isPremium,
     };
+  }
+
+  // fromStorage factory
+  factory MyUser.fromStorage() {
+    final box = GetStorage();
+    return MyUser(
+      userId: box.read("userId") ?? '',
+      name: box.read("name") ?? '',
+      email: box.read("email") ?? '',
+      phoneNumber: box.read("phoneNumber") ?? '',
+      lastLogin: Timestamp.now(),
+      isPremium: box.read("isPremium") ?? false,
+    );
   }
 }
 

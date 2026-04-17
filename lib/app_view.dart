@@ -4,13 +4,15 @@ import 'package:spendly/res/routes/routes.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class MyAppView extends StatelessWidget {
-  const MyAppView({super.key, });
+  const MyAppView({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "DailyBachaat",
+      title: "DailyBachat",
       theme: ThemeData(
         colorScheme: ColorScheme.light(
           surface: Colors.grey.shade100,

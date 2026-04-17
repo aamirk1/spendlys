@@ -114,7 +114,8 @@ class AppTranslations extends Translations {
           'delete_account': 'Delete Account',
           'delete_account_confirm':
               'Are you sure you want to request account deletion? This action is irreversible.',
-          'please_enter_reason_for_deletion': 'Please enter a reason for account deletion',
+          'please_enter_reason_for_deletion':
+              'Please enter a reason for account deletion',
           'reason': 'Reason',
           'submit': 'Submit',
           'update_required': 'Update Required',
@@ -309,7 +310,8 @@ class AppTranslations extends Translations {
           'delete_account': 'खाता हटाएं',
           'delete_account_confirm':
               'क्या आप वाकई खाता हटाने का अनुरोध करना चाहते हैं? यह क्रिया अपरिवर्तनीय है।',
-          'please_enter_reason_for_deletion': 'कृपया खाता हटाने का कारण दर्ज करें',
+          'please_enter_reason_for_deletion':
+              'कृपया खाता हटाने का कारण दर्ज करें',
           'reason': 'कारण',
           'submit': 'प्रस्तुत करें',
           'update_required': 'अपडेट आवश्यक है',

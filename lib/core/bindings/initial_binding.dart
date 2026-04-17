@@ -7,6 +7,7 @@ import 'package:spendly/controllers/localization_controller.dart';
 import 'package:spendly/controllers/theme_controller.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/services/auth_service.dart';
+import 'package:spendly/services/app_update_service.dart';
 import 'package:spendly/controllers/auth_controller.dart';
 
 class InitialBinding extends Bindings {
@@ -24,6 +25,7 @@ class InitialBinding extends Bindings {
     
     // AuthService MUST be put before SignInController since SignInController depends on it
     Get.put(AuthService());
+    Get.put(AppUpdateService(), permanent: true);
     Get.put(SignInController());
     
     // AuthController for OTP flow

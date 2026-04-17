@@ -7,45 +7,61 @@ import '../utils/colors.dart';
 
 class AppUpdateService extends GetxService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Default store URL for the app
   static const String defaultStoreUrl =
       "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat";
 
+  /// Checks Firestore for the minimum required version and shows a mandatory
+  /// update dialog if the current version is too old.
   Future<bool> checkForUpdate() async {
     try {
+      // 1. Get current app version
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String currentVersion = packageInfo.version;
 
+      // 2. Fetch remote config from Firestore
+      // Path: /app_config/update
       DocumentSnapshot config =
           await _firestore.collection('app_config').doc('update').get();
 
       if (config.exists) {
         Map<String, dynamic> data = config.data() as Map<String, dynamic>;
-        String minVersion = data['min_version'] ?? '1.0.7';
+        
+        // Example Firestore data:
+        // { "min_version": "1.0.27", "store_url": "...", "force_update": true }
+        String minVersion = data['min_version'] ?? '1.0.0';
         String storeUrl = data['store_url'] ?? defaultStoreUrl;
         bool forceUpdate = data['force_update'] ?? true;
 
-        if (_shouldUpdate(currentVersion, minVersion) && forceUpdate) {
-          _showUpdateDialog(storeUrl);
-          return true;
+        if (_shouldUpdate(currentVersion, minVersion)) {
+          if (forceUpdate) {
+            _showUpdateDialog(storeUrl);
+            return true; // Update dialog is now blocking the UI
+          }
         }
       }
     } catch (e) {
-      debugPrint('Error checking for update: $e');
+      debugPrint('AppUpdateService: Error during check: $e');
     }
     return false;
   }
 
-  bool _shouldUpdate(String current, String min) {
+  /// SemVer comparison logic (e.g., 1.0.25 vs 1.0.26)
+  bool _shouldUpdate(String current, String minRequired) {
     try {
       List<int> currentParts =
           current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
       List<int> minParts =
-          min.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+          minRequired.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
-      for (int i = 0; i < minParts.length; i++) {
-        int currentPart = i < currentParts.length ? currentParts[i] : 0;
-        if (currentPart < minParts[i]) return true;
-        if (currentPart > minParts[i]) return false;
+      // Compare parts: major, minor, patch
+      for (int i = 0; i < 3; i++) {
+        int curr = i < currentParts.length ? currentParts[i] : 0;
+        int min = i < minParts.length ? minParts[i] : 0;
+
+        if (curr < min) return true;  // Current is older than minRequired
+        if (curr > min) return false; // Current is newer than minRequired
       }
     } catch (e) {
       return false;
@@ -53,16 +69,31 @@ class AppUpdateService extends GetxService {
     return false;
   }
 
+  /// Displays a non-dismissible dialog that forces the user to the store.
   void _showUpdateDialog(String storeUrl) {
     Get.dialog(
       PopScope(
-        canPop: false,
+        canPop: false, // Prevents back button dismissal
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          // You could show a toast here: "Update required to continue"
+        },
         child: Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          backgroundColor: Colors.white,
-          child: Padding(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
             padding: const EdgeInsets.all(28.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                )
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -73,7 +104,7 @@ class AppUpdateService extends GetxService {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.update_rounded,
+                    Icons.system_update_rounded,
                     size: 48,
                     color: AppColors.primary,
                   ),
@@ -85,6 +116,7 @@ class AppUpdateService extends GetxService {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
+                    letterSpacing: -0.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -108,8 +140,9 @@ class AppUpdateService extends GetxService {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
                     child: Text(
@@ -126,7 +159,7 @@ class AppUpdateService extends GetxService {
           ),
         ),
       ),
-      barrierDismissible: false,
+      barrierDismissible: false, // Prevents clicking outside to dismiss
     );
   }
 
@@ -136,9 +169,12 @@ class AppUpdateService extends GetxService {
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback for some OS versions
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
-      debugPrint('Error launching URL: $e');
+      debugPrint('AppUpdateService: Launch Error: $e');
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/services/app_update_service.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/controllers/payment_controller.dart';
@@ -17,8 +18,15 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkAuthStatus() async {
-    // Wait for 2 seconds to show splash animations
-    await Future.delayed(const Duration(seconds: 2));
+    // 1. Mandatory Update Check
+    final updateService = Get.find<AppUpdateService>();
+    bool updateTriggered = await updateService.checkForUpdate();
+    
+    // If a blocking update dialog is shown, we stop the splash flow here.
+    if (updateTriggered) return;
+
+    // 2. Wait for splash animations to settle
+    await Future.delayed(const Duration(seconds: 1));
 
     // Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;

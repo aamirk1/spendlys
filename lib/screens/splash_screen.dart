@@ -5,7 +5,7 @@ import 'package:spendly/controllers/splash_controller.dart';
 import 'package:spendly/utils/colors.dart';
 
 class DailyBachatSplashScreen extends StatefulWidget {
-  DailyBachatSplashScreen({super.key});
+  const DailyBachatSplashScreen({super.key});
 
   @override
   State<DailyBachatSplashScreen> createState() =>

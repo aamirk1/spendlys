@@ -1151,7 +1151,8 @@ class _PremiumButtonState extends State<_PremiumButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => widget.onPressed != null ? setState(() => _isPressed = true) : null,
+      onTapDown: (_) =>
+          widget.onPressed != null ? setState(() => _isPressed = true) : null,
       onTapUp: (_) {
         setState(() => _isPressed = false);
         if (!widget.isLoading && widget.onPressed != null) widget.onPressed!();
@@ -1166,85 +1167,91 @@ class _PremiumButtonState extends State<_PremiumButton>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
-              colors: widget.onPressed != null 
-                ? [AppColors.primary, AppColors.secondary]
-                : [Colors.grey.withOpacity(0.3), Colors.grey.withOpacity(0.1)],
+              colors: widget.onPressed != null
+                  ? [AppColors.primary, AppColors.secondary]
+                  : [
+                      Colors.grey.withOpacity(0.3),
+                      Colors.grey.withOpacity(0.1)
+                    ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: widget.onPressed != null ? [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.45),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ] : [],
+            boxShadow: widget.onPressed != null
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.45),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : [],
           ),
           child: Opacity(
             opacity: widget.onPressed != null ? 1.0 : 0.6,
             child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Stack(
-              children: [
-                // Shimmer overlay
-                if (!widget.isLoading)
-                  AnimatedBuilder(
-                    animation: _shimCtrl,
-                    builder: (_, __) {
-                      return Positioned.fill(
-                        child: ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            begin: Alignment(-1.5 + _shimCtrl.value * 3.5, 0),
-                            end: Alignment(-0.5 + _shimCtrl.value * 3.5, 0),
-                            colors: [
-                              Colors.white.withOpacity(0.0),
-                              Colors.white.withOpacity(0.12),
-                              Colors.white.withOpacity(0.0),
-                            ],
-                          ).createShader(bounds),
-                          child: Container(color: Colors.white),
-                        ),
-                      );
-                    },
-                  ),
-                // Content
-                Center(
-                  child: widget.isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+              borderRadius: BorderRadius.circular(18),
+              child: Stack(
+                children: [
+                  // Shimmer overlay
+                  if (!widget.isLoading)
+                    AnimatedBuilder(
+                      animation: _shimCtrl,
+                      builder: (_, __) {
+                        return Positioned.fill(
+                          child: ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              begin: Alignment(-1.5 + _shimCtrl.value * 3.5, 0),
+                              end: Alignment(-0.5 + _shimCtrl.value * 3.5, 0),
+                              colors: [
+                                Colors.white.withOpacity(0.0),
+                                Colors.white.withOpacity(0.12),
+                                Colors.white.withOpacity(0.0),
+                              ],
+                            ).createShader(bounds),
+                            child: Container(color: Colors.white),
                           ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              widget.text,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                        );
+                      },
+                    ),
+                  // Content
+                  Center(
+                    child: widget.isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                widget.text,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              CupertinoIcons.arrow_right,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                ),
-              ],
+                              const SizedBox(width: 8),
+                              const Icon(
+                                CupertinoIcons.arrow_right,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),);
+    );
   }
 }

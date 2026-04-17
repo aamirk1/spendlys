@@ -49,7 +49,7 @@ class PremiumScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
-                'DAILYBACHAT PREMIUM',
+                'DailyBachat PREMIUM',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
