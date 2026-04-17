@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -12,7 +11,6 @@ import 'package:spendly/utils/business_export_helper.dart';
 import 'package:spendly/widgets/premium_dialogs.dart';
 
 class CustomersController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final customers = [].obs;
   final isLoading = false.obs;
   

@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/services/business_service.dart';
+import 'package:spendly/widgets/business_dialogs.dart';
 
 class BusinessHomeController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final totalRevenue = 0.0.obs;
   final pendingAmount = 0.0.obs;
   final isLoading = false.obs;
@@ -146,13 +146,30 @@ class BusinessHomeView extends StatelessWidget {
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
-        _actionButton(context, Icons.receipt_long_rounded, "create_invoice".tr,
-            Colors.orange, () => Get.toNamed(RoutesName.createInvoice)),
+        _actionButton(
+            context,
+            Icons.receipt_long_rounded,
+            "create_invoice".tr,
+            Colors.orange,
+            () => _safeNavigate(RoutesName.createInvoice)),
         const SizedBox(width: 15),
-        _actionButton(context, Icons.request_quote_rounded, "quotation".tr,
-            Colors.teal, () => Get.toNamed(RoutesName.createQuotation)),
+        _actionButton(
+            context,
+            Icons.request_quote_rounded,
+            "quotation".tr,
+            Colors.teal,
+            () => _safeNavigate(RoutesName.createQuotation)),
       ],
     );
+  }
+
+  void _safeNavigate(String route) {
+    final businessService = Get.find<BusinessService>();
+    if (businessService.isProfileCreated.value) {
+      Get.toNamed(route);
+    } else {
+      BusinessDialogs.showProfileRequiredDialog();
+    }
   }
 
   Widget _actionButton(BuildContext context, IconData icon, String label,
@@ -275,21 +292,21 @@ class BusinessHomeView extends StatelessWidget {
             "customers".tr,
             "clients_ledgers".tr,
             Colors.indigo,
-            () => Get.toNamed(RoutesName.customersList)),
+            () => _safeNavigate(RoutesName.customersList)),
         _luxuryListTile(
             context,
             Icons.history_rounded,
             "invoice_history".tr,
             "past_transactions".tr,
             Colors.deepPurple,
-            () => Get.toNamed(RoutesName.invoiceList)),
+            () => _safeNavigate(RoutesName.invoiceList)),
         _luxuryListTile(
             context,
             Icons.request_quote_outlined,
             "quotation_history".tr,
             "view_past_quotes".tr,
             Colors.teal,
-            () => Get.toNamed(RoutesName.quotationList)),
+            () => _safeNavigate(RoutesName.quotationList)),
         _luxuryListTile(
             context,
             Icons.settings_suggest_rounded,
@@ -303,7 +320,7 @@ class BusinessHomeView extends StatelessWidget {
             "Inventory Management",
             "Products & Stock",
             Colors.teal,
-            () => Get.toNamed(RoutesName.inventoryList)),
+            () => _safeNavigate(RoutesName.inventoryList)),
       ],
     );
   }

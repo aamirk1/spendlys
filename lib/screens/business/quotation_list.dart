@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -10,7 +9,6 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class QuotationListController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final quotations = [].obs;
   final isLoading = true.obs;
 
@@ -37,10 +35,9 @@ class QuotationListController extends GetxController {
       bool matchesDate = true;
       if (dateRange.value != null && q['date'] != null) {
         final d = DateTime.parse(q['date']);
-        matchesDate = d.isAfter(dateRange.value!.start
-                .subtract(const Duration(seconds: 1))) &&
-            d.isBefore(
-                dateRange.value!.end.add(const Duration(days: 1)));
+        matchesDate = d.isAfter(
+                dateRange.value!.start.subtract(const Duration(seconds: 1))) &&
+            d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
       }
 
       return matchesSearch && matchesStatus && matchesDate;
@@ -56,10 +53,11 @@ class QuotationListController extends GetxController {
   Future<void> fetchQuotations() async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
-    
+
     isLoading.value = true;
     try {
-      final response = await ApiService.get('/business/quotations', headers: {'x-user-id': userId});
+      final response = await ApiService.get('/business/quotations',
+          headers: {'x-user-id': userId});
       if (response.statusCode == 200) {
         quotations.value = jsonDecode(response.body);
       }
@@ -141,8 +139,10 @@ class QuotationListView extends StatelessWidget {
                   ? Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Chip(
-                        label: Text("Status: ${controller.selectedStatus.value}"),
-                        onDeleted: () => controller.selectedStatus.value = 'All',
+                        label:
+                            Text("Status: ${controller.selectedStatus.value}"),
+                        onDeleted: () =>
+                            controller.selectedStatus.value = 'All',
                         backgroundColor: Colors.cyan.shade100,
                       ),
                     )
@@ -171,7 +171,8 @@ class QuotationListView extends StatelessWidget {
                   }
                   return AnimationLimiter(
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+                      padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10)
                           .copyWith(bottom: 20),
                       physics: const BouncingScrollPhysics(),
                       itemCount: items.length,
@@ -210,7 +211,8 @@ class QuotationListView extends StatelessWidget {
                                     ],
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
@@ -233,7 +235,8 @@ class QuotationListView extends StatelessWidget {
                                                     'Unknown Customer',
                                                 style: TextStyle(
                                                     fontSize: 12,
-                                                    color: Colors.grey.shade600),
+                                                    color:
+                                                        Colors.grey.shade600),
                                               ),
                                             ],
                                           ),
@@ -254,8 +257,10 @@ class QuotationListView extends StatelessWidget {
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: controller.getStatusColor(
-                                                    quot['status'] ?? 'draft'),
+                                                color:
+                                                    controller.getStatusColor(
+                                                        quot['status'] ??
+                                                            'draft'),
                                               ),
                                             ),
                                           )
@@ -272,11 +277,13 @@ class QuotationListView extends StatelessWidget {
                                             children: [
                                               Text("Date",
                                                   style: TextStyle(
-                                                      color: Colors.grey.shade600,
+                                                      color:
+                                                          Colors.grey.shade600,
                                                       fontSize: 12)),
                                               Text(dateFormatted,
                                                   style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 13)),
                                             ],
                                           ),
@@ -286,10 +293,11 @@ class QuotationListView extends StatelessWidget {
                                             children: [
                                               Text("Total Amount",
                                                   style: TextStyle(
-                                                      color: Colors.grey.shade600,
+                                                      color:
+                                                          Colors.grey.shade600,
                                                       fontSize: 12)),
                                               Text(
-                                                "₹${quot['total'] ?? '0.00'}",
+                                                "₹${_formatPrice(quot['total'])}",
                                                 style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 16,
@@ -316,6 +324,17 @@ class QuotationListView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatPrice(dynamic price) {
+    if (price == null || price.toString().isEmpty || price == 'null') {
+      return "0.00";
+    }
+    try {
+      return double.parse(price.toString()).toStringAsFixed(2);
+    } catch (_) {
+      return price.toString();
+    }
   }
 
   void _showFilterSheet(

@@ -3,7 +3,6 @@ import 'package:spendly/res/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
@@ -12,9 +11,9 @@ import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:spendly/services/business_service.dart';
 
 class BusinessProfileController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
@@ -184,6 +183,7 @@ class BusinessProfileController extends GetxController {
           body: payload);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.find<BusinessService>().setProfileCreated(true);
         Get.back();
         Utils.showSnackbar("Success", "Business Profile Updated",
             isError: false);

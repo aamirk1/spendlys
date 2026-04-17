@@ -11,7 +11,7 @@ import '../../utils/colors.dart';
 class AddIncome extends StatelessWidget {
   AddIncome({super.key});
 
-  final controller = Get.put(IncomeController());
+  final controller = Get.find<IncomeController>();
 
   @override
   Widget build(BuildContext context) {
@@ -148,8 +148,12 @@ class AddIncome extends StatelessWidget {
                     ? 'select_category'.tr
                     : controller.selectedCategory.value,
                 style: TextStyle(
-                  color: controller.selectedCategory.value.isEmpty 
-                      ? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5) 
+                  color: controller.selectedCategory.value.isEmpty
+                      ? Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.5)
                       : Theme.of(context).textTheme.bodyLarge?.color,
                   fontSize: 16,
                 ),
@@ -231,17 +235,17 @@ class AddIncome extends StatelessWidget {
                 child: FadeInAnimation(
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
+                      ],
+                    ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
@@ -260,14 +264,17 @@ class AddIncome extends StatelessWidget {
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Theme.of(context).textTheme.bodyLarge?.color),
+                            color:
+                                Theme.of(context).textTheme.bodyLarge?.color),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
                         DateFormat('dd MMM, hh:mm a').format(income['date']),
                         style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
+                            fontSize: 12,
+                            color:
+                                Theme.of(context).textTheme.bodySmall?.color),
                       ),
                       trailing: Text(
                         "+ ₹${NumberFormat('#,###').format(income['amount'])}",
@@ -308,7 +315,7 @@ class AddIncome extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Text("select_category".tr,
                   style: TextStyle(
-                      fontSize: 18, 
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleLarge?.color)),
             ),
@@ -359,7 +366,10 @@ class AddIncome extends StatelessWidget {
                                   : FontWeight.normal,
                               color: isSelected
                                   ? AppColors.primary
-                                  : Theme.of(context).textTheme.bodyLarge?.color,
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color,
                             ),
                             textAlign: TextAlign.center,
                             maxLines: 1,

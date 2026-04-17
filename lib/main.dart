@@ -13,6 +13,7 @@ import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
 import 'package:spendly/core/services/sync_service.dart';
+import 'package:spendly/core/services/security_service.dart';
 import 'package:uuid/uuid.dart';
 
 @pragma('vm:entry-point')
@@ -67,6 +68,7 @@ void main() async {
   // Initialize Global Services
   await Get.putAsync(() => NotificationService().init());
   await Get.putAsync(() => ReminderNotificationService().init());
+  await Get.putAsync(() => SecurityService().init());
   Get.put(SyncService());
   Get.put(ConnectivityService());
 

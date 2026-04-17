@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -11,7 +10,6 @@ import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/screens/business/create_quotation.dart' show QuotationItem;
 
 class EditInvoiceController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
   final customers = [].obs;
@@ -143,7 +141,16 @@ class EditInvoiceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> inv = Get.arguments;
+    final dynamic args = Get.arguments;
+    if (args == null || args is! Map<String, dynamic>) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.back();
+        Utils.showSnackbar("Error", "Required data missing. Please try again.");
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final Map<String, dynamic> inv = args;
     final controller = Get.put(EditInvoiceController());
     controller.initData(inv);
 
@@ -255,7 +262,7 @@ class EditInvoiceView extends StatelessWidget {
                                         children: [
                                           Text(item.description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                           const SizedBox(height: 4),
-                                          Text("${item.quantity} x ₹${item.unitPrice}", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                                          Text("${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}", style: const TextStyle(color: Colors.grey, fontSize: 13)),
                                         ],
                                       ),
                                     ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/models/myuser.dart';
 import 'dart:io';
 
@@ -14,7 +15,7 @@ class UserInfoSection extends StatelessWidget {
   final MyUser myUser;
 
   final ImagePicker _picker = ImagePicker();
-  DateTime? newLastLogin;
+  final userInfoController = Get.put(UserInfoController());
 
   Future<void> uploadProfilePicture(File imageFile) async {
     try {
@@ -40,83 +41,90 @@ class UserInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DateTime lastLoginDateTime = (myUser.lastLogin).toDate();
-    String formattedDate = DateFormat('MMM dd yyyy HH:mm').format(lastLoginDateTime);
+    return Obx(() {
+      final user = userInfoController.myUser.value;
+      DateTime lastLoginDateTime = (user.lastLogin).toDate();
+      String formattedDate =
+          DateFormat('MMM dd yyyy HH:mm').format(lastLoginDateTime);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      height: 240,
-      child: Stack(
-        children: [
-          // Background Card with Gradient
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(top: 40),
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withBlue(255).withOpacity(0.9),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  myUser.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  myUser.email,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildBadge(
-                      '${'user_id'.tr}: ${myUser.userId.substring(myUser.userId.length - 5).toUpperCase()}',
-                      Icons.verified_user_rounded,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildBadge(
-                      formattedDate,
-                      Icons.access_time_filled_rounded,
-                    ),
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        height: 240,
+        child: Stack(
+          children: [
+            // Background Card with Gradient
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 40),
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context)
+                        .primaryColor
+                        .withBlue(255)
+                        .withOpacity(0.9),
                   ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    user.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.email,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildBadge(
+                        '${'user_id'.tr}: ${user.userId.substring(user.userId.length - 5).toUpperCase()}',
+                        Icons.verified_user_rounded,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildBadge(
+                        formattedDate,
+                        Icons.access_time_filled_rounded,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Floating Avatar
-          Align(
-            alignment: Alignment.topCenter,
-            child: _buildModernAvatar(context),
-          ),
-        ],
-      ),
-    );
+            // Floating Avatar
+            Align(
+              alignment: Alignment.topCenter,
+              child: _buildModernAvatar(context),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildBadge(String text, IconData icon) {
@@ -145,68 +153,72 @@ class UserInfoSection extends StatelessWidget {
   }
 
   Widget _buildModernAvatar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+    return Obx(() {
+      final user = userInfoController.myUser.value;
+      return Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
-            child: ClipOval(
-              child: myUser.image != null && myUser.image!.isNotEmpty
-                  ? Image.memory(
-                      base64Decode(myUser.image!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildInitialsAvatar(context),
-                    )
-                  : _buildInitialsAvatar(context),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: user.image != null && user.image!.isNotEmpty
+                    ? Image.memory(
+                        base64Decode(user.image!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildInitialsAvatar(context),
+                      )
+                    : _buildInitialsAvatar(context),
+              ),
             ),
-          ),
-          Positioned(
-            bottom: 2,
-            right: 2,
-            child: GestureDetector(
-              onTap: () => _showPicker(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Icon(
-                  Icons.edit_rounded,
-                  size: 18,
-                  color: Colors.white,
+            Positioned(
+              bottom: 2,
+              right: 2,
+              child: GestureDetector(
+                onTap: () => _showPicker(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.edit_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildInitialsAvatar(BuildContext context) {
+    final user = userInfoController.myUser.value;
     return CircleAvatar(
       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
       child: Text(
-        myUser.name.isNotEmpty ? myUser.name[0].toUpperCase() : 'U',
+        user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
         style: TextStyle(
           fontSize: 40,
           fontWeight: FontWeight.bold,

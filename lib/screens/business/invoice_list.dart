@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -10,7 +9,6 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class InvoiceListController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final invoices = [].obs;
   final isLoading = true.obs;
   final isMoreLoading = false.obs;
@@ -364,7 +362,7 @@ class InvoiceListView extends StatelessWidget {
                                                             .grey.shade600,
                                                         fontSize: 12)),
                                                 Text(
-                                                  "₹${inv['total'] ?? '0.00'}",
+                                                  "₹${_formatPrice(inv['total'])}",
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -376,7 +374,7 @@ class InvoiceListView extends StatelessWidget {
                                                         0 &&
                                                     inv['status'] != 'paid')
                                                   Text(
-                                                    "Paid: ₹${inv['paid_amount']}",
+                                                    "Paid: ₹${_formatPrice(inv['paid_amount'])}",
                                                     style: const TextStyle(
                                                         color: Colors.green,
                                                         fontSize: 11,
@@ -405,6 +403,17 @@ class InvoiceListView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatPrice(dynamic price) {
+    if (price == null || price.toString().isEmpty || price == 'null') {
+      return "0.00";
+    }
+    try {
+      return double.parse(price.toString()).toStringAsFixed(2);
+    } catch (_) {
+      return price.toString();
+    }
   }
 
   void _showFilterSheet(

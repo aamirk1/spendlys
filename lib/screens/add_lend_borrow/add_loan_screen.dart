@@ -272,7 +272,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               _buildInputField(
                 amountController,
                 'amount'.tr,
-                'Enter transaction amount', // Need key for this too if wanted, or just use amount.tr
+                'enter_transaction_amount'.tr,
                 Icons.currency_rupee_outlined,
                 TextInputType.number,
                 (value) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/utils/utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'dart:convert';
@@ -14,7 +14,16 @@ class InvoiceDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> inv = Get.arguments;
+    final dynamic args = Get.arguments;
+    if (args == null || args is! Map<String, dynamic>) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.back();
+        Utils.showSnackbar("Error", "Invoice data missing.");
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final Map<String, dynamic> inv = args;
 
     // Safer item handling
     final dynamic itemsData = inv['items'] ?? [];
@@ -195,10 +204,10 @@ class InvoiceDetailView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
-        subtitle:
-            Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
+        subtitle: Text(
+            "Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
         trailing: Text(
-          "\u20b9${item['amount']}",
+          "\u20b9${_formatPrice(item['amount'])}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
@@ -213,22 +222,33 @@ class InvoiceDetailView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow("Subtotal", "\u20b9${inv['subtotal']}"),
+            _buildInfoRow("Subtotal", "\u20b9${_formatPrice(inv['subtotal'])}"),
             _buildInfoRow(
                 "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)",
-                "\u20b9${inv['tax']}"),
+                "\u20b9${_formatPrice(inv['tax'])}"),
             _buildInfoRow(
-                "Paid Amount", "\u20b9${inv['paid_amount'] ?? '0.00'}"),
+                "Paid Amount", "\u20b9${_formatPrice(inv['paid_amount'])}"),
             const Divider(),
-            _buildInfoRow("Grand Total", "\u20b9${inv['total']}"),
+            _buildInfoRow("Grand Total", "\u20b9${_formatPrice(inv['total'])}"),
           ],
         ),
       ),
     );
   }
 
+  String _formatPrice(dynamic price) {
+    if (price == null || price.toString().isEmpty || price == 'null') {
+      return "0.00";
+    }
+    try {
+      return double.parse(price.toString()).toStringAsFixed(2);
+    } catch (_) {
+      return price.toString();
+    }
+  }
+
   Future<void> _downloadPdf(Map<String, dynamic> inv) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(const Center(child: CircularProgressIndicator()),
@@ -284,7 +304,7 @@ class InvoiceDetailView extends StatelessWidget {
   }
 
   Future<void> _sharePdf(Map<String, dynamic> inv) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(const Center(child: CircularProgressIndicator()),
@@ -343,7 +363,7 @@ class InvoiceDetailView extends StatelessWidget {
 
   Future<void> _markAsPaid(String? invoiceId) async {
     if (invoiceId == null) return;
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(const Center(child: CircularProgressIndicator()),
@@ -438,7 +458,7 @@ class InvoiceDetailView extends StatelessWidget {
                   onPressed: () async {
                     if (!k.currentState!.validate()) return;
 
-                    String? userId = FirebaseAuth.instance.currentUser?.uid;
+                    String? userId = Get.find<AuthService>().currentUserId;
                     if (userId == null) return;
 
                     Get.dialog(const Center(child: CircularProgressIndicator()),

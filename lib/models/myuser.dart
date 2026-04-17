@@ -82,9 +82,9 @@ class MyUser {
       name: box.read("name") ?? '',
       email: box.read("email") ?? '',
       phoneNumber: box.read("phoneNumber") ?? '',
+      image: box.read("image"),
       lastLogin: Timestamp.now(),
       isPremium: box.read("isPremium") ?? false,
     );
   }
 }
-

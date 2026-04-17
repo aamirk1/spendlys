@@ -2,12 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
-import 'package:spendly/services/whatsapp_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -32,7 +30,6 @@ class InvoiceItem {
 }
 
 class CreateInvoiceController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
   final customers = [].obs;
@@ -161,11 +158,10 @@ class CreateInvoiceController extends GetxController {
   double get calculatedTax => subtotal * (taxPercent.value / 100);
   double get total => subtotal + calculatedTax;
 
-  void addItem(String desc, double qty, double price) {
+  void addItem(String desc, double qty, double price, bool shouldSaveToInventory) {
     items.add(InvoiceItem(description: desc, quantity: qty, unitPrice: price));
-    if (saveToInventory.value) {
+    if (shouldSaveToInventory) {
       _saveProductToInventory(desc, price);
-      saveToInventory.value = false;
     }
     update();
   }
@@ -259,13 +255,13 @@ class CreateInvoiceController extends GetxController {
     }
   }
 
-  Future<void> quickAddCustomer(String name) async {
+  Future<void> quickAddCustomer(String name, String phone) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.post('/business/customers',
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
-          body: {"name": name});
+          body: {"name": name, "phone": phone});
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newCust = jsonDecode(response.body);
         await fetchCustomers();
@@ -346,14 +342,15 @@ class CreateInvoiceView extends StatelessWidget {
                                   decoration: _inputDeco(
                                       "Invoice Number", Icons.receipt_rounded),
                                 ),
-                                 const SizedBox(height: 15),
+                                const SizedBox(height: 15),
                                 // Due Date picker
                                 StatefulBuilder(builder: (ctx, setSt) {
                                   return InkWell(
                                     onTap: () async {
                                       final picked = await showDatePicker(
                                         context: ctx,
-                                        initialDate: controller.selectedDueDate ??
+                                        initialDate: controller
+                                                .selectedDueDate ??
                                             DateTime.now()
                                                 .add(const Duration(days: 30)),
                                         firstDate: DateTime.now(),
@@ -361,8 +358,8 @@ class CreateInvoiceView extends StatelessWidget {
                                         helpText: 'Select Invoice Due Date',
                                       );
                                       if (picked != null) {
-                                        setSt(() =>
-                                            controller.selectedDueDate = picked);
+                                        setSt(() => controller.selectedDueDate =
+                                            picked);
                                         controller.dueDateController.text =
                                             '${picked.day}/${picked.month}/${picked.year}';
                                       }
@@ -383,10 +380,11 @@ class CreateInvoiceView extends StatelessWidget {
                                       child: Row(
                                         children: [
                                           Icon(Icons.calendar_today_rounded,
-                                              color: controller.selectedDueDate !=
-                                                      null
-                                                  ? Colors.green.shade600
-                                                  : Colors.grey),
+                                              color:
+                                                  controller.selectedDueDate !=
+                                                          null
+                                                      ? Colors.green.shade600
+                                                      : Colors.grey),
                                           const SizedBox(width: 12),
                                           Text(
                                             controller.selectedDueDate != null
@@ -394,10 +392,11 @@ class CreateInvoiceView extends StatelessWidget {
                                                 : 'Set Due Date (optional)',
                                             style: TextStyle(
                                               fontSize: 15,
-                                              color: controller.selectedDueDate !=
-                                                      null
-                                                  ? Colors.black87
-                                                  : Colors.black54,
+                                              color:
+                                                  controller.selectedDueDate !=
+                                                          null
+                                                      ? Colors.black87
+                                                      : Colors.black54,
                                             ),
                                           ),
                                           const Spacer(),
@@ -528,7 +527,7 @@ class CreateInvoiceView extends StatelessWidget {
                                                       fontSize: 16)),
                                               const SizedBox(height: 4),
                                               Text(
-                                                  "${item.quantity} x ₹${item.unitPrice}",
+                                                  "${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}",
                                                   style: const TextStyle(
                                                       color: Colors.grey,
                                                       fontSize: 13)),
@@ -735,13 +734,27 @@ class CreateInvoiceView extends StatelessWidget {
   void _showAddCustomerForm(
       BuildContext context, CreateInvoiceController controller) {
     final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: const Text("Add New Customer"),
-              content: TextFormField(
-                controller: nameCtrl,
-                decoration: _inputDeco("Customer Name", Icons.person),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameCtrl,
+                    decoration: _inputDeco("Customer Name", Icons.person),
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: _inputDeco("Phone Number", Icons.phone),
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
@@ -750,7 +763,8 @@ class CreateInvoiceView extends StatelessWidget {
                 ElevatedButton(
                     onPressed: () {
                       if (nameCtrl.text.isNotEmpty) {
-                        controller.quickAddCustomer(nameCtrl.text.trim());
+                        controller.quickAddCustomer(
+                            nameCtrl.text.trim(), phoneCtrl.text.trim());
                         Navigator.pop(ctx);
                         Navigator.pop(context); // Close picker
                       }
@@ -913,7 +927,8 @@ class CreateInvoiceView extends StatelessWidget {
                                 color: Colors.black54)),
                         const SizedBox(height: 10),
                         TextFormField(
-                          decoration: _inputDeco("Search Items...", Icons.search),
+                          decoration:
+                              _inputDeco("Search Items...", Icons.search),
                           onChanged: (v) =>
                               controller.productSearchQuery.value = v,
                         ),
@@ -935,7 +950,8 @@ class CreateInvoiceView extends StatelessWidget {
                                       tDesc.text = p['name'];
                                       tPrice.text = p['price'].toString();
                                     },
-                                    avatar: const Icon(Icons.inventory_2_outlined,
+                                    avatar: const Icon(
+                                        Icons.inventory_2_outlined,
                                         size: 16),
                                     backgroundColor: Colors.green.shade50,
                                   ),
@@ -987,7 +1003,17 @@ class CreateInvoiceView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 30),
+                      Obx(() => CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text("Save to Inventory",
+                                style: TextStyle(fontSize: 14)),
+                            value: controller.saveToInventory.value,
+                            activeColor: Colors.green,
+                            onChanged: (v) =>
+                                controller.saveToInventory.value = v ?? false,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          )),
+                      const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -997,7 +1023,8 @@ class CreateInvoiceView extends StatelessWidget {
                               controller.addItem(
                                   tDesc.text.trim(),
                                   double.parse(tQty.text.trim()),
-                                  double.parse(tPrice.text.trim()));
+                                  double.parse(tPrice.text.trim()),
+                                  controller.saveToInventory.value);
                               Get.back();
                             }
                           },

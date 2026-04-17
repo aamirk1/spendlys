@@ -9,6 +9,7 @@ import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/services/app_update_service.dart';
 import 'package:spendly/controllers/auth_controller.dart';
+import 'package:spendly/services/business_service.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -30,6 +31,7 @@ class InitialBinding extends Bindings {
     
     // AuthController for OTP flow
     Get.put(AuthController());
+    Get.put(BusinessService(), permanent: true);
     // NOTE: ExpenseController and IncomeController are NOT registered here.
     // They call the API in onInit() which would fire before login (→ 401).
     // Instead they are lazy-registered via Get.lazyPut in the home binding.

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
@@ -12,7 +11,6 @@ import 'package:spendly/screens/business/create_quotation.dart';
 import 'package:spendly/screens/business/quotation_list.dart';
 
 class EditQuotationController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
   final customers = [].obs;
@@ -143,7 +141,16 @@ class EditQuotationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> quot = Get.arguments;
+    final dynamic args = Get.arguments;
+    if (args == null || args is! Map<String, dynamic>) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.back();
+        Utils.showSnackbar("Error", "Required data missing. Please try again.");
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final Map<String, dynamic> quot = args;
     final controller = Get.put(EditQuotationController());
     controller.initData(quot);
 
@@ -282,7 +289,7 @@ class EditQuotationView extends StatelessWidget {
                                                       fontSize: 16)),
                                               const SizedBox(height: 4),
                                               Text(
-                                                  "${item.quantity} x ₹${item.unitPrice}",
+                                                  "${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}",
                                                   style: const TextStyle(
                                                       color: Colors.grey,
                                                       fontSize: 13)),
@@ -474,7 +481,7 @@ class EditQuotationView extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: Colors.black54)),
                 const SizedBox(height: 10),
-                Container(
+                SizedBox(
                   height: 60,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,

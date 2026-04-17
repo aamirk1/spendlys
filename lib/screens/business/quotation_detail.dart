@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/screens/business/quotation_list.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'dart:convert';
@@ -16,7 +16,16 @@ class QuotationDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> quot = Get.arguments;
+    final dynamic args = Get.arguments;
+    if (args == null || args is! Map<String, dynamic>) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.back();
+        Utils.showSnackbar("Error", "Quotation data missing.");
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final Map<String, dynamic> quot = args;
 
     // Safer item handling
     final dynamic itemsData = quot['items'] ?? [];
@@ -189,9 +198,9 @@ class QuotationDetailView extends StatelessWidget {
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
         subtitle:
-            Text("Qty: ${item['quantity']} \u00d7 \u20b9${item['unit_price']}"),
+            Text("Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
         trailing: Text(
-          "\u20b9${item['amount']}",
+          "\u20b9${_formatPrice(item['amount'])}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
@@ -206,25 +215,36 @@ class QuotationDetailView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow("Subtotal", "\u20b9${quot['subtotal']}"),
+            _buildInfoRow("Subtotal", "\u20b9${_formatPrice(quot['subtotal'])}"),
             _buildInfoRow(
                 "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)",
-                "\u20b9${quot['tax']}"),
+                "\u20b9${_formatPrice(quot['tax'])}"),
             _buildInfoRow(
               "Advance Paid",
-              "\u20b9${quot['advance_amount'] ?? '0.00'}",
+              "\u20b9${_formatPrice(quot['advance_amount'])}",
             ),
             const Divider(),
-            _buildInfoRow("Total", "\u20b9${quot['total']}"),
+            _buildInfoRow("Total", "\u20b9${_formatPrice(quot['total'])}"),
             if ((quot['advance_amount'] ?? 0.0) > 0)
               _buildInfoRow(
                 "Remaining Balance",
-                "\u20b9${(quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0)}",
+                "\u20b9${_formatPrice((quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0))}",
               ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatPrice(dynamic price) {
+    if (price == null || price.toString().isEmpty || price == 'null') {
+      return "0.00";
+    }
+    try {
+      return double.parse(price.toString()).toStringAsFixed(2);
+    } catch (_) {
+      return price.toString();
+    }
   }
 
   void _showConvertDialog(BuildContext context, Map<String, dynamic> quot) {
@@ -244,7 +264,7 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   Future<void> _convertToInvoice(Map<String, dynamic> quot) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(
@@ -286,7 +306,7 @@ class QuotationDetailView extends StatelessWidget {
       return;
     }
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(const Center(child: CircularProgressIndicator()),
@@ -349,7 +369,7 @@ class QuotationDetailView extends StatelessWidget {
       return;
     }
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     Get.dialog(const Center(child: CircularProgressIndicator()),

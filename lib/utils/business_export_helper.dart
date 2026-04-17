@@ -104,23 +104,25 @@ class BusinessExportHelper {
     if (type == BusinessExportType.customers) {
       csvData.add(['Name', 'Phone', 'Email', 'Address', 'Pending Amount']);
       for (var item in data) {
+        if (item == null) continue;
         csvData.add([
-          item['name'] ?? 'N/A',
-          item['phone'] ?? '',
-          item['email'] ?? '',
-          item['address'] ?? '',
-          item['pending_amount'] ?? '0.0'
+          (item['name'] ?? 'N/A').toString(),
+          (item['phone'] ?? '').toString(),
+          (item['email'] ?? '').toString(),
+          (item['address'] ?? '').toString(),
+          (item['pending_amount'] ?? '0.0').toString()
         ]);
       }
     } else {
       csvData.add(['Product Name', 'Description', 'Price', 'Stock', 'Unit']);
       for (var item in data) {
+        if (item == null) continue;
         csvData.add([
-          item['name'] ?? 'N/A',
-          item['description'] ?? '',
-          item['price'] ?? '0.0',
-          item['stock_quantity'] ?? '0',
-          item['unit'] ?? 'pcs'
+          (item['name'] ?? 'N/A').toString(),
+          (item['description'] ?? '').toString(),
+          (item['price'] ?? '0.0').toString(),
+          (item['stock_quantity'] ?? '0').toString(),
+          (item['unit'] ?? 'pcs').toString()
         ]);
       }
     }
@@ -147,21 +149,23 @@ class BusinessExportHelper {
     if (type == BusinessExportType.customers) {
       result.add(['Name', 'Phone', 'Email', 'Pending']);
       for (var item in data) {
+        if (item == null) continue;
         result.add([
-          item['name']?.toString() ?? 'N/A',
-          item['phone']?.toString() ?? '',
-          item['email']?.toString() ?? '',
+          (item['name'] ?? 'N/A').toString(),
+          (item['phone'] ?? '').toString(),
+          (item['email'] ?? '').toString(),
           "Rs ${item['pending_amount'] ?? '0.0'}"
         ]);
       }
     } else {
       result.add(['Product', 'Price', 'Stock', 'Unit']);
       for (var item in data) {
+        if (item == null) continue;
         result.add([
-          item['name']?.toString() ?? 'N/A',
+          (item['name'] ?? 'N/A').toString(),
           "Rs ${item['price'] ?? '0.0'}",
-          item['stock_quantity']?.toString() ?? '0',
-          item['unit']?.toString() ?? 'pcs'
+          (item['stock_quantity'] ?? '0').toString(),
+          (item['unit'] ?? 'pcs').toString()
         ]);
       }
     }

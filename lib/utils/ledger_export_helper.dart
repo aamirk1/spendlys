@@ -113,13 +113,17 @@ class LedgerExportHelper {
           'Paid Amount'
         ]);
         for (var item in data) {
+          if (item == null) continue;
           csvData.add([
-            item['invoice_number'],
-            item['resolved_customer_name'] ?? 'Unknown',
+            (item['invoice_number'] ?? 'N/A').toString(),
+            (item['resolved_customer_name'] ??
+                    item['customer_name'] ??
+                    'Unknown')
+                .toString(),
             _formatDate(item['date']),
-            item['status'],
-            item['total'],
-            item['paid_amount']
+            (item['status'] ?? 'N/A').toString(),
+            (item['total'] ?? '0.0').toString(),
+            (item['paid_amount'] ?? '0.0').toString()
           ]);
         }
         break;
@@ -134,27 +138,40 @@ class LedgerExportHelper {
           'Status'
         ]);
         for (var item in data) {
-          final loan = item as Loan;
-          csvData.add([
-            loan.personName,
-            loan.type,
-            _formatDateObj(loan.date),
-            _formatDateObj(loan.expectedReturnDate),
-            loan.amount,
-            loan.paidAmount.value,
-            loan.status.value
-          ]);
+          if (item == null) continue;
+          try {
+            csvData.add([
+              (item.personName ?? 'Unknown').toString(),
+              (item.type ?? 'N/A').toString(),
+              _formatDateObj(item.date),
+              _formatDateObj(item.expectedReturnDate),
+              (item.amount ?? 0.0).toString(),
+              (item.paidAmount?.value ?? 0.0).toString(),
+              (item.status?.value ?? 'N/A').toString()
+            ]);
+          } catch (e) {
+            csvData.add([
+              (item['personName'] ?? 'Unknown').toString(),
+              (item['type'] ?? 'N/A').toString(),
+              _formatDate(item['date']),
+              _formatDate(item['expectedReturnDate']),
+              (item['amount'] ?? 0.0).toString(),
+              (item['paidAmount'] ?? 0.0).toString(),
+              (item['status'] ?? 'N/A').toString()
+            ]);
+          }
         }
         break;
       case LedgerType.expense:
         csvData.add(['Description', 'Category', 'Type', 'Date', 'Amount']);
         for (var item in data) {
+          if (item == null) continue;
           csvData.add([
-            item['description'],
-            item['category'],
-            item['type'],
+            (item['description'] ?? 'N/A').toString(),
+            (item['category'] ?? 'N/A').toString(),
+            (item['type'] ?? 'N/A').toString(),
             _formatDateObj(item['date']),
-            item['amount']
+            (item['amount'] ?? 0.0).toString()
           ]);
         }
         break;
@@ -184,9 +201,13 @@ class LedgerExportHelper {
       case LedgerType.business:
         result.add(['Invoice #', 'Customer', 'Date', 'Status', 'Amount']);
         for (var item in data) {
+          if (item == null) continue;
           result.add([
-            item['invoice_number'] ?? 'N/A',
-            item['resolved_customer_name']?.toString() ?? 'Unknown',
+            (item['invoice_number'] ?? 'N/A').toString(),
+            (item['resolved_customer_name'] ??
+                    item['customer_name'] ??
+                    'Unknown')
+                .toString(),
             _formatDate(item['date']),
             (item['status'] ?? 'pending').toString().toUpperCase(),
             "Rs ${item['total'] ?? '0.00'}"
@@ -196,23 +217,37 @@ class LedgerExportHelper {
       case LedgerType.loan:
         result.add(['Person', 'Type', 'Date', 'Due Date', 'Amount']);
         for (var item in data) {
-          result.add([
-            item.personName,
-            item.type ?? 'N/A',
-            _formatDateObj(item.date),
-            _formatDateObj(item.expectedReturnDate),
-            "Rs ${item.amount ?? '0.00'}"
-          ]);
+          if (item == null) continue;
+          // Safe property access for dynamic loan objects
+          try {
+            result.add([
+              (item.personName ?? 'Unknown').toString(),
+              (item.type ?? 'N/A').toString(),
+              _formatDateObj(item.date),
+              _formatDateObj(item.expectedReturnDate),
+              "Rs ${item.amount ?? '0.00'}"
+            ]);
+          } catch (e) {
+            // Backup for Map-based access just in case
+            result.add([
+              (item['personName'] ?? 'Unknown').toString(),
+              (item['type'] ?? 'N/A').toString(),
+              _formatDate(item['date']),
+              _formatDate(item['expectedReturnDate']),
+              "Rs ${item['amount'] ?? '0.00'}"
+            ]);
+          }
         }
         break;
       case LedgerType.expense:
         result.add(['Description', 'Category', 'Type', 'Date', 'Amount']);
         for (var item in data) {
+          if (item == null) continue;
           result.add([
-            item['description'] ?? 'N/A',
-            item['category'] ?? 'N/A',
-            item['type'] ?? 'N/A',
-            _formatDateObj(item['date']),
+            (item['description'] ?? 'N/A').toString(),
+            (item['category'] ?? 'N/A').toString(),
+            (item['type'] ?? (item['ledgerType'] ?? 'N/A')).toString(),
+            _formatDate(item['date']),
             "Rs ${item['amount'] ?? '0.00'}"
           ]);
         }
@@ -222,7 +257,8 @@ class LedgerExportHelper {
   }
 
   static String _formatDate(dynamic d) {
-    if (d == null) return "N/A";
+    if (d == null || d.toString() == 'null' || d.toString().isEmpty)
+      return "N/A";
     try {
       if (d is DateTime) return DateFormat('dd MMM yyyy').format(d);
       return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));

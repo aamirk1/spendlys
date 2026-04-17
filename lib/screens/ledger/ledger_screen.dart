@@ -140,7 +140,8 @@ class LedgerScreen extends StatelessWidget {
         return _ledgerCard(
           title: inv['invoice_number'] ?? "INV-???",
           subtitle: inv['resolved_customer_name'] ?? "unknown_customer".tr,
-          amount: "₹${inv['total']}",
+          amount:
+              "₹${double.parse((inv['total'] ?? 0).toString()).toStringAsFixed(2)}",
           date: inv['date'],
           status: inv['status'],
           color: Colors.blue,
@@ -163,7 +164,8 @@ class LedgerScreen extends StatelessWidget {
         return _ledgerCard(
           title: loan.personName,
           subtitle: isLent ? "lent_money_msg".tr : "borrowed_money_msg".tr,
-          amount: "₹${loan.amount}",
+          amount:
+              "₹${double.parse((loan.amount ?? 0).toString()).toStringAsFixed(2)}",
           date: loan.date.toIso8601String(),
           status: isLent ? "lent_caps".tr : "borrowed_caps".tr,
           color: isLent ? Colors.orange : Colors.deepPurple,
@@ -188,7 +190,8 @@ class LedgerScreen extends StatelessWidget {
         return _ledgerCard(
           title: item['description'] ?? item['category'] ?? "Transaction",
           subtitle: item['category'] ?? "",
-          amount: "₹${item['amount']}",
+          amount:
+              "₹${double.parse((item['amount'] ?? 0).toString()).toStringAsFixed(2)}",
           date: item['date'].toString(),
           status: isIncome ? "income_caps".tr : "expense_caps".tr,
           color: isIncome ? Colors.green : Colors.red,

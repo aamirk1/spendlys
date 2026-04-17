@@ -18,8 +18,8 @@ class IncomeExpenseHome extends StatefulWidget {
 class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
     with SingleTickerProviderStateMixin {
   late TabController tabController;
-  final incomeController = Get.put(IncomeController());
-  final expenseController = Get.put(ExpenseController());
+  final incomeController = Get.find<IncomeController>();
+  final expenseController = Get.find<ExpenseController>();
 
   @override
   void initState() {

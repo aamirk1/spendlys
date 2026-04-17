@@ -134,23 +134,35 @@ class BusinessPdfHelper {
         ? (docData['invoice_number'] ?? 'N/A')
         : (docData['quotation_number'] ?? 'N/A');
 
-    final String dateStr = docData['date'] != null
-        ? DateFormat('dd MMM yyyy').format(DateTime.parse(docData['date']))
-        : DateFormat('dd MMM yyyy').format(DateTime.now());
+    String formatDocDate(dynamic d) {
+      if (d == null || d.toString().isEmpty || d.toString() == 'null') {
+        return DateFormat('dd MMM yyyy').format(DateTime.now());
+      }
+      try {
+        if (d is DateTime) return DateFormat('dd MMM yyyy').format(d);
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));
+      } catch (_) {
+        return d.toString();
+      }
+    }
+
+    final String dateStr = formatDocDate(docData['date']);
+
+    String formatExpiryDate(dynamic d) {
+      if (d == null || d.toString().isEmpty || d.toString() == 'null') {
+        return 'N/A';
+      }
+      try {
+        if (d is DateTime) return DateFormat('dd MMM yyyy').format(d);
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));
+      } catch (_) {
+        return d.toString();
+      }
+    }
 
     final String dueDateStr = isInvoice
-        ? (docData['due_date'] != null &&
-                docData['due_date'].toString().isNotEmpty &&
-                docData['due_date'] != 'null'
-            ? DateFormat('dd MMM yyyy')
-                .format(DateTime.parse(docData['due_date']))
-            : 'N/A')
-        : (docData['expiry_date'] != null &&
-                docData['expiry_date'].toString().isNotEmpty &&
-                docData['expiry_date'] != 'null'
-            ? DateFormat('dd MMM yyyy')
-                .format(DateTime.parse(docData['expiry_date']))
-            : 'N/A');
+        ? formatExpiryDate(docData['due_date'])
+        : formatExpiryDate(docData['expiry_date']);
 
     final pageTheme = pw.PageTheme(
       pageFormat: PdfPageFormat.a4,
@@ -301,27 +313,34 @@ class BusinessPdfHelper {
                   ],
                 ),
                 // Table Body
-                ...processedItems.map((item) {
+                ...(processedItems as List? ?? [])
+                    .where((item) => item != null)
+                    .map((item) {
                   return pw.TableRow(
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(item['description'] ?? 'N/A'),
+                        child:
+                            pw.Text((item['description'] ?? 'N/A').toString()),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(item['quantity']?.toString() ?? '1',
+                        child: pw.Text((item['quantity'] ?? '0').toString(),
                             textAlign: pw.TextAlign.center),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text('Rs ${item['unit_price'] ?? '0'}',
+                        child: pw.Text(
+                            "Rs ${(toDouble(item['unit_price'])).toStringAsFixed(2)}",
                             textAlign: pw.TextAlign.right),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text('Rs ${item['amount'] ?? '0'}',
-                            textAlign: pw.TextAlign.right),
+                        child: pw.Text(
+                            "Rs ${(toDouble(item['amount'])).toStringAsFixed(2)}",
+                            textAlign: pw.TextAlign.right,
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                       ),
                     ],
                   );

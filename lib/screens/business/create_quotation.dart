@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
@@ -30,7 +29,6 @@ class QuotationItem {
 }
 
 class CreateQuotationController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
 
   final customers = [].obs;
@@ -104,11 +102,12 @@ class CreateQuotationController extends GetxController {
   double get calculatedTax => subtotal * (taxPercent.value / 100);
   double get total => subtotal + calculatedTax;
 
-  void addItem(String desc, double qty, double price) {
-    items.add(QuotationItem(description: desc, quantity: qty, unitPrice: price));
-    if (saveToInventory.value) {
+  void addItem(
+      String desc, double qty, double price, bool shouldSaveToInventory) {
+    items
+        .add(QuotationItem(description: desc, quantity: qty, unitPrice: price));
+    if (shouldSaveToInventory) {
       _saveProductToInventory(desc, price);
-      saveToInventory.value = false;
     }
     update();
   }
@@ -117,9 +116,15 @@ class CreateQuotationController extends GetxController {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
-      await ApiService.post('/business/inventory/',
-          headers: {'Content-Type': 'application/json', 'x-user-id': userId},
-          body: {"name": name, "price": price, "stock_quantity": 0, "unit": ""});
+      await ApiService.post('/business/inventory/', headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId
+      }, body: {
+        "name": name,
+        "price": price,
+        "stock_quantity": 0,
+        "unit": ""
+      });
       fetchProducts();
     } catch (e) {
       debugPrint("Failed to save product to inventory: $e");
@@ -179,13 +184,13 @@ class CreateQuotationController extends GetxController {
     }
   }
 
-  Future<void> quickAddCustomer(String name) async {
+  Future<void> quickAddCustomer(String name, String phone) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
     try {
       final response = await ApiService.post('/business/customers',
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
-          body: {"name": name});
+          body: {"name": name, "phone": phone});
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newCust = jsonDecode(response.body);
         await fetchCustomers();
@@ -253,53 +258,53 @@ class CreateQuotationView extends StatelessWidget {
                                   decoration: _inputDeco("Quotation Number",
                                       Icons.request_quote_rounded),
                                 ),
-                                 const SizedBox(height: 15),
-                                 InkWell(
-                                   onTap: () =>
-                                       _showCustomerPicker(context, controller),
-                                   child: Container(
-                                     padding: const EdgeInsets.symmetric(
-                                         horizontal: 16, vertical: 15),
-                                     decoration: BoxDecoration(
-                                         color: Colors.grey.shade50,
-                                         borderRadius: BorderRadius.circular(15),
-                                         border: Border.all(
-                                             color: Colors.teal.shade100)),
-                                     child: Row(
-                                       children: [
-                                         Icon(Icons.person_rounded,
-                                             color: Colors.teal.shade600),
-                                         const SizedBox(width: 12),
-                                         Expanded(
-                                           child: Text(
-                                             controller.customers.firstWhere(
-                                                     (c) =>
-                                                         c['id'].toString() ==
-                                                         controller
-                                                             .selectedCustomerId
-                                                             .value,
-                                                     orElse: () => {
-                                                           'name':
-                                                               'Select Customer'
-                                                         })['name'] ??
-                                                 'Select Customer',
-                                             style: TextStyle(
-                                                 fontSize: 15,
-                                                 color: controller
-                                                             .selectedCustomerId
-                                                             .value ==
-                                                         null
-                                                     ? Colors.black54
-                                                     : Colors.black87),
-                                           ),
-                                         ),
-                                         const Icon(Icons.arrow_drop_down,
-                                             color: Colors.black54),
-                                       ],
-                                     ),
-                                   ),
-                                 ),
-                                 const SizedBox(height: 15),
+                                const SizedBox(height: 15),
+                                InkWell(
+                                  onTap: () =>
+                                      _showCustomerPicker(context, controller),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 15),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                            color: Colors.teal.shade100)),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.person_rounded,
+                                            color: Colors.teal.shade600),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            controller.customers.firstWhere(
+                                                    (c) =>
+                                                        c['id'].toString() ==
+                                                        controller
+                                                            .selectedCustomerId
+                                                            .value,
+                                                    orElse: () => {
+                                                          'name':
+                                                              'Select Customer'
+                                                        })['name'] ??
+                                                'Select Customer',
+                                            style: TextStyle(
+                                                fontSize: 15,
+                                                color: controller
+                                                            .selectedCustomerId
+                                                            .value ==
+                                                        null
+                                                    ? Colors.black54
+                                                    : Colors.black87),
+                                          ),
+                                        ),
+                                        const Icon(Icons.arrow_drop_down,
+                                            color: Colors.black54),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 15),
                                 TextFormField(
                                   controller:
                                       controller.advanceAmountController,
@@ -389,7 +394,7 @@ class CreateQuotationView extends StatelessWidget {
                                                       fontSize: 16)),
                                               const SizedBox(height: 4),
                                               Text(
-                                                  "${item.quantity} x ₹${item.unitPrice}",
+                                                  "${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}",
                                                   style: const TextStyle(
                                                       color: Colors.grey,
                                                       fontSize: 13)),
@@ -602,12 +607,13 @@ class CreateQuotationView extends StatelessWidget {
                                 color: Colors.black54)),
                         const SizedBox(height: 10),
                         TextFormField(
-                          decoration: _inputDeco("Search Items...", Icons.search),
+                          decoration:
+                              _inputDeco("Search Items...", Icons.search),
                           onChanged: (v) =>
                               controller.productSearchQuery.value = v,
                         ),
                         const SizedBox(height: 10),
-                        Container(
+                        SizedBox(
                           height: 60,
                           child: Obx(() {
                             final filtered = controller.filteredProducts;
@@ -624,7 +630,8 @@ class CreateQuotationView extends StatelessWidget {
                                       tDesc.text = p['name'];
                                       tPrice.text = p['price'].toString();
                                     },
-                                    avatar: const Icon(Icons.inventory_2_outlined,
+                                    avatar: const Icon(
+                                        Icons.inventory_2_outlined,
                                         size: 16),
                                     backgroundColor: Colors.teal.shade50,
                                   ),
@@ -676,7 +683,17 @@ class CreateQuotationView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 30),
+                      Obx(() => CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text("Save to Inventory",
+                                style: TextStyle(fontSize: 14)),
+                            value: controller.saveToInventory.value,
+                            activeColor: Colors.teal,
+                            onChanged: (v) =>
+                                controller.saveToInventory.value = v ?? false,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          )),
+                      const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -686,7 +703,8 @@ class CreateQuotationView extends StatelessWidget {
                               controller.addItem(
                                   tDesc.text.trim(),
                                   double.parse(tQty.text.trim()),
-                                  double.parse(tPrice.text.trim()));
+                                  double.parse(tPrice.text.trim()),
+                                  controller.saveToInventory.value);
                               Get.back();
                             }
                           },
@@ -812,13 +830,27 @@ class CreateQuotationView extends StatelessWidget {
   void _showAddCustomerForm(
       BuildContext context, CreateQuotationController controller) {
     final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: const Text("Add New Customer"),
-              content: TextFormField(
-                controller: nameCtrl,
-                decoration: _inputDeco("Customer Name", Icons.person),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameCtrl,
+                    decoration: _inputDeco("Customer Name", Icons.person),
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: _inputDeco("Phone Number", Icons.phone),
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
@@ -827,7 +859,8 @@ class CreateQuotationView extends StatelessWidget {
                 ElevatedButton(
                     onPressed: () {
                       if (nameCtrl.text.isNotEmpty) {
-                        controller.quickAddCustomer(nameCtrl.text.trim());
+                        controller.quickAddCustomer(
+                            nameCtrl.text.trim(), phoneCtrl.text.trim());
                         Navigator.pop(ctx);
                         Navigator.pop(context); // Close picker
                       }

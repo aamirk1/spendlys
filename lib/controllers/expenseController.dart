@@ -291,11 +291,4 @@ class ExpenseController extends GetxController {
   }
 
 
-  @override
-  void onClose() {
-    // Clean up controllers when the controller is disposed
-    amountController.dispose();
-    descriptionController.dispose();
-    super.onClose();
-  }
 }
