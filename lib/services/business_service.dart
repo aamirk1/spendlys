@@ -24,12 +24,14 @@ class BusinessService extends GetxService {
       final response = await ApiService.get(
         '/business/profile',
         headers: {'x-user-id': userId},
+        useCache: false,
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         // If the backend returns a valid profile with a name, we consider it created
         isProfileCreated.value = data != null && data['name'] != null && data['name'].toString().isNotEmpty;
+        debugPrint("Business Profile Status Checked: ${isProfileCreated.value}");
       } else {
         isProfileCreated.value = false;
       }

@@ -9,6 +9,7 @@ import 'package:spendly/utils/app_translations.dart';
 import 'package:spendly/utils/app_themes.dart';
 
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,6 +32,9 @@ class MyApp extends StatelessWidget {
       fallbackLocale: const Locale('en', 'US'),
       getPages: AppRoutes.appRoutes(),
       initialRoute: RoutesName.splashScreen,
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      ],
       // Global: fastest-feeling transition with no jank
       defaultTransition: Transition.fadeIn,
       // Remove overscroll glow for a smoother feel

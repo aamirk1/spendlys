@@ -51,6 +51,7 @@ class BusinessProfileController extends GetxController {
       final response = await ApiService.get(
         '/business/profile',
         headers: {'x-user-id': userId},
+        useCache: false,
       );
 
       if (response.statusCode == 200) {
@@ -61,6 +62,9 @@ class BusinessProfileController extends GetxController {
         emailController.text = data['email'] ?? '';
         gstController.text = data['gst_number'] ?? '';
         logoUrl.value = data['logo_url'];
+        if (data != null && data['name'] != null && data['name'].toString().isNotEmpty) {
+          Get.find<BusinessService>().setProfileCreated(true);
+        }
         debugPrint("Fetched Profile: logo_url = ${logoUrl.value}");
 
         if (data['payment_details'] != null &&

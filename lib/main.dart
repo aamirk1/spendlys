@@ -15,14 +15,17 @@ import 'package:spendly/core/services/connectivity_service.dart';
 import 'package:spendly/core/services/sync_service.dart';
 import 'package:spendly/core/services/security_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'dart:ui';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   if (message.notification != null) {
     final storage = GetStorage();
-    final List<dynamic> stored = storage.read<List<dynamic>>('saved_notifications') ?? [];
-    
+    final List<dynamic> stored =
+        storage.read<List<dynamic>>('saved_notifications') ?? [];
+
     final newNotification = {
       'id': Uuid().v4(),
       'title': message.notification?.title ?? "No Title",
@@ -31,7 +34,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       'data': message.data,
       'isRead': false,
     };
-    
+
     stored.insert(0, newNotification);
     await storage.write('saved_notifications', stored);
   }
@@ -52,7 +55,17 @@ void main() async {
   tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
   await Firebase.initializeApp();
-  
+
+  // Pass all uncaught "fatal" errors from the framework to Crashlytics
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   // Initialize App Check
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.playIntegrity,

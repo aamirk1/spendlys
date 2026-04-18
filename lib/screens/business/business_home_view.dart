@@ -16,6 +16,7 @@ class BusinessHomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    Get.find<BusinessService>().checkProfileStatus();
     fetchSummary();
   }
 
@@ -163,12 +164,19 @@ class BusinessHomeView extends StatelessWidget {
     );
   }
 
-  void _safeNavigate(String route) {
+  void _safeNavigate(String route) async {
     final businessService = Get.find<BusinessService>();
+    
     if (businessService.isProfileCreated.value) {
       Get.toNamed(route);
     } else {
-      BusinessDialogs.showProfileRequiredDialog();
+      // Try refreshing status once before showing dialog
+      await businessService.checkProfileStatus();
+      if (businessService.isProfileCreated.value) {
+        Get.toNamed(route);
+      } else {
+        BusinessDialogs.showProfileRequiredDialog();
+      }
     }
   }
 
