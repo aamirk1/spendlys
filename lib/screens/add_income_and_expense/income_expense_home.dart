@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/screens/add_income_and_expense/add_expense.dart';

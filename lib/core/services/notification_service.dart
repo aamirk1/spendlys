@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -159,7 +158,7 @@ class NotificationService extends GetxService {
         Get.toNamed(RoutesName.quotationList);
         break;
       case 'loan_list':
-        Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
+        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
         break;
       case 'view_loan':
         // Try to find the loan in LoanController if it exists
@@ -176,10 +175,10 @@ class NotificationService extends GetxService {
             });
           } catch (e) {
             // If loan not found or controller not initialized, fall back to list
-            Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
+            Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
           }
         } else {
-          Get.toNamed(RoutesName.addLendBorrowView, arguments: myUser);
+          Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
         }
         break;
       case 'premium':

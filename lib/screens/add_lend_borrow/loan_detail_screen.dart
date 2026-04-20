@@ -77,7 +77,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
+        iconTheme: IconThemeData(color: AppColors.primary),
         actions: [
           IconButton(
             icon: Icon(Icons.edit_outlined, color: AppColors.primary),
@@ -138,7 +138,6 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
         children: [
           const SizedBox(height: 20),
           Obx(() {
-            final remaining = widget.loan.amount - widget.loan.paidAmount.value;
             final percentagePaid = widget.loan.amount > 0
                 ? (widget.loan.paidAmount.value / widget.loan.amount)
                 : 0.0;
@@ -624,8 +623,6 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
             child: ElevatedButton(
               onPressed: () {
                 widget.controller.deleteLoan(widget.loan.id);
-                Get.back(); // Close dialog
-                Get.back(); // Go back to list
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,

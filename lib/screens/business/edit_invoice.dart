@@ -400,7 +400,7 @@ class EditInvoiceView extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: Colors.black54)),
                 const SizedBox(height: 10),
-                Container(
+                SizedBox(
                   height: 60,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,

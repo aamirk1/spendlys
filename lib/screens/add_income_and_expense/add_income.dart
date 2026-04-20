@@ -57,10 +57,12 @@ class AddIncome extends StatelessWidget {
                       color: AppColors.primary),
                   errorMsg: controller.errorMsg.value,
                   validator: (val) {
-                    if (val == null || val.isEmpty)
+                    if (val == null || val.isEmpty) {
                       return 'Please enter an amount';
-                    if (double.tryParse(val) == null)
+                    }
+                    if (double.tryParse(val) == null) {
                       return 'Please enter a valid number';
+                    }
                     return null;
                   },
                 )),
@@ -74,8 +76,9 @@ class AddIncome extends StatelessWidget {
                       color: AppColors.primary),
                   errorMsg: controller.errorMsg.value,
                   validator: (val) {
-                    if (val == null || val.isEmpty)
+                    if (val == null || val.isEmpty) {
                       return 'Please enter a description';
+                    }
                     return null;
                   },
                 )),

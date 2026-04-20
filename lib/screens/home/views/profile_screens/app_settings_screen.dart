@@ -6,9 +6,6 @@ import 'package:spendly/controllers/theme_controller.dart';
 import 'package:spendly/services/app_update_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:in_app_review/in_app_review.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AppSettingsScreen extends StatelessWidget {
   const AppSettingsScreen({super.key});
@@ -17,7 +14,6 @@ class AppSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizationController = Get.find<LocalizationController>();
     final themeController = Get.find<ThemeController>();
-    final InAppReview inAppReview = InAppReview.instance;
 
     return Scaffold(
       appBar: AppBar(

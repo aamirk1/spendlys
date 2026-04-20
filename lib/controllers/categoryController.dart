@@ -1,16 +1,12 @@
 import 'dart:convert';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/utils/utils.dart';
 
 class CategoryController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-
   var categories = <Map<String, dynamic>>[].obs;
   final nameController = TextEditingController();
   final iconController = TextEditingController();
@@ -50,9 +46,11 @@ class CategoryController extends GetxController {
       final response = await ApiService.get('/categories/?user_id=$userId');
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-        categories.value = data.map((item) => item as Map<String, dynamic>).toList();
+        categories.value =
+            data.map((item) => item as Map<String, dynamic>).toList();
       } else {
-        Utils.showSnackbar('Error', 'Failed to fetch categories: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to fetch categories: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'An error occurred: $e');
@@ -60,7 +58,6 @@ class CategoryController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   Future<void> addCategory() async {
     String? userId = Get.find<AuthService>().currentUserId;
@@ -82,7 +79,8 @@ class CategoryController extends GetxController {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Category added successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Category added successfully!',
+            isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
         selectedColor.value = Color(0xFFFFA500);
@@ -96,7 +94,6 @@ class CategoryController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   Future<void> editCategory(String categoryId) async {
     String? userId = Get.find<AuthService>().currentUserId;
@@ -117,13 +114,15 @@ class CategoryController extends GetxController {
       });
 
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Category updated successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Category updated successfully!',
+            isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
         selectedColor.value = Color(0xFFFFA500);
         fetchCategories(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to update category: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to update category: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to update category: $e');
@@ -132,19 +131,19 @@ class CategoryController extends GetxController {
     }
   }
 
-
   Future<void> deleteCategory(String categoryId) async {
     try {
       final response = await ApiService.delete('/categories/$categoryId');
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Category removed successfully', isError: false);
+        Utils.showSnackbar('Deleted', 'Category removed successfully',
+            isError: false);
         fetchCategories(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to delete category: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to delete category: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to delete category: $e');
     }
   }
-
 }

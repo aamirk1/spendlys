@@ -425,8 +425,9 @@ class InvoiceDetailView extends StatelessWidget {
                         double? val = double.tryParse(v);
                         if (val == null) return "Invalid";
                         if (val <= 0) return "Must be > 0";
-                        if (val > (remaining + 0.01))
+                        if (val > (remaining + 0.01)) {
                           return "Exceeds remaining";
+                        }
                         return null;
                       },
                       decoration: _inputDeco("Amount Paid", Icons.payments),

@@ -139,10 +139,14 @@ class CreateInvoiceController extends GetxController {
       }
 
       if (rawItems is List) {
-        for (var i in rawItems) processItem(i);
+        for (var i in rawItems) {
+          processItem(i);
+        }
       } else if (rawItems is String) {
         final List decoded = jsonDecode(rawItems);
-        for (var i in decoded) processItem(i);
+        for (var i in decoded) {
+          processItem(i);
+        }
       }
 
       items.assignAll(newItems);
@@ -229,7 +233,6 @@ class CreateInvoiceController extends GetxController {
           orElse: () => {'name': 'Customer', 'phone': ''},
         );
         final customerName = selectedCustomer['name'] as String? ?? 'Customer';
-        final customerPhone = selectedCustomer['phone'] as String? ?? '';
 
         // ── Local push + due-date reminders ───────────────────────────
         try {

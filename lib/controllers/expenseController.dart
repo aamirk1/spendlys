@@ -3,16 +3,12 @@
 import 'dart:convert';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/utils/utils.dart';
 
-
 class ExpenseController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
   var selectedCategory = ''.obs;
@@ -144,7 +140,6 @@ class ExpenseController extends GetxController {
     fetchExpenses(); // Start fetching expenses
   }
 
-
   // Real-time listener for expense updates
   Future<void> fetchExpenses() async {
     String? userId = Get.find<AuthService>().currentUserId;
@@ -152,7 +147,8 @@ class ExpenseController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await ApiService.get('/transactions/?user_id=$userId&type=expense');
+      final response =
+          await ApiService.get('/transactions/?user_id=$userId&type=expense');
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         Map<String, double> tempTotals = {};
@@ -177,7 +173,8 @@ class ExpenseController extends GetxController {
         categoryTotals.assignAll(tempTotals);
         expensesList.assignAll(tempExpenses);
       } else {
-        Utils.showSnackbar('Error', 'Failed to fetch expenses: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to fetch expenses: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'An error occurred: $e');
@@ -186,7 +183,6 @@ class ExpenseController extends GetxController {
     }
   }
 
-
   // Fetch filtered expense totals for charts (non-real-time)
   Future<void> fetchChartExpenseTotals(String filter) async {
     String? userId = Get.find<AuthService>().currentUserId;
@@ -194,10 +190,9 @@ class ExpenseController extends GetxController {
 
     // For now, we fetch all and filter in app, or you can add filter params to API
     await fetchExpenses();
-    
+
     // Filtering logic can be more specific if needed
   }
-
 
   // Add a new expense
   Future<void> addExpense() async {
@@ -237,7 +232,8 @@ class ExpenseController extends GetxController {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Expense added successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Expense added successfully!',
+            isError: false);
         amountController.clear();
         descriptionController.clear();
         selectedCategory.value = '';
@@ -252,18 +248,20 @@ class ExpenseController extends GetxController {
     }
   }
 
-
   // Update an existing expense
   Future<void> updateExpense(
       String docId, Map<String, dynamic> updatedData) async {
     isLoading.value = true;
     try {
-      final response = await ApiService.put('/transactions/$docId', body: updatedData);
+      final response =
+          await ApiService.put('/transactions/$docId', body: updatedData);
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Expense updated successfully', isError: false);
+        Utils.showSnackbar('Success', 'Expense updated successfully',
+            isError: false);
         fetchExpenses(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to update expense: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to update expense: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to update expense: $e');
@@ -278,10 +276,12 @@ class ExpenseController extends GetxController {
     try {
       final response = await ApiService.delete('/transactions/$docId');
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Expense removed successfully', isError: false);
+        Utils.showSnackbar('Deleted', 'Expense removed successfully',
+            isError: false);
         fetchExpenses(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to delete expense: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to delete expense: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to delete expense: $e');
@@ -289,6 +289,4 @@ class ExpenseController extends GetxController {
       isLoading.value = false;
     }
   }
-
-
 }

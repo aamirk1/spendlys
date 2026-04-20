@@ -174,7 +174,7 @@ class ViewAllIncome extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory,
                 items: incomeController.incomeCategories.map((category) {
                   return DropdownMenuItem(value: category['name'] as String, child: Text(category['name'] as String));
                 }).toList(),

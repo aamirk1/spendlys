@@ -3,15 +3,12 @@ import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
-import 'package:spendly/services/whatsapp_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/loan_modal.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class LoanController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   var loans = <Loan>[].obs;
   var isLoading = false.obs;
@@ -88,7 +85,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan updated successfully!',
             isError: false);
         fetchLoans();
-        Get.offNamed(RoutesName.addLendBorrowView);
+        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
       } else {
         Utils.showSnackbar('Error', 'Failed to update loan: ${response.body}');
       }
@@ -135,7 +132,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan added successfully!',
             isError: false);
         fetchLoans(); // Refresh list
-        Get.offNamed(RoutesName.addLendBorrowView);
+        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
 
         // ── Local push notification + due-date reminders ─────────────────
         if (loan.expectedReturnDate != null) {
@@ -236,7 +233,7 @@ class LoanController extends GetxController {
           await reminderSvc.cancelLoanReminders(loanId);
         } catch (_) {}
         fetchLoans(); // Refresh list
-        Get.offNamed(RoutesName.addLendBorrowView);
+        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');
       }
@@ -290,7 +287,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Payment updated successfully',
             isError: false);
         fetchLoans(); // Refresh list
-        Get.offNamed(RoutesName.addLendBorrowView);
+        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to update payment: ${response.body}');

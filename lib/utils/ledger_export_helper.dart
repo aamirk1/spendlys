@@ -6,7 +6,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:spendly/controllers/ledger_controller.dart';
-import 'package:spendly/models/loan_modal.dart';
 import 'package:flutter/services.dart' show Uint8List, rootBundle;
 
 class LedgerExportHelper {
@@ -257,8 +256,9 @@ class LedgerExportHelper {
   }
 
   static String _formatDate(dynamic d) {
-    if (d == null || d.toString() == 'null' || d.toString().isEmpty)
+    if (d == null || d.toString() == 'null' || d.toString().isEmpty) {
       return "N/A";
+    }
     try {
       if (d is DateTime) return DateFormat('dd MMM yyyy').format(d);
       return DateFormat('dd MMM yyyy').format(DateTime.parse(d.toString()));

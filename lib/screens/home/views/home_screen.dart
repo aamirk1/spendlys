@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
-import 'package:spendly/controllers/loan_controller.dart';
+import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
 import 'package:spendly/screens/ledger/ledger_screen.dart';
 import 'package:spendly/screens/home/views/main_screen.dart';
 import 'package:spendly/screens/home/views/profile_screens/profile_screen.dart';
@@ -30,9 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final paymentController = Get.put(PaymentController());
     paymentController.checkPremiumStatus();
 
+    // Check if an initial index is passed in arguments
+    if (Get.arguments is Map && Get.arguments['index'] != null) {
+      index = Get.arguments['index'];
+    }
+
     screens = [
       MainScreen(myUser: myUser),
       const BusinessHomeView(),
+      LoansScreen(myUser: myUser),
       LedgerScreen(myUser: myUser),
       ProfileScreen(myUser: myUser),
     ];
@@ -78,6 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(CupertinoIcons.briefcase),
                 activeIcon: const Icon(CupertinoIcons.briefcase_fill),
                 label: 'business'.tr,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(CupertinoIcons.money_dollar_circle),
+                activeIcon: const Icon(CupertinoIcons.money_dollar_circle_fill),
+                label: 'loans'.tr,
               ),
               BottomNavigationBarItem(
                 icon: const Icon(CupertinoIcons.list_bullet),
@@ -184,9 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.deepPurple,
                     onTap: () {
                       Get.back();
-                      Get.toNamed(RoutesName.addLoanScreen, arguments: {
-                        'controller': LoanController(),
-                        'myUser': myUser
+                      setState(() {
+                        index = 2; // Loans tab
                       });
                     },
                   ),

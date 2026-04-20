@@ -79,8 +79,9 @@ class ApiService {
       // Network error — cache سے serve کریں اگر ملے
       if (useCache) {
         final cachedData = LocalCacheService.getCache(cacheKey);
-        if (cachedData != null)
+        if (cachedData != null) {
           return http.Response(jsonEncode(cachedData), 200);
+        }
       }
       // Cache بھی نہیں — screen دکھائیں
       _showNoInternetScreen();

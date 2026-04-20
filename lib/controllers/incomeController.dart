@@ -1,18 +1,13 @@
 // // ignore_for_file: file_names
 
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:spendly/utils/utils.dart';
 
-
 class IncomeController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
   var selectedCategory = ''.obs;
@@ -111,7 +106,8 @@ class IncomeController extends GetxController {
 
     isLoading(true);
     try {
-      final response = await ApiService.get('/transactions/?user_id=$userId&type=income');
+      final response =
+          await ApiService.get('/transactions/?user_id=$userId&type=income');
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         List<Map<String, dynamic>> tempIncomes = [];
@@ -140,7 +136,8 @@ class IncomeController extends GetxController {
         totalIncome.value = total;
         updateChartData();
       } else {
-        Utils.showSnackbar('Error', 'Failed to fetch incomes: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to fetch incomes: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'An error occurred: $e');
@@ -149,7 +146,6 @@ class IncomeController extends GetxController {
     }
   }
 
-
   // Inside your IncomeController
   Future<void> fetchChartIncomeTotals(String filter) async {
     String? userId = Get.find<AuthService>().currentUserId;
@@ -157,7 +153,6 @@ class IncomeController extends GetxController {
 
     await fetchIncomes();
   }
-
 
   void updateChartData() {
     final Map<String, double> dataMap = {};
@@ -205,7 +200,8 @@ class IncomeController extends GetxController {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Income added successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Income added successfully!',
+            isError: false);
         amountController.clear();
         descriptionController.clear();
         selectedCategory.value = '';
@@ -220,17 +216,19 @@ class IncomeController extends GetxController {
     }
   }
 
-
   Future<void> updateIncome(
       String docId, Map<String, dynamic> updatedData) async {
     isLoading(true);
     try {
-      final response = await ApiService.put('/transactions/$docId', body: updatedData);
+      final response =
+          await ApiService.put('/transactions/$docId', body: updatedData);
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Income updated successfully', isError: false);
+        Utils.showSnackbar('Success', 'Income updated successfully',
+            isError: false);
         fetchIncomes(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to update income: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to update income: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to update income: $e');
@@ -244,10 +242,12 @@ class IncomeController extends GetxController {
     try {
       final response = await ApiService.delete('/transactions/$docId');
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Income removed successfully', isError: false);
+        Utils.showSnackbar('Deleted', 'Income removed successfully',
+            isError: false);
         fetchIncomes(); // Refresh list
       } else {
-        Utils.showSnackbar('Error', 'Failed to delete income: ${response.body}');
+        Utils.showSnackbar(
+            'Error', 'Failed to delete income: ${response.body}');
       }
     } catch (e) {
       Utils.showSnackbar('Error', 'Failed to delete income: $e');
@@ -255,5 +255,4 @@ class IncomeController extends GetxController {
       isLoading(false);
     }
   }
-
 }

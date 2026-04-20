@@ -276,10 +276,12 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 Icons.currency_rupee_outlined,
                 TextInputType.number,
                 (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'amount_required'.tr;
-                  if (double.tryParse(value) == null)
+                  }
+                  if (double.tryParse(value) == null) {
                     return 'invalid_amount'.tr;
+                  }
                   return null;
                 },
               ),
@@ -340,7 +342,6 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       );
                       widget.controller.addLoan(loan);
                     }
-                    Get.back();
                   }
                 },
                 backgroundColor: AppColors.primary,

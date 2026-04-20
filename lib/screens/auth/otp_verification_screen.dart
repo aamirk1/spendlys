@@ -7,7 +7,7 @@ import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/utils/colors.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-  OtpVerificationScreen({super.key});
+  const OtpVerificationScreen({super.key});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();

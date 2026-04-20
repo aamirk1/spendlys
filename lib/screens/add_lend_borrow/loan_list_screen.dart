@@ -580,7 +580,7 @@ class _LoansScreenState extends State<LoansScreen>
                               else
                                 const SizedBox(),
                               Text(
-                                "remaining_label".tr + ": ₹${NumberFormat('#,###').format(remaining)}",
+                                "${"remaining_label".tr}: ₹${NumberFormat('#,###').format(remaining)}",
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
