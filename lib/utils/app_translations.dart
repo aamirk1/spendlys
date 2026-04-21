@@ -51,7 +51,7 @@ class AppTranslations extends Translations {
           'total_balance': 'Total Balance',
           'feature_modules': 'Feature Modules',
           'business_center': 'Business Center',
-          'invoices_subtitle': 'Paid/Pending Invoices',
+          'invoices_subtitle': 'Total/Pending Invoices',
           'digital_ledger': 'Digital Ledger',
           'lent_borrowed': 'Lent/Borrowed',
           'recent_transactions': 'Recent Transactions',
@@ -865,7 +865,8 @@ class AppTranslations extends Translations {
           'info': 'માહિતી',
           'SUCCESS': 'સફળ',
           'na': 'લાગુ નથી',
-          'profile_updated_successfully': 'પ્રોફાઇલ સફળતાપૂર્વક અપડેટ કરવામાં આવી',
+          'profile_updated_successfully':
+              'પ્રોફાઇલ સફળતાપૂર્વક અપડેટ કરવામાં આવી',
         },
       };
 }

@@ -7,6 +7,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool automaticallyImplyLeading;
   final List<Widget>? actions;
   final Widget? bottom;
+  final Widget? leading;
 
   const CustomAppBar({
     super.key,
@@ -16,6 +17,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.automaticallyImplyLeading = true,
     this.actions,
     this.bottom,
+    this.leading,
   });
 
   @override
@@ -26,6 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.white,
       centerTitle: centerTitle,
       automaticallyImplyLeading: automaticallyImplyLeading,
+      leading: leading,
       actions: actions,
       bottom: bottom as PreferredSizeWidget?,
       shape: const RoundedRectangleBorder(

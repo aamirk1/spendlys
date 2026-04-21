@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final MyUser myUser = Get.arguments;
+  late final MyUser myUser;
   int index = 0;
 
   late final List<Widget> screens;
@@ -26,19 +26,27 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
+    // 1. Resolve arguments safely to avoid TypeError: '_Map<String, int>' is not a subtype of 'MyUser'
+    final args = Get.arguments;
+    if (args is MyUser) {
+      myUser = args;
+    } else if (args is Map) {
+      myUser = args['myUser'] is MyUser ? args['myUser'] : MyUser.fromStorage();
+      if (args['index'] != null) {
+        index = args['index'];
+      }
+    } else {
+      myUser = MyUser.fromStorage();
+    }
+
     // Always check premium status on home screen load
     final paymentController = Get.put(PaymentController());
     paymentController.checkPremiumStatus();
 
-    // Check if an initial index is passed in arguments
-    if (Get.arguments is Map && Get.arguments['index'] != null) {
-      index = Get.arguments['index'];
-    }
-
     screens = [
       MainScreen(myUser: myUser),
       const BusinessHomeView(),
-      LoansScreen(myUser: myUser),
       LedgerScreen(myUser: myUser),
       ProfileScreen(myUser: myUser),
     ];
@@ -86,11 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'business'.tr,
               ),
               BottomNavigationBarItem(
-                icon: const Icon(CupertinoIcons.money_dollar_circle),
-                activeIcon: const Icon(CupertinoIcons.money_dollar_circle_fill),
-                label: 'loans'.tr,
-              ),
-              BottomNavigationBarItem(
                 icon: const Icon(CupertinoIcons.list_bullet),
                 activeIcon: const Icon(CupertinoIcons.list_bullet_indent),
                 label: 'ledger'.tr,
@@ -106,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () {
           _showActionSheet(context);
         },
@@ -190,14 +194,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _actionButton(
                     context: context,
-                    icon: CupertinoIcons.money_dollar_circle_fill,
-                    label: 'loan'.tr,
-                    color: Colors.deepPurple,
+                    icon: CupertinoIcons.money_dollar,
+                    label: 'loans'.tr,
+                    color: Colors.indigo,
                     onTap: () {
                       Get.back();
-                      setState(() {
-                        index = 2; // Loans tab
-                      });
+                      Get.toNamed(RoutesName.addLoanScreen, arguments: myUser);
                     },
                   ),
                 ),

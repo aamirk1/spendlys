@@ -9,6 +9,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../controllers/loan_controller.dart';
 import 'loan_detail_screen.dart';
 import 'add_loan_screen.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class LoansScreen extends StatefulWidget {
   final MyUser myUser;
@@ -24,14 +25,19 @@ class _LoansScreenState extends State<LoansScreen>
   late final LoanController controller;
   final TextEditingController searchController = TextEditingController();
   final RxString searchQuery = "".obs;
-  late final TabController _tabController =
-      TabController(length: 2, vsync: this);
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     controller = Get.put(LoanController());
     controller.fetchLoans();
+
+    int initialIndex = 0;
+    if (Get.arguments is Map && Get.arguments['index'] != null) {
+      initialIndex = Get.arguments['index'];
+    }
+    _tabController = TabController(length: 2, vsync: this, initialIndex: initialIndex);
   }
 
   @override
@@ -46,6 +52,18 @@ class _LoansScreenState extends State<LoansScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Get.back();
+                } else {
+                  Get.offAllNamed(RoutesName.homeView);
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+              )),
         backgroundColor: AppColors.primary,
         title: "digital_ledger_title".tr,
         actions: [
@@ -78,6 +96,7 @@ class _LoansScreenState extends State<LoansScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => Get.to(() => AddLoanScreen(
               myUser: widget.myUser,
               controller: controller,

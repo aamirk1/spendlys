@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/components/customAppBar.dart';
@@ -349,10 +350,126 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 borderRadius: 16,
                 // padding: const EdgeInsets.symmetric(vertical: 18),
               ),
+              const SizedBox(height: 35),
+              _buildRecentEntries(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRecentEntries() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('recent_transactions'.tr,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleLarge?.color)),
+            Obx(() => widget.controller.loans.length > 5
+                ? GestureDetector(
+                    onTap: () => Get.offNamed(RoutesName.addLendBorrowView,
+                        arguments: {
+                          'myUser': widget.myUser,
+                          'index': type == 'lent' ? 0 : 1
+                        }),
+                    child: Text('view_all'.tr,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.indigo.shade600,
+                            fontWeight: FontWeight.w600)),
+                  )
+                : const SizedBox.shrink()),
+          ],
+        ),
+        const SizedBox(height: 15),
+        Obx(() {
+          final recentLoans = widget.controller.loans.take(5).toList();
+
+          if (recentLoans.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_long_outlined,
+                        size: 50, color: Colors.grey.shade300),
+                    const SizedBox(height: 10),
+                    Text("no_loan_records".tr,
+                        style:
+                            TextStyle(color: Theme.of(context).disabledColor)),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Column(
+            children: recentLoans.map((loan) {
+              final isLent = loan.type == 'lent';
+              final color = isLent ? Colors.green : Colors.orange;
+              final icon = isLent ? Icons.arrow_upward : Icons.arrow_downward;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x05000000),
+                        blurRadius: 5,
+                        offset: Offset(0, 2))
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: color.withOpacity(0.15),
+                      child: Icon(icon, color: color, size: 22),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(loan.personName,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color)),
+                          Text(DateFormat('dd MMM yyyy').format(loan.date),
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color)),
+                        ],
+                      ),
+                    ),
+                    Text("₹${loan.amount.toStringAsFixed(0)}",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: color)),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+        }),
+      ],
     );
   }
 }

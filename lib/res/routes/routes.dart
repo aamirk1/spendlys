@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/controllers/loan_controller.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/core/bindings/home_binding.dart';
 import 'package:spendly/core/bindings/auth_binding.dart';
@@ -86,7 +88,9 @@ class AppRoutes {
         GetPage(
             name: RoutesName.profileView,
             page: () => ProfileScreen(
-                  myUser: Get.arguments ?? MyUser.fromStorage(),
+                  myUser: Get.arguments is MyUser
+                      ? Get.arguments
+                      : MyUser.fromStorage(),
                 ),
             transitionDuration: _kFast,
             transition: _kTransition),
@@ -121,25 +125,57 @@ class AppRoutes {
 // ---------------------------------------------------------------------------------
         GetPage(
             name: RoutesName.addLendBorrowView,
-            page: () => LoansScreen(
-                  myUser: Get.arguments ?? MyUser.fromStorage(),
-                ),
+            page: () {
+              final args = Get.arguments;
+              if (args is MyUser) {
+                return LoansScreen(myUser: args);
+              } else if (args is Map) {
+                return LoansScreen(
+                  myUser: args['myUser'] ?? MyUser.fromStorage(),
+                );
+              } else {
+                return LoansScreen(myUser: MyUser.fromStorage());
+              }
+            },
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
             name: RoutesName.addLoanScreen,
-            page: () => AddLoanScreen(
-                  myUser: Get.arguments['myUser'],
-                  controller: Get.arguments['controller'],
-                ),
+            page: () {
+              final args = Get.arguments;
+              if (args is MyUser) {
+                return AddLoanScreen(
+                  myUser: args,
+                  controller: Get.find<LoanController>(),
+                );
+              } else if (args is Map) {
+                return AddLoanScreen(
+                  myUser: args['myUser'] ?? MyUser.fromStorage(),
+                  controller: args['controller'] ?? Get.find<LoanController>(),
+                  loan: args['loan'],
+                );
+              } else {
+                return AddLoanScreen(
+                  myUser: MyUser.fromStorage(),
+                  controller: Get.find<LoanController>(),
+                );
+              }
+            },
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
             name: RoutesName.viewLoan,
-            page: () => LoanDetailScreen(
-                  loan: Get.arguments['loan'],
-                  controller: Get.arguments['controller'],
-                ),
+            page: () {
+              final args = Get.arguments;
+              if (args is Map && args['loan'] != null) {
+                return LoanDetailScreen(
+                  loan: args['loan'],
+                  controller: args['controller'] ?? Get.find<LoanController>(),
+                );
+              }
+              return const Scaffold(
+                  body: Center(child: Text("Invalid Loan Arguments")));
+            },
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(
@@ -170,7 +206,9 @@ class AppRoutes {
         GetPage(
             name: RoutesName.editProfile,
             page: () => EditProfileScreen(
-                  myUser: Get.arguments ?? MyUser.fromStorage(),
+                  myUser: Get.arguments is MyUser
+                      ? Get.arguments
+                      : MyUser.fromStorage(),
                 ),
             transitionDuration: _kFast,
             transition: _kTransition),

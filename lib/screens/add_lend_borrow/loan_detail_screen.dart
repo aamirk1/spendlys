@@ -181,17 +181,14 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
             );
           }),
           const SizedBox(height: 20),
-          Hero(
-            tag: "loan_name_${widget.loan.id}",
-            child: Material(
-              color: Colors.transparent,
-              child: Text(
-                widget.loan.personName,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+          Material(
+            color: Colors.transparent,
+            child: Text(
+              widget.loan.personName,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

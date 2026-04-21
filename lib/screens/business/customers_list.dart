@@ -114,6 +114,7 @@ class CustomersListView extends StatelessWidget {
       ),
       extendBodyBehindAppBar: true,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _showAddCustomerSheet(context, controller),
         backgroundColor: Colors.indigo,
         icon: const Icon(Icons.add_rounded, color: Colors.white),

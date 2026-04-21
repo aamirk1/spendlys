@@ -34,7 +34,7 @@ class InventoryController extends GetxController {
           .toString()
           .toLowerCase()
           .contains(searchQuery.value.toLowerCase());
-      
+
       bool matchesPrice = true;
       if (minPriceFilter.value != null) {
         matchesPrice = (p['price'] ?? 0.0) >= minPriceFilter.value!;
@@ -61,10 +61,13 @@ class InventoryController extends GetxController {
     try {
       String url = '/business/inventory/?';
       if (searchQuery.value.isNotEmpty) url += 'search=${searchQuery.value}&';
-      if (minPriceFilter.value != null) url += 'min_price=${minPriceFilter.value}&';
-      if (maxPriceFilter.value != null) url += 'max_price=${maxPriceFilter.value}&';
+      if (minPriceFilter.value != null)
+        url += 'min_price=${minPriceFilter.value}&';
+      if (maxPriceFilter.value != null)
+        url += 'max_price=${maxPriceFilter.value}&';
 
-      final response = await ApiService.get(url, headers: {'x-user-id': userId});
+      final response =
+          await ApiService.get(url, headers: {'x-user-id': userId});
       if (response.statusCode == 200) {
         products.value = jsonDecode(response.body);
       }
@@ -207,6 +210,7 @@ class InventoryListView extends StatelessWidget {
       ),
       extendBodyBehindAppBar: true,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _showProductSheet(context, controller),
         backgroundColor: Colors.teal,
         icon: const Icon(Icons.add_shopping_cart_rounded, color: Colors.white),
@@ -278,11 +282,13 @@ class InventoryListView extends StatelessWidget {
                   : const SizedBox.shrink()),
               Expanded(
                 child: Obx(() {
-                  if (controller.isLoading.value && controller.products.isEmpty) {
+                  if (controller.isLoading.value &&
+                      controller.products.isEmpty) {
                     return const Center(
                         child: CircularProgressIndicator(color: Colors.teal));
                   }
-                  if (controller.products.isEmpty && !controller.isLoading.value) {
+                  if (controller.products.isEmpty &&
+                      !controller.isLoading.value) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -291,18 +297,21 @@ class InventoryListView extends StatelessWidget {
                               size: 80, color: Colors.teal.withOpacity(0.5)),
                           const SizedBox(height: 20),
                           const Text("No products found.",
-                              style: TextStyle(fontSize: 18, color: Colors.black54)),
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.black54)),
                         ],
                       ),
                     );
                   }
                   final list = controller.filteredProducts;
                   if (list.isEmpty) {
-                    return const Center(child: Text("No items match your search."));
+                    return const Center(
+                        child: Text("No items match your search."));
                   }
                   return AnimationLimiter(
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+                      padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10)
                           .copyWith(bottom: 80),
                       physics: const BouncingScrollPhysics(),
                       itemCount: list.length,
@@ -314,7 +323,8 @@ class InventoryListView extends StatelessWidget {
                           child: SlideAnimation(
                             verticalOffset: 50.0,
                             child: FadeInAnimation(
-                              child: _buildProductCard(context, prod, controller),
+                              child:
+                                  _buildProductCard(context, prod, controller),
                             ),
                           ),
                         );
@@ -330,12 +340,14 @@ class InventoryListView extends StatelessWidget {
     );
   }
 
-  Future<void> _handleExport(BuildContext context, InventoryController controller, {required bool isPdf}) async {
+  Future<void> _handleExport(
+      BuildContext context, InventoryController controller,
+      {required bool isPdf}) async {
     final paymentController = Get.put(PaymentController());
     if (!paymentController.isPremium.value) {
       PremiumDialogs.showPremiumRequiredDialog(
-        message: "Exporting inventory details is a premium feature. Upgrade now to unlock professional branding and unlimited exports."
-      );
+          message:
+              "Exporting inventory details is a premium feature. Upgrade now to unlock professional branding and unlimited exports.");
       return;
     }
 
@@ -353,14 +365,16 @@ class InventoryListView extends StatelessWidget {
           data: controller.products,
         );
         Get.back(); // Close loading dialog
-        await BusinessExportHelper.showPrintPreview(pdfData, BusinessExportType.inventory);
+        await BusinessExportHelper.showPrintPreview(
+            pdfData, BusinessExportType.inventory);
       } else {
         final csvPath = await BusinessExportHelper.generateCsvFile(
           type: BusinessExportType.inventory,
           data: controller.products,
         );
         Get.back(); // Close loading dialog
-        await BusinessExportHelper.showShareSheet(csvPath, BusinessExportType.inventory);
+        await BusinessExportHelper.showShareSheet(
+            csvPath, BusinessExportType.inventory);
       }
     } catch (e) {
       if (Get.isDialogOpen ?? false) Get.back();

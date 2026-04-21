@@ -249,7 +249,8 @@ class MainScreen extends StatelessWidget {
               color: Colors.orange.shade600,
               valueObx: () =>
                   "₹${loanController.totalLent.toStringAsFixed(0)} / ₹${loanController.totalBorrowed.toStringAsFixed(0)}",
-              onTap: () => Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2}),
+              onTap: () => Get.toNamed(RoutesName.addLendBorrowView,
+                  arguments: {'index': 1}),
             ),
           ],
         ),
