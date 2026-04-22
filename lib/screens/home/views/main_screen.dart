@@ -250,7 +250,7 @@ class MainScreen extends StatelessWidget {
               valueObx: () =>
                   "₹${loanController.totalLent.toStringAsFixed(0)} / ₹${loanController.totalBorrowed.toStringAsFixed(0)}",
               onTap: () => Get.toNamed(RoutesName.addLendBorrowView,
-                  arguments: {'index': 1}),
+                  arguments: {'index': 0}),
             ),
           ],
         ),

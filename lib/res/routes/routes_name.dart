@@ -53,4 +53,5 @@ class RoutesName {
   static const String addProduct = '/add_product';
   static const String editProduct = '/edit_product';
   static const String premiumView = '/premium_view';
+  static const String benefitOnboarding = '/benefit_onboarding';
 }

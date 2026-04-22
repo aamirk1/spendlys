@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/services/app_update_service.dart';
 import 'package:spendly/res/routes/routes_name.dart';
@@ -21,35 +20,35 @@ class SplashController extends GetxController {
     // 1. Mandatory Update Check
     final updateService = Get.find<AppUpdateService>();
     bool updateTriggered = await updateService.checkForUpdate();
-    
+
     // If a blocking update dialog is shown, we stop the splash flow here.
     if (updateTriggered) return;
 
     // 2. Wait for splash animations to settle
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 100));
 
-    // Check if user is logged in
+    // 3. Check if benefit onboarding shown (first time user)
+    bool benefitOnboardingShown = _box.read("benefitOnboardingShown") ?? false;
+    if (!benefitOnboardingShown) {
+      Get.offAllNamed(RoutesName.benefitOnboarding);
+      return;
+    }
+
+    // 4. Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;
 
     if (isLoggedIn) {
       try {
         final signInController = Get.find<SignInController>();
         bool success = await _performSilentLogin(signInController);
-        
+
         if (success) {
           // Always refresh premium status on splash
           final paymentController = Get.put(PaymentController());
           await paymentController.checkPremiumStatus();
-          
+
           // Reconstruct MyUser for Home Screen
-          MyUser myUser = MyUser(
-            userId: _box.read("userId") ?? '',
-            name: _box.read("name") ?? '',
-            email: _box.read("email") ?? '',
-            phoneNumber: _box.read("phoneNumber") ?? '',
-            lastLogin: Timestamp.now(),
-            isPremium: _box.read("isPremium") ?? false,
-          );
+          MyUser myUser = MyUser.fromStorage();
           Get.offAllNamed(RoutesName.homeView, arguments: myUser);
         } else {
           // If silent login fails, force login
@@ -68,11 +67,15 @@ class SplashController extends GetxController {
   Future<bool> _performSilentLogin(SignInController controller) async {
     try {
       // 1. Check for email/password credentials
-      final credentials = await Get.find<SecureStorageService>().getCredentials();
+      final credentials =
+          await Get.find<SecureStorageService>().getCredentials();
       final email = credentials['email'];
       final password = credentials['password'];
 
-      if (email != null && password != null && email.isNotEmpty && password.isNotEmpty) {
+      if (email != null &&
+          password != null &&
+          email.isNotEmpty &&
+          password.isNotEmpty) {
         controller.emailController.text = email;
         controller.passwordController.text = password;
         await controller.signIn();

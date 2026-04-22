@@ -28,6 +28,7 @@ import 'package:spendly/screens/business/edit_quotation.dart';
 
 import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
 import 'package:spendly/screens/premium/premium_screen.dart';
+import 'package:spendly/screens/premium/benefit_onboarding_screen.dart';
 import 'package:spendly/screens/splash_screen.dart';
 import 'package:spendly/screens/auth/otp_verification_screen.dart';
 
@@ -282,6 +283,11 @@ class AppRoutes {
         GetPage(
             name: RoutesName.premiumView,
             page: () => const PremiumScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.benefitOnboarding,
+            page: () => const BenefitOnboardingScreen(),
             transitionDuration: _kFast,
             transition: _kTransition),
       ];

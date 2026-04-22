@@ -61,6 +61,7 @@ class PaymentController extends GetxController {
   }
 
   Future<void> fetchPremiumFeatures() async {
+    isLoading.value = true;
     try {
       final response = await ApiService.get('/payment/premium-features');
       if (response.statusCode == 200) {
@@ -70,6 +71,8 @@ class PaymentController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error fetching premium features: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

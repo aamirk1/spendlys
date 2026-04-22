@@ -10,7 +10,6 @@ import 'package:spendly/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class LoanController extends GetxController {
-
   var loans = <Loan>[].obs;
   var isLoading = false.obs;
   var errorMsg = Rx<String?>(null);
@@ -86,7 +85,7 @@ class LoanController extends GetxController {
         Utils.showSnackbar('Success', 'Loan updated successfully!',
             isError: false);
         fetchLoans();
-        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
+        Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
         Utils.showSnackbar('Error', 'Failed to update loan: ${response.body}');
       }
@@ -236,7 +235,7 @@ class LoanController extends GetxController {
           await reminderSvc.cancelLoanReminders(loanId);
         } catch (_) {}
         fetchLoans(); // Refresh list
-        Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
+        Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');
       }
