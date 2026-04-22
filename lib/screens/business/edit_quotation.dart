@@ -7,6 +7,7 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/screens/business/create_quotation.dart';
 import 'package:spendly/screens/business/quotation_list.dart';
 
@@ -110,6 +111,7 @@ class EditQuotationController extends GetxController {
         "tax_percent": taxPercent.value,
         "total": total,
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
+        "creator_name": Get.find<UserInfoController>().myUser.value.name,
         "items": items.map((i) => i.toJson()).toList()
       };
 

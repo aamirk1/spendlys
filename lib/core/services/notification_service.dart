@@ -8,7 +8,11 @@ import 'package:spendly/features/auth/data/models/my_user_model.dart';
 import 'package:spendly/models/notification_model.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/controllers/loan_controller.dart';
+import 'package:spendly/models/loan_modal.dart';
+import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/services/auth_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/material.dart';
 
 class NotificationService extends GetxService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -148,35 +152,47 @@ class NotificationService extends GetxService {
     print("Navigating to target: $target");
 
     // Reconstruct MyUser from storage for screens that need it
-    final myUser = MyUser.fromStorage();
 
     switch (target) {
       case 'invoice_list':
         Get.toNamed(RoutesName.invoiceList);
         break;
+      case 'view_invoice':
+        if (data.containsKey('invoice_id')) {
+          _fetchAndNavigate(
+            endpoint: '/business/invoices/${data['invoice_id']}',
+            routeName: RoutesName.viewInvoice,
+            argKey: 'invoice', // Detail view uses 'inv' but we will pass Map directly as expected by InvoiceDetailView
+            isMapDirect: true,
+          );
+        } else {
+          Get.toNamed(RoutesName.invoiceList);
+        }
+        break;
       case 'quotation_list':
         Get.toNamed(RoutesName.quotationList);
+        break;
+      case 'view_quotation':
+        if (data.containsKey('quotation_id')) {
+          _fetchAndNavigate(
+            endpoint: '/business/quotations/${data['quotation_id']}',
+            routeName: RoutesName.viewQuotation,
+            isMapDirect: true,
+          );
+        } else {
+          Get.toNamed(RoutesName.quotationList);
+        }
         break;
       case 'loan_list':
         Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
         break;
       case 'view_loan':
-        // Try to find the loan in LoanController if it exists
         if (data.containsKey('loan_id')) {
-          try {
-            final loanController = Get.find<LoanController>();
-            final loan = loanController.loans.firstWhere(
-              (l) => l.id == data['loan_id'],
-            );
-            Get.toNamed(RoutesName.viewLoan, arguments: {
-              'loan': loan,
-              'controller': loanController,
-              'myUser': myUser,
-            });
-          } catch (e) {
-            // If loan not found or controller not initialized, fall back to list
-            Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
-          }
+          _fetchAndNavigate(
+            endpoint: '/business/loans/${data['loan_id']}',
+            routeName: RoutesName.viewLoan,
+            isLoan: true,
+          );
         } else {
           Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
         }
@@ -188,9 +204,59 @@ class NotificationService extends GetxService {
         Get.toNamed(RoutesName.businessHome);
         break;
       default:
-        // By default go to main view or notifications screen
         Get.toNamed(RoutesName.notificationsScreen);
         break;
+    }
+  }
+
+  Future<void> _fetchAndNavigate({
+    required String endpoint,
+    required String routeName,
+    bool isMapDirect = false,
+    bool isLoan = false,
+    String? argKey,
+  }) async {
+    final userId = Get.find<AuthService>().currentUserId;
+    if (userId == null) return;
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator(color: Colors.teal)),
+      barrierDismissible: false,
+    );
+
+    try {
+      final response = await ApiService.get(endpoint, headers: {'x-user-id': userId});
+      Get.back(); // hide loading
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (isLoan) {
+          final loanController = Get.isRegistered<LoanController>()
+              ? Get.find<LoanController>()
+              : Get.put(LoanController());
+          
+          final loan = Loan.fromMap(data, data['id'] ?? '');
+          
+          // Reconstruct MyUser
+          final myUser = MyUser.fromStorage();
+          
+          Get.toNamed(routeName, arguments: {
+            'loan': loan, // Pass actual Loan object
+            'controller': loanController,
+            'myUser': myUser,
+          });
+        } else if (isMapDirect) {
+          Get.toNamed(routeName, arguments: data);
+        } else {
+          Get.toNamed(routeName, arguments: {argKey ?? 'data': data});
+        }
+      } else {
+        Get.snackbar("Error", "Failed to fetch details");
+      }
+    } catch (e) {
+      Get.back();
+      print("Fetch error: $e");
+      Get.snackbar("Error", "An error occurred while fetching details");
     }
   }
 

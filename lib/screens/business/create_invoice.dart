@@ -9,6 +9,7 @@ import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 
 class InvoiceItem {
   String description;
@@ -208,6 +209,11 @@ class CreateInvoiceController extends GetxController {
 
     isLoading.value = true;
     try {
+      String? creatorName;
+      try {
+        creatorName = Get.find<UserInfoController>().myUser.value.name;
+      } catch (_) {}
+
       final payload = {
         "customer_id": selectedCustomerId.value,
         "invoice_number": invoiceNumberController.text.trim(),
@@ -216,6 +222,7 @@ class CreateInvoiceController extends GetxController {
         "tax_percent": taxPercent.value,
         "total": total,
         "due_date": selectedDueDate?.toIso8601String(),
+        "creator_name": creatorName,
         "items": items.map((i) => i.toJson()).toList()
       };
 

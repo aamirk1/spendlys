@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:spendly/models/myuser.dart';
-import 'package:spendly/screens/add_lend_borrow/loan_list_screen.dart';
 import 'package:spendly/screens/ledger/ledger_screen.dart';
 import 'package:spendly/screens/home/views/main_screen.dart';
 import 'package:spendly/screens/home/views/profile_screens/profile_screen.dart';

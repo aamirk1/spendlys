@@ -7,6 +7,7 @@ import 'package:spendly/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 
 class InvoiceListController extends GetxController {
   final invoices = [].obs;
@@ -298,6 +299,25 @@ class InvoiceListView extends StatelessWidget {
                                                       color:
                                                           Colors.grey.shade600),
                                                 ),
+                                                if (inv['creator_name'] != null &&
+                                                    inv['creator_name'] !=
+                                                        Get.find<UserInfoController>()
+                                                            .myUser
+                                                            .value
+                                                            .name)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(
+                                                        top: 2),
+                                                    child: Text(
+                                                      "${'created_by'.tr}: ${inv['creator_name']}",
+                                                      style: const TextStyle(
+                                                        fontSize: 10,
+                                                        color: Colors.blueGrey,
+                                                        fontStyle: FontStyle.italic,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
                                               ],
                                             ),
                                             Container(

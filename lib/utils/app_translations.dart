@@ -220,6 +220,7 @@ class AppTranslations extends Translations {
           'SUCCESS': 'SUCCESS',
           'na': 'N/A',
           'profile_updated_successfully': 'Profile updated successfully',
+          'created_by': 'Created by',
         },
         'hi_IN': {
           'app_name': 'डेलीबचत',
@@ -439,6 +440,7 @@ class AppTranslations extends Translations {
           'SUCCESS': 'सफल',
           'na': 'लागू नहीं',
           'profile_updated_successfully': 'प्रोफ़ाइल सफलतापूर्वक अपडेट की गई',
+          'created_by': 'द्वारा बनाया गया',
         },
         'mr_IN': {
           'app_name': 'डेलीबचत',
@@ -654,6 +656,7 @@ class AppTranslations extends Translations {
           'SUCCESS': 'यशस्वी',
           'na': 'लागू नाही',
           'profile_updated_successfully': 'प्रोफाइल यशस्वीरित्या अपडेट केली',
+          'created_by': 'द्वारे तयार केले',
         },
         'gu_IN': {
           'app_name': 'ડેલીબચત',
@@ -867,6 +870,7 @@ class AppTranslations extends Translations {
           'na': 'લાગુ નથી',
           'profile_updated_successfully':
               'પ્રોફાઇલ સફળતાપૂર્વક અપડેટ કરવામાં આવી',
+          'created_by': 'દ્વારા બનાવવામાં આવેલ',
         },
       };
 }

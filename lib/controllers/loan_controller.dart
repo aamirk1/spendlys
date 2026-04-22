@@ -5,6 +5,7 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:get/get.dart';
 import 'package:spendly/models/loan_modal.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -108,9 +109,11 @@ class LoanController extends GetxController {
     isLoading.value = true;
     try {
       final uuid = const Uuid().v4();
+      final creatorName = Get.find<UserInfoController>().myUser.value.name;
       final response = await ApiService.post('/loans/', body: {
         'id': uuid,
         'user_id': userId,
+        'creator_name': creatorName,
         'person_name': loan.personName,
         'person_phone': loan.personPhone,
         'amount': loan.amount,

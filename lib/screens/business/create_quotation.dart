@@ -8,6 +8,7 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 
 class QuotationItem {
   String description;
@@ -150,6 +151,11 @@ class CreateQuotationController extends GetxController {
 
     isLoading.value = true;
     try {
+      String? creatorName;
+      try {
+        creatorName = Get.find<UserInfoController>().myUser.value.name;
+      } catch (_) {}
+
       final payload = {
         "customer_id": selectedCustomerId.value,
         "quotation_number": quotationNumberController.text.trim(),
@@ -162,6 +168,7 @@ class CreateQuotationController extends GetxController {
         "total": total,
         "status": "draft",
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
+        "creator_name": creatorName,
         "items": items.map((i) => i.toJson()).toList()
       };
 

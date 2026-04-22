@@ -480,6 +480,18 @@ class _LoansScreenState extends State<LoansScreen>
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500),
                                     ),
+                                    if (loan.creatorName != null && loan.userId != widget.myUser.userId)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4.0),
+                                        child: Text(
+                                          "${'created_by'.tr}: ${loan.creatorName}",
+                                          style: TextStyle(
+                                              color: AppColors.primary,
+                                              fontSize: 11,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),

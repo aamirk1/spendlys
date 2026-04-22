@@ -6,6 +6,7 @@ import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/screens/business/create_quotation.dart' show QuotationItem;
 
@@ -109,6 +110,7 @@ class EditInvoiceController extends GetxController {
         "tax_percent": taxPercent.value,
         "total": total,
         "status": "pending", // Keep status as pending or use existing
+        "creator_name": Get.find<UserInfoController>().myUser.value.name,
         "items": items.map((i) => i.toJson()).toList()
       };
 
