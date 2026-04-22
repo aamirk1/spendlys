@@ -104,7 +104,6 @@ class LinksCard extends StatelessWidget {
 
   void _showDeleteAccountDialog(BuildContext context) {
     final controller = Get.find<SignInController>();
-    final reasonController = TextEditingController();
 
     Get.dialog(
       AlertDialog(
@@ -112,29 +111,25 @@ class LinksCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "delete_account".tr,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              "Are you sure you want to delete your account?",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
             Text(
-              "please_enter_reason_for_deletion".tr,
-              style: TextStyle(color: Theme.of(context).disabledColor),
+              "This action is permanent and cannot be undone. All your transactions, categories, and profile data will be permanently removed from our servers.",
+              style: TextStyle(color: Theme.of(context).disabledColor, fontSize: 14),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: "reason".tr,
-                fillColor: Theme.of(context).scaffoldBackgroundColor,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+            const Text(
+              "Google Play Policy requires us to provide a way to delete your account and all associated data immediately.",
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
             ),
           ],
         ),
@@ -145,12 +140,8 @@ class LinksCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              if (reasonController.text.trim().isEmpty) {
-                Get.snackbar("Error", "Please enter a reason");
-                return;
-              }
               Get.back(); // Close dialog
-              controller.requestAccountDeletion(reasonController.text.trim());
+              controller.deleteAccountPermanently();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -158,7 +149,7 @@ class LinksCard extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text("submit".tr),
+            child: const Text("Delete Permanently"),
           ),
         ],
       ),

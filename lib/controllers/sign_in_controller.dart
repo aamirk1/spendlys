@@ -143,6 +143,35 @@ class SignInController extends GetxController {
     }
   }
 
+  Future<void> deleteAccountPermanently() async {
+    try {
+      Utils.showLoadingDialog();
+
+      // 1. Call the backend to delete data
+      await _apiClient.delete(ApiConstants.deleteAccount);
+
+      // 2. Sign out from Firebase
+      await auth.signOut();
+
+      // 3. Clear local storage
+      await _secureStorage.clearAll();
+      box.erase();
+
+      Get.back(); // Close loading dialog
+
+      Utils.showSnackbar(
+          "Success", "Your account and data have been permanently deleted.",
+          isError: false);
+
+      // 4. Navigate to login
+      Get.offAllNamed(RoutesName.loginView);
+    } catch (e) {
+      Get.back(); // Close loading dialog
+      Utils.showSnackbar("Error", "Failed to delete account: $e");
+      AppErrorHandler.handleError(e);
+    }
+  }
+
   var isSigningUpFlow =
       false.obs; // To track if we are in signup or login flow for OTP
 

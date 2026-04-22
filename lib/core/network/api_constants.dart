@@ -11,6 +11,7 @@ class ApiConstants {
   static const String syncUser = '/auth/sync';
   static const String profileUpdate = '/auth/me';
   static const String deleteRequest = '/auth/delete-request';
+  static const String deleteAccount = '/auth/delete-account';
   static const String forgotPasswordRequest = '/auth/forgot-password/request';
   static const String forgotPasswordReset = '/auth/forgot-password/reset';
   static const String changePassword = '/auth/change-password';
