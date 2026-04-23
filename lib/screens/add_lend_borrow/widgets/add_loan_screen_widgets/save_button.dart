@@ -65,7 +65,7 @@ class SaveButton extends StatelessWidget {
         ),
         child: CustomButton(
           text: 'Save Loan',
-          onPressed: () {
+          onPressed: () async {
             if (formKey.currentState!.validate()) {
               if (expectedReturnDate == null) {
                 Utils.showSnackbar(
@@ -89,8 +89,7 @@ class SaveButton extends StatelessWidget {
                 date: date,
                 status: 'pending'.obs,
               );
-              controller.addLoan(loan);
-              Get.back();
+              await controller.addLoan(loan);
             }
           },
         ));

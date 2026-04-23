@@ -66,22 +66,27 @@ void main() async {
     return true;
   };
 
-  // Initialize App Check
-  await FirebaseAppCheck.instance.activate(
+  // Initialize App Check & Firebase Messaging in background
+  FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.playIntegrity,
     appleProvider: AppleProvider.deviceCheck,
   );
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Initialize Local Storage
-  await GetStorage.init();
-  await LocalCacheService.init();
+  // Initialize Storage & Basic Services
+  await Future.wait([
+    GetStorage.init(),
+    LocalCacheService.init(),
+  ]);
 
-  // Initialize Global Services
-  await Get.putAsync(() => NotificationService().init());
-  await Get.putAsync(() => ReminderNotificationService().init());
-  await Get.putAsync(() => SecurityService().init());
+  // Initialize Global Services in parallel
+  await Future.wait([
+    Get.putAsync(() => NotificationService().init()),
+    Get.putAsync(() => ReminderNotificationService().init()),
+    Get.putAsync(() => SecurityService().init()),
+  ]);
+
   Get.put(SyncService());
   Get.put(ConnectivityService());
 

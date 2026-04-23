@@ -10,6 +10,7 @@ import 'package:spendly/widgets/business_dialogs.dart';
 
 class BusinessHomeController extends GetxController {
   final totalRevenue = 0.0.obs;
+  final paidAmount = 0.0.obs;
   final pendingAmount = 0.0.obs;
   final isLoading = false.obs;
 
@@ -31,14 +32,17 @@ class BusinessHomeController extends GetxController {
       if (response.statusCode == 200) {
         final List invoices = jsonDecode(response.body);
         double total = 0;
+        double paidAcc = 0;
         double pending = 0;
         for (var inv in invoices) {
           double invTotal = (inv['total'] ?? 0.0).toDouble();
-          double paid = (inv['paid_amount'] ?? 0.0).toDouble();
+          double invPaid = (inv['paid_amount'] ?? 0.0).toDouble();
           total += invTotal;
-          pending += (invTotal - paid);
+          paidAcc += invPaid;
+          pending += (invTotal - invPaid);
         }
         totalRevenue.value = total;
+        paidAmount.value = paidAcc;
         pendingAmount.value = pending;
       }
     } catch (e) {
@@ -147,26 +151,18 @@ class BusinessHomeView extends StatelessWidget {
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
-        _actionButton(
-            context,
-            Icons.receipt_long_rounded,
-            "create_invoice".tr,
-            Colors.orange,
-            () => _safeNavigate(RoutesName.createInvoice)),
+        _actionButton(context, Icons.receipt_long_rounded, "create_invoice".tr,
+            Colors.orange, () => _safeNavigate(RoutesName.createInvoice)),
         const SizedBox(width: 15),
-        _actionButton(
-            context,
-            Icons.request_quote_rounded,
-            "quotation".tr,
-            Colors.teal,
-            () => _safeNavigate(RoutesName.createQuotation)),
+        _actionButton(context, Icons.request_quote_rounded, "quotation".tr,
+            Colors.teal, () => _safeNavigate(RoutesName.createQuotation)),
       ],
     );
   }
 
   void _safeNavigate(String route) async {
     final businessService = Get.find<BusinessService>();
-    
+
     if (businessService.isProfileCreated.value) {
       Get.toNamed(route);
     } else {
@@ -262,6 +258,16 @@ class BusinessHomeView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  _statItem(
+                      "paid_label".tr,
+                      "₹${controller.paidAmount.value.toStringAsFixed(2)}",
+                      Colors.green,
+                      context),
+                  Container(
+                    width: 1,
+                    height: 30,
+                    color: Theme.of(context).dividerColor.withOpacity(0.2),
+                  ),
                   _statItem(
                       "pending".tr,
                       "₹${controller.pendingAmount.value.toStringAsFixed(2)}",

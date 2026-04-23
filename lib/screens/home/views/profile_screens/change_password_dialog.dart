@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/change_password_controller.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/components/custom_button.dart';
 
 class ChangePasswordDialog extends StatelessWidget {
   ChangePasswordDialog({super.key, required this.myUser});
@@ -100,21 +101,12 @@ class ChangePasswordDialog extends StatelessWidget {
         ),
 
         // Submit Button
-        Obx(() => ElevatedButton(
-              onPressed: controller.isLoading.value
-                  ? null
-                  : () => controller.changePassword(),
-              child: controller.isLoading.value
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text("Submit"),
-            )),
+        CustomButton(
+          onPressed: () => controller.changePassword(),
+          text: "Submit",
+          width: 100,
+          height: 40,
+        ),
       ],
     );
   }

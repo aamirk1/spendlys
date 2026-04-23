@@ -13,11 +13,16 @@ class CommonBottomScreen extends StatelessWidget {
 
   Future<void> _requestReview() async {
     try {
+      // For a manual "Rate Us" button click, openStoreListing is more reliable
+      // because requestReview() is governed by strict OS quotas and may not show.
       if (await inAppReview.isAvailable()) {
-        await inAppReview.requestReview();
+        await inAppReview.openStoreListing(
+            // appStoreId: '...', // Add iOS App Store ID here when available
+            );
       } else {
-        // Fallback to open store if requested, but requestReview is usually enough
-        // inAppReview.openStoreListing(appStoreId: '...', microsoftStoreId: '...');
+        // Fallback: If for some reason the package can't open the store,
+        // we can still provide a better experience or just log it.
+        debugPrint("In-App Review: Store listing not available.");
       }
     } catch (e) {
       debugPrint("In-App Review Error: $e");

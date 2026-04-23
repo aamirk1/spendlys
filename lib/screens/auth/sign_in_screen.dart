@@ -813,15 +813,15 @@ class _SignInScreenState extends State<SignInScreen>
     return controller.isEmailLogin.value ? 'Sign In' : 'Send OTP';
   }
 
-  void _handleMainAction() {
+  Future<void> _handleMainAction() async {
     if (controller.authMode.value == AuthMode.signup) {
-      controller.handleSignUp();
+      await controller.handleSignUp();
     } else {
       if (controller.isEmailLogin.value) {
-        controller.signIn();
+        await controller.signIn();
       } else {
         controller.isSigningUpFlow.value = false;
-        controller.sendOTP();
+        await controller.sendOTP();
       }
     }
   }
@@ -1116,7 +1116,7 @@ class _StrengthBadge extends StatelessWidget {
 class _PremiumButton extends StatefulWidget {
   final String text;
   final bool isLoading;
-  final VoidCallback? onPressed;
+  final Future<void> Function()? onPressed;
 
   const _PremiumButton({
     required this.text,
@@ -1131,6 +1131,7 @@ class _PremiumButton extends StatefulWidget {
 class _PremiumButtonState extends State<_PremiumButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _shimCtrl;
+  bool _innerLoading = false;
   bool _isPressed = false;
 
   @override
@@ -1148,14 +1149,31 @@ class _PremiumButtonState extends State<_PremiumButton>
     super.dispose();
   }
 
+  Future<void> _handlePress() async {
+    if (widget.onPressed == null) return;
+
+    // Hide keyboard when button is clicked
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    setState(() => _innerLoading = true);
+    try {
+      await widget.onPressed!();
+    } finally {
+      if (mounted) setState(() => _innerLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool loading = widget.isLoading || _innerLoading;
+
     return GestureDetector(
-      onTapDown: (_) =>
-          widget.onPressed != null ? setState(() => _isPressed = true) : null,
+      onTapDown: (_) => widget.onPressed != null && !loading
+          ? setState(() => _isPressed = true)
+          : null,
       onTapUp: (_) {
         setState(() => _isPressed = false);
-        if (!widget.isLoading && widget.onPressed != null) widget.onPressed!();
+        if (!loading && widget.onPressed != null) _handlePress();
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(
@@ -1167,7 +1185,7 @@ class _PremiumButtonState extends State<_PremiumButton>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
-              colors: widget.onPressed != null
+              colors: (widget.onPressed != null && !loading)
                   ? [AppColors.primary, AppColors.secondary]
                   : [
                       Colors.grey.withOpacity(0.3),
@@ -1176,7 +1194,7 @@ class _PremiumButtonState extends State<_PremiumButton>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: widget.onPressed != null
+            boxShadow: (widget.onPressed != null && !loading)
                 ? [
                     BoxShadow(
                       color: AppColors.primary.withOpacity(0.45),
@@ -1187,13 +1205,13 @@ class _PremiumButtonState extends State<_PremiumButton>
                 : [],
           ),
           child: Opacity(
-            opacity: widget.onPressed != null ? 1.0 : 0.6,
+            opacity: (widget.onPressed != null && !loading) ? 1.0 : 0.6,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
               child: Stack(
                 children: [
                   // Shimmer overlay
-                  if (!widget.isLoading)
+                  if (!loading)
                     AnimatedBuilder(
                       animation: _shimCtrl,
                       builder: (_, __) {
@@ -1215,7 +1233,7 @@ class _PremiumButtonState extends State<_PremiumButton>
                     ),
                   // Content
                   Center(
-                    child: widget.isLoading
+                    child: loading
                         ? const SizedBox(
                             width: 24,
                             height: 24,

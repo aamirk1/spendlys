@@ -158,9 +158,9 @@ class SignUpScreen extends StatelessWidget {
                     height: 56,
                     child: CustomButton(
                       text: 'create_account'.tr,
-                      onPressed: () {
+                      onPressed: () async {
                         if (controller.formKey.currentState!.validate()) {
-                          controller.signUp();
+                          await controller.signUp();
                         }
                       },
                       backgroundColor: AppColors.primary,

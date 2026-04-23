@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/screens/auth/components/my_text_field.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../utils/colors.dart';
@@ -85,32 +86,17 @@ class AddExpense extends StatelessWidget {
             const SizedBox(height: 16),
             _buildCategorySelector(context),
             const SizedBox(height: 20),
-            Obx(() => controller.isLoading.value
-                ? const CupertinoActivityIndicator()
-                : SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (controller.formKey.currentState!.validate()) {
-                          controller.addExpense();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        'save_expense'.tr,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  )),
+            CustomButton(
+              onPressed: () async {
+                if (controller.formKey.currentState!.validate()) {
+                  await controller.addExpense();
+                }
+              },
+              text: 'save_expense'.tr,
+              backgroundColor: Colors.redAccent,
+              borderRadius: 16,
+              height: 54,
+            ),
           ],
         ),
       ),

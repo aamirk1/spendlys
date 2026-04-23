@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:spendly/utils/colors.dart';
-import 'package:spendly/res/components/shimmer_loading.dart';
 
-class CustomButton extends StatelessWidget {
+class CustomButton extends StatefulWidget {
   final String text;
-  final VoidCallback? onPressed;
+  final FutureOr<void> Function()? onPressed;
   final Color? backgroundColor;
   final Color? textColor;
   final double fontSize;
@@ -33,38 +33,75 @@ class CustomButton extends StatelessWidget {
   });
 
   @override
+  State<CustomButton> createState() => _CustomButtonState();
+}
+
+class _CustomButtonState extends State<CustomButton> {
+  bool _innerLoading = false;
+
+  Future<void> _handlePress() async {
+    if (widget.onPressed == null) return;
+
+    // Hide keyboard when button is clicked
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    setState(() {
+      _innerLoading = true;
+    });
+
+    try {
+      await widget.onPressed!();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _innerLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final effectiveBackgroundColor = backgroundColor ?? AppColors.primary;
-    final effectiveTextColor = textColor ?? Colors.white;
+    final effectiveBackgroundColor = widget.backgroundColor ?? AppColors.primary;
+    final effectiveTextColor = widget.textColor ?? Colors.white;
+    final bool loading = widget.isLoading || _innerLoading;
 
     return SizedBox(
-      width: width,
-      height: height,
+      width: widget.width,
+      height: widget.height,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: loading ? null : _handlePress,
         style: ElevatedButton.styleFrom(
           backgroundColor: effectiveBackgroundColor,
-          elevation: elevation,
+          elevation: widget.elevation,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+            borderRadius: BorderRadius.circular(widget.borderRadius),
           ),
-          padding: padding,
+          padding: widget.padding,
+          disabledBackgroundColor: effectiveBackgroundColor.withOpacity(0.6),
         ),
-        child: isLoading
-            ? const ButtonShimmer()
+        child: loading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (icon != null) ...[
-                    icon!,
+                  if (widget.icon != null) ...[
+                    widget.icon!,
                     const SizedBox(width: 8),
                   ],
                   Text(
-                    text,
+                    widget.text,
                     style: TextStyle(
                       color: effectiveTextColor,
-                      fontSize: fontSize,
+                      fontSize: widget.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

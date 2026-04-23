@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/edit_profile_controller.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/utils/validators.dart';
 
 class EditProfileScreen extends StatelessWidget {
@@ -49,32 +50,12 @@ class EditProfileScreen extends StatelessWidget {
                         ),
                       ]),
                       const SizedBox(height: 40),
-                      SizedBox(
-                        width: double.infinity,
+                      CustomButton(
+                        onPressed: controller.updateProfile,
+                        text: 'save'.tr,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        borderRadius: 16,
                         height: 56,
-                        child: ElevatedButton(
-                          onPressed: controller.isLoading.value
-                              ? null
-                              : controller.updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            elevation: 0,
-                          ),
-                          child: controller.isLoading.value
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2))
-                              : Text('save'.tr,
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.1)),
-                        ),
                       ),
                     ],
                   ),

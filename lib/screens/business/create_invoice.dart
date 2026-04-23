@@ -234,12 +234,13 @@ class CreateInvoiceController extends GetxController {
         Utils.showSnackbar("Success", "Invoice Generated!", isError: false);
 
         // Resolve customer details for notifications
-        final invoiceId = jsonDecode(response.body)['id']?.toString() ?? '';
+        final bodyData = jsonDecode(response.body);
+        final invoiceId = bodyData['id']?.toString() ?? '';
         final selectedCustomer = customers.firstWhere(
           (c) => c['id'].toString() == selectedCustomerId.value,
           orElse: () => {'name': 'Customer', 'phone': ''},
         );
-        final customerName = selectedCustomer['name'] as String? ?? 'Customer';
+        final customerName = (selectedCustomer['name'] ?? 'Customer').toString();
 
         // ── Local push + due-date reminders ───────────────────────────
         try {

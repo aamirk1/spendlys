@@ -17,35 +17,34 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkAuthStatus() async {
-    // 1. Mandatory Update Check
+    // 1. Mandatory Update Check (Non-blocking if possible, but usually required early)
     final updateService = Get.find<AppUpdateService>();
     bool updateTriggered = await updateService.checkForUpdate();
 
-    // If a blocking update dialog is shown, we stop the splash flow here.
     if (updateTriggered) return;
 
-    // 2. Wait for splash animations to settle
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    // 3. Check if benefit onboarding shown (first time user)
+    // 2. Check if benefit onboarding shown (first time user) - synchronous read
     bool benefitOnboardingShown = _box.read("benefitOnboardingShown") ?? false;
     if (!benefitOnboardingShown) {
       Get.offAllNamed(RoutesName.benefitOnboarding);
       return;
     }
 
-    // 4. Check if user is logged in
+    // 3. Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;
 
     if (isLoggedIn) {
       try {
         final signInController = Get.find<SignInController>();
+
+        // Start silent login
         bool success = await _performSilentLogin(signInController);
 
         if (success) {
-          // Always refresh premium status on splash
+          // Initialize payment controller and check premium status in parallel if possible
           final paymentController = Get.put(PaymentController());
-          await paymentController.checkPremiumStatus();
+          // We don't necessarily need to await this if the home screen can handle it reactively
+          paymentController.checkPremiumStatus();
 
           // Reconstruct MyUser for Home Screen
           MyUser myUser = MyUser.fromStorage();
