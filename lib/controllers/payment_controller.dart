@@ -12,7 +12,7 @@ class PaymentController extends GetxController {
   late Razorpay _razorpay;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   var isLoading = false.obs;
-  var premiumAmount = 99.obs; // Default
+  var premiumAmount = 149.obs; // Default
   var isPremium = false.obs;
   var premiumFeatures = <PremiumFeature>[].obs;
 

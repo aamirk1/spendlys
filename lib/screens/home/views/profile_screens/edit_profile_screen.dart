@@ -24,45 +24,40 @@ class EditProfileScreen extends StatelessWidget {
         foregroundColor: Get.isDarkMode ? Colors.white : Colors.black87,
         centerTitle: true,
       ),
-      body: Obx(() => Stack(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: controller.formKey,
+          child: Column(
             children: [
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: controller.formKey,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildSectionCard([
-                        _buildTextField(
-                          controller: controller.nameController,
-                          label: 'full_name'.tr,
-                          icon: Icons.person_outline_rounded,
-                          validator: (v) =>
-                              Validators.requiredField(v, 'full_name'.tr),
-                        ),
-                        _buildTextField(
-                          controller: controller.emailController,
-                          label: 'email'.tr,
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: Validators.emailValidator,
-                        ),
-                      ]),
-                      const SizedBox(height: 40),
-                      CustomButton(
-                        onPressed: controller.updateProfile,
-                        text: 'save'.tr,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        borderRadius: 16,
-                        height: 56,
-                      ),
-                    ],
-                  ),
+              const SizedBox(height: 20),
+              _buildSectionCard([
+                _buildTextField(
+                  controller: controller.nameController,
+                  label: 'full_name'.tr,
+                  icon: Icons.person_outline_rounded,
+                  validator: (v) => Validators.requiredField(v, 'full_name'.tr),
                 ),
+                _buildTextField(
+                  controller: controller.emailController,
+                  label: 'email'.tr,
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.emailValidator,
+                ),
+              ]),
+              const SizedBox(height: 40),
+              CustomButton(
+                onPressed: controller.updateProfile,
+                text: 'save'.tr,
+                backgroundColor: Theme.of(context).primaryColor,
+                borderRadius: 16,
+                height: 56,
               ),
             ],
-          )),
+          ),
+        ),
+      ),
     );
   }
 

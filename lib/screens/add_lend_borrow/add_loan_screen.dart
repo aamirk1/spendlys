@@ -308,48 +308,49 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               ),
               _buildDatePicker(context),
               const SizedBox(height: 50),
-              CustomButton(
-                text: isEditMode ? 'update_record'.tr : 'save_record'.tr,
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    if (expectedReturnDate == null) {
-                      Utils.showSnackbar("warning".tr, "set_return_date".tr);
-                      return;
-                    }
+              Obx(() => CustomButton(
+                    text: isEditMode ? 'update_record'.tr : 'save_record'.tr,
+                    isLoading: widget.controller.isLoading.value,
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        if (expectedReturnDate == null) {
+                          Utils.showSnackbar(
+                              "warning".tr, "set_return_date".tr);
+                          return;
+                        }
 
-                    if (isEditMode) {
-                      final updatedLoan = widget.loan!.copyWith(
-                        personName: personController.text,
-                        personPhone: phoneController.text,
-                        amount: double.parse(amountController.text),
-                        type: type,
-                        reason: reasonController.text,
-                        expectedReturnDate: expectedReturnDate,
-                      );
-                      widget.controller.updateLoan(updatedLoan);
-                    } else {
-                      final loan = Loan(
-                        userId: widget.myUser.userId,
-                        id: const Uuid().v4(),
-                        personName: personController.text,
-                        personPhone: phoneController.text,
-                        amount: double.parse(amountController.text),
-                        paidAmount: 0.0.obs,
-                        expectedReturnDate: expectedReturnDate!,
-                        reason: reasonController.text,
-                        type: type,
-                        date: date,
-                        status: 'pending'.obs,
-                      );
-                      widget.controller.addLoan(loan);
-                    }
-                  }
-                },
-                backgroundColor: AppColors.primary,
-                textColor: Colors.white,
-                borderRadius: 16,
-                // padding: const EdgeInsets.symmetric(vertical: 18),
-              ),
+                        if (isEditMode) {
+                          final updatedLoan = widget.loan!.copyWith(
+                            personName: personController.text,
+                            personPhone: phoneController.text,
+                            amount: double.parse(amountController.text),
+                            type: type,
+                            reason: reasonController.text,
+                            expectedReturnDate: expectedReturnDate,
+                          );
+                          await widget.controller.updateLoan(updatedLoan);
+                        } else {
+                          final loan = Loan(
+                            userId: widget.myUser.userId,
+                            id: const Uuid().v4(),
+                            personName: personController.text,
+                            personPhone: phoneController.text,
+                            amount: double.parse(amountController.text),
+                            paidAmount: 0.0.obs,
+                            expectedReturnDate: expectedReturnDate!,
+                            reason: reasonController.text,
+                            type: type,
+                            date: date,
+                            status: 'pending'.obs,
+                          );
+                          await widget.controller.addLoan(loan);
+                        }
+                      }
+                    },
+                    backgroundColor: AppColors.primary,
+                    textColor: Colors.white,
+                    borderRadius: 16,
+                  )),
               const SizedBox(height: 35),
               _buildRecentEntries(),
             ],
