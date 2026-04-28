@@ -84,6 +84,8 @@ class InvoiceDetailView extends StatelessWidget {
               _buildInfoRow("Number", inv['invoice_number'] ?? "N/A"),
               _buildInfoRow("Date", dateFormatted),
               _buildInfoRow("Due Date", dueDateFormatted),
+              if (inv['payment_mode'] != null && inv['payment_mode'].toString().isNotEmpty)
+                _buildInfoRow("Payment Mode", inv['payment_mode'].toString()),
             ]),
             const SizedBox(height: 20),
             _buildSectionTitle("Items"),

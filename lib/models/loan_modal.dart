@@ -13,6 +13,7 @@ class Loan {
   DateTime date;
   DateTime? expectedReturnDate;
   String type;
+  String? paymentMode;
   String? creatorName;
   String? reason;
   RxList<Map<String, dynamic>> paymentHistory;
@@ -28,6 +29,7 @@ class Loan {
     required this.date,
     this.expectedReturnDate,
     required this.type,
+    this.paymentMode,
     this.creatorName,
     this.reason,
     RxList<Map<String, dynamic>>? paymentHistory,
@@ -47,6 +49,7 @@ class Loan {
       'date': date.toIso8601String(),
       'expectedReturnDate': expectedReturnDate?.toIso8601String(),
       'type': type,
+      'payment_mode': paymentMode,
       'creator_name': creatorName,
       'reason': reason,
       'paymentHistory': paymentHistory
@@ -88,6 +91,7 @@ class Loan {
           ? parseDate(map['expected_return_date'] ?? map['expectedReturnDate'])
           : null,
       type: map['type']?.toString() ?? 'lent',
+      paymentMode: map['payment_mode']?.toString(),
       creatorName: map['creator_name']?.toString() ?? map['creatorName']?.toString(),
       reason: map['reason']?.toString(),
       paymentHistory: RxList<Map<String, dynamic>>.from(

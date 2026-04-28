@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/models/myuser.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/screens/home/views/profile_screens/change_password_dialog.dart';
 
@@ -106,52 +107,72 @@ class LinksCard extends StatelessWidget {
     final controller = Get.find<SignInController>();
 
     Get.dialog(
-      AlertDialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         backgroundColor: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          "delete_account".tr,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Are you sure you want to delete your account?",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "This action is permanent and cannot be undone. All your transactions, categories, and profile data will be permanently removed from our servers.",
-              style: TextStyle(color: Theme.of(context).disabledColor, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Google Play Policy requires us to provide a way to delete your account and all associated data immediately.",
-              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text("cancel".tr, style: const TextStyle(color: Colors.grey)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.delete_forever_rounded,
+                    color: Colors.red, size: 48),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "delete_account".tr,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Are you sure you want to delete your account?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "This action is permanent and cannot be undone. All your transactions, categories, and profile data will be permanently removed.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                onPressed: () async {
+                  Get.back(); // Close dialog
+                  await controller.deleteAccountPermanently();
+                },
+                backgroundColor: Colors.red,
+                text: "Delete Permanently",
+                height: 54,
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  "cancel".tr,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back(); // Close dialog
-              controller.deleteAccountPermanently();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text("Delete Permanently"),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -180,14 +201,16 @@ class LinksCard extends StatelessWidget {
           title,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
-        trailing: trailing ?? Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Theme.of(context).disabledColor),
-        ),
+        trailing: trailing ??
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.arrow_forward_ios_rounded,
+                  size: 12, color: Theme.of(context).disabledColor),
+            ),
         onTap: onPressed,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),

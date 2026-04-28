@@ -12,6 +12,8 @@ class ExpenseController extends GetxController {
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
   var selectedCategory = ''.obs;
+  var selectedPaymentMode = 'Cash'.obs;
+  final List<String> paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
   final formKey = GlobalKey<FormState>();
   final RxList<Map<String, dynamic>> filteredExpenseCategories =
       <Map<String, dynamic>>[].obs;
@@ -228,6 +230,7 @@ class ExpenseController extends GetxController {
         'description': descriptionController.text.trim(),
         'category': selectedCategory.value,
         'type': 'expense',
+        'payment_mode': selectedPaymentMode.value,
         'date': DateTime.now().toIso8601String(),
       });
 

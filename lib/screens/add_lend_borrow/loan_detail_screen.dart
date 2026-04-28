@@ -151,7 +151,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
                 return CircularPercentIndicator(
                   radius: 80.0,
                   lineWidth: 12.0,
-                  percent: value,
+                  percent: value.clamp(0.0, 1.0),
                   animation: false,
                   circularStrokeCap: CircularStrokeCap.round,
                   backgroundColor: AppColors.primary.withOpacity(0.1),
@@ -160,7 +160,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "${(value * 100).toInt()}%",
+                        "${(value.clamp(0.0, 1.0) * 100).toInt()}%",
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 26,
@@ -570,28 +570,16 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                widget.controller.updatePayment(widget.loan.id, remaining);
-                Get.back();
-                Utils.showSnackbar("success".tr, "loan_fully_paid_msg".tr);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text(
-                "confirm_btn".tr,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
+          CustomButton(
+            onPressed: () async {
+              await widget.controller.updatePayment(widget.loan.id, remaining);
+              Get.back();
+              Utils.showSnackbar("success".tr, "loan_fully_paid_msg".tr);
+            },
+            backgroundColor: AppColors.success,
+            text: "confirm_btn".tr,
+            width: 140,
+            height: 48,
           ),
         ],
       ),
@@ -615,26 +603,14 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                widget.controller.deleteLoan(widget.loan.id);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text(
-                "delete_btn".tr,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
+          CustomButton(
+            onPressed: () async {
+              await widget.controller.deleteLoan(widget.loan.id);
+            },
+            backgroundColor: Colors.redAccent,
+            text: "delete_btn".tr,
+            width: 140,
+            height: 48,
           ),
         ],
       ),

@@ -127,7 +127,7 @@ class PremiumScreen extends StatelessWidget {
                                       fontSize: 18,
                                     ),
                                   ),
-                                  Text('One-time payment'),
+                                  Text('One-time payment + 3% platform fee'),
                                 ],
                               ),
                               Obx(() => Text(

@@ -10,8 +10,8 @@ class ConnectivityService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    _checkInitialConnectivity();
-    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    // _checkInitialConnectivity();
+    // _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   Future<void> _checkInitialConnectivity() async {

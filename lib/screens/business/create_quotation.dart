@@ -41,6 +41,11 @@ class CreateQuotationController extends GetxController {
   final advanceAmountController = TextEditingController(text: "0.0");
 
   final taxPercent = 0.0.obs;
+  
+  // Payment mode
+  final paymentMode = 'Cash'.obs;
+  final paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
+  
   final isLoading = false.obs;
 
   // Search
@@ -167,6 +172,7 @@ class CreateQuotationController extends GetxController {
         "tax_percent": taxPercent.value,
         "total": total,
         "status": "draft",
+        "payment_mode": paymentMode.value,
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
         "creator_name": creatorName,
         "items": items.map((i) => i.toJson()).toList()
@@ -323,6 +329,46 @@ class CreateQuotationView extends StatelessWidget {
                                   decoration: _inputDeco("Advance Amount (₹)",
                                       Icons.payments_outlined),
                                 ),
+                                const SizedBox(height: 15),
+                                Obx(() => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(15),
+                                    border: Border.all(color: Colors.teal.shade100),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: controller.paymentMode.value,
+                                      isExpanded: true,
+                                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
+                                      items: controller.paymentModes.map((String mode) {
+                                        return DropdownMenuItem<String>(
+                                          value: mode,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                mode == 'Cash' ? Icons.money :
+                                                mode == 'Bank Transfer' ? Icons.account_balance :
+                                                mode == 'Credit Card' ? Icons.credit_card :
+                                                mode == 'UPI' ? Icons.qr_code : Icons.payment,
+                                                color: Colors.teal.shade600,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(mode, style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newValue) {
+                                        if (newValue != null) {
+                                          controller.paymentMode.value = newValue;
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                )),
                               ]),
                               const SizedBox(height: 25),
                               Row(

@@ -39,7 +39,7 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
       body: Column(
         children: [
           _buildHeader(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           _buildTabSelector(),
           Expanded(
             child: TabBarView(
@@ -96,7 +96,7 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
                   const SizedBox(width: 48),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
               Obx(() {
                 final totalIncome = incomeController.incomeList.fold<double>(
                     0, (sum, item) => sum + (item['amount'] as double));
@@ -129,7 +129,7 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
                           letterSpacing: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         "₹${NumberFormat('#,##,###.##').format(balance)}",
                         style: const TextStyle(

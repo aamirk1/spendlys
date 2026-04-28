@@ -69,6 +69,31 @@ class QuotationListController extends GetxController {
     }
   }
 
+  Future<void> deleteQuotation(String quotationId) async {
+    String? userId = Get.find<AuthService>().currentUserId;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response = await ApiService.delete(
+          '/business/quotations/$quotationId',
+          headers: {'x-user-id': userId});
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        Utils.showSnackbar("Success", "Quotation deleted successfully",
+            isError: false);
+        fetchQuotations();
+      } else {
+        Utils.showSnackbar(
+            "Error", "Failed to delete quotation: ${response.body}");
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "Failed to delete quotation: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'converted':
@@ -239,50 +264,124 @@ class QuotationListView extends StatelessWidget {
                                                     color:
                                                         Colors.grey.shade600),
                                               ),
-                                              if (quot['creator_name'] != null &&
+                                              if (quot['creator_name'] !=
+                                                      null &&
                                                   quot['creator_name'] !=
-                                                      Get.find<UserInfoController>()
+                                                      Get.find<
+                                                              UserInfoController>()
                                                           .myUser
                                                           .value
                                                           .name)
                                                 Padding(
-                                                  padding: const EdgeInsets.only(
-                                                      top: 2),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 2),
                                                   child: Text(
                                                     "${'created_by'.tr}: ${quot['creator_name']}",
                                                     style: const TextStyle(
                                                       fontSize: 10,
                                                       color: Colors.blueGrey,
-                                                      fontStyle: FontStyle.italic,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
                                             ],
                                           ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: controller
-                                                  .getStatusColor(
-                                                      quot['status'] ?? 'draft')
-                                                  .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Text(
-                                              (quot['status'] ?? 'draft')
-                                                  .toUpperCase(),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    controller.getStatusColor(
-                                                        quot['status'] ??
-                                                            'draft'),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: controller
+                                                      .getStatusColor(
+                                                          quot['status'] ??
+                                                              'draft')
+                                                      .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  (quot['status'] ?? 'draft')
+                                                      .toUpperCase(),
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: controller
+                                                        .getStatusColor(
+                                                            quot['status'] ??
+                                                                'draft'),
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                              PopupMenuButton<String>(
+                                                onSelected: (value) {
+                                                  if (value == 'delete') {
+                                                    Get.dialog(
+                                                      AlertDialog(
+                                                        title: const Text(
+                                                            "Delete Quotation"),
+                                                        content: const Text(
+                                                            "Are you sure you want to delete this quotation? This action cannot be undone."),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Get.back(),
+                                                            child: const Text(
+                                                                "CANCEL"),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Get.back();
+                                                              controller
+                                                                  .deleteQuotation(
+                                                                      quot['id']
+                                                                          .toString());
+                                                            },
+                                                            child: const Text(
+                                                                "DELETE",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red)),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                itemBuilder: (context) => [
+                                                  const PopupMenuItem(
+                                                    value: 'delete',
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                            Icons
+                                                                .delete_outline_rounded,
+                                                            color: Colors.red,
+                                                            size: 20),
+                                                        SizedBox(width: 8),
+                                                        Text('Delete',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .red)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                                icon: const Icon(
+                                                    Icons.more_vert_rounded,
+                                                    size: 20,
+                                                    color: Colors.grey),
+                                                padding: EdgeInsets.zero,
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                            ],
                                           )
                                         ],
                                       ),
@@ -290,6 +389,8 @@ class QuotationListView extends StatelessWidget {
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Column(
                                             crossAxisAlignment:
@@ -324,7 +425,7 @@ class QuotationListView extends StatelessWidget {
                                                     color: Colors.black87),
                                               ),
                                             ],
-                                          )
+                                          ),
                                         ],
                                       )
                                     ],

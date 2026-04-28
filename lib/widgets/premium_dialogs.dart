@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/colors.dart';
 
@@ -65,36 +66,20 @@ class PremiumDialogs {
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                Get.back(); // Close dialog
-                Get.toNamed(RoutesName.premiumView);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                "UPGRADE TO PREMIUM",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
+          CustomButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+              Get.toNamed(RoutesName.premiumView);
+            },
+            text: "UPGRADE TO PREMIUM",
+            fontSize: 16,
+            height: 54,
           ),
           const SizedBox(height: 12),
           TextButton(
             onPressed: () => Get.back(),
             child: Text(
-              "MAYBE LATER",
+              "Continue With Free",
               style: TextStyle(
                 color: Colors.grey[500],
                 fontWeight: FontWeight.w600,

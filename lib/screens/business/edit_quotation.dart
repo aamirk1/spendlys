@@ -23,6 +23,10 @@ class EditQuotationController extends GetxController {
   final advanceAmountController = TextEditingController(text: "0.0");
 
   final taxPercent = 0.0.obs;
+  
+  final paymentMode = 'Cash'.obs;
+  final paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
+  
   final isLoading = false.obs;
 
   late String quotationId;
@@ -44,6 +48,7 @@ class EditQuotationController extends GetxController {
           unitPrice: (it['unit_price'] ?? 0.0).toDouble()));
     }
     advanceAmountController.text = (quot['advance_amount'] ?? 0.0).toString();
+    paymentMode.value = quot['payment_mode'] ?? 'Cash';
     fetchCustomers();
     fetchProducts();
   }
@@ -110,6 +115,7 @@ class EditQuotationController extends GetxController {
         "tax": calculatedTax,
         "tax_percent": taxPercent.value,
         "total": total,
+        "payment_mode": paymentMode.value,
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
         "creator_name": Get.find<UserInfoController>().myUser.value.name,
         "items": items.map((i) => i.toJson()).toList()
@@ -235,6 +241,20 @@ class EditQuotationView extends StatelessWidget {
                                   decoration: _inputDeco("Advance Amount (₹)",
                                       Icons.payments_outlined),
                                 ),
+                                const SizedBox(height: 15),
+                                Obx(() => DropdownButtonFormField<String>(
+                                  value: controller.paymentMode.value,
+                                  decoration: _inputDeco("Payment Mode", Icons.payment),
+                                  items: controller.paymentModes.map((mode) {
+                                    return DropdownMenuItem<String>(
+                                      value: mode,
+                                      child: Text(mode, style: const TextStyle(fontSize: 15)),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) controller.paymentMode.value = val;
+                                  },
+                                )),
                               ]),
                               const SizedBox(height: 25),
                               Row(

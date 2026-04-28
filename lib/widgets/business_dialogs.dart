@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/components/custom_button.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/colors.dart';
 
@@ -65,30 +66,15 @@ class BusinessDialogs {
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                Get.back(); // Close dialog
-                Get.toNamed(RoutesName.businessProfile);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                "CREATE BUSINESS PROFILE",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
+          CustomButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+              Get.toNamed(RoutesName.businessProfile);
+            },
+            text: "CREATE BUSINESS PROFILE",
+            backgroundColor: Colors.blueAccent,
+            fontSize: 14,
+            height: 54,
           ),
           const SizedBox(height: 12),
           TextButton(

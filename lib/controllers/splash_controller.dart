@@ -23,14 +23,7 @@ class SplashController extends GetxController {
 
     if (updateTriggered) return;
 
-    // 2. Check if benefit onboarding shown (first time user) - synchronous read
-    bool benefitOnboardingShown = _box.read("benefitOnboardingShown") ?? false;
-    if (!benefitOnboardingShown) {
-      Get.offAllNamed(RoutesName.benefitOnboarding);
-      return;
-    }
-
-    // 3. Check if user is logged in
+    // 2. Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;
 
     if (isLoggedIn) {

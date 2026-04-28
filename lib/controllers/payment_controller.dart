@@ -95,13 +95,17 @@ class PaymentController extends GetxController {
     isLoading.value = true;
     try {
       final userId = box.read("userId");
+      
+      // Add 3% payment platform charges
+      final int totalAmountWithFee = (amount * 1.03).round();
+
       final response = await ApiService.post(
         '/payment/initiate-order',
         headers: {
           'x-user-id': userId ?? '',
         },
         body: {
-          'amount': amount * 100, // convert to paise
+          'amount': totalAmountWithFee * 100, // convert to paise
           'currency': 'INR',
         },
       );

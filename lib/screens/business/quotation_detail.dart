@@ -96,6 +96,8 @@ class QuotationDetailView extends StatelessWidget {
                 "Expiry",
                 formatDate(quot['expiry_date']),
               ),
+              if (quot['payment_mode'] != null && quot['payment_mode'].toString().isNotEmpty)
+                _buildInfoRow("Payment Mode", quot['payment_mode'].toString()),
             ]),
             const SizedBox(height: 20),
             _buildSectionTitle("Items"),

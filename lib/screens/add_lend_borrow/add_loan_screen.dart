@@ -34,6 +34,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   late final TextEditingController amountController;
   late final TextEditingController reasonController;
   late String type;
+  String paymentMode = 'Cash';
   DateTime? expectedReturnDate;
   late DateTime date;
 
@@ -50,6 +51,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         text: widget.loan != null ? widget.loan!.amount.toString() : "");
     reasonController = TextEditingController(text: widget.loan?.reason ?? "");
     type = widget.loan?.type ?? 'borrowed';
+    paymentMode = widget.loan?.paymentMode ?? 'Cash';
     expectedReturnDate = widget.loan?.expectedReturnDate;
     date = widget.loan?.date ?? DateTime.now();
   }
@@ -222,6 +224,84 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     );
   }
 
+  Widget _buildPaymentModeSelector(BuildContext context) {
+    final List<String> paymentModes = [
+      'Cash',
+      'Bank Transfer',
+      'Credit Card',
+      'UPI',
+      'Other'
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          child: Text("Payment Mode", // You can translate this
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.bodyLarge?.color)),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: paymentMode,
+              isExpanded: true,
+              dropdownColor: Theme.of(context).cardColor,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                  color: Colors.grey),
+              items: paymentModes.map((String mode) {
+                return DropdownMenuItem<String>(
+                  value: mode,
+                  child: Row(
+                    children: [
+                      Icon(
+                        mode == 'Cash'
+                            ? Icons.money
+                            : mode == 'Bank Transfer'
+                                ? Icons.account_balance
+                                : mode == 'Credit Card'
+                                    ? Icons.credit_card
+                                    : mode == 'UPI'
+                                        ? Icons.qr_code
+                                        : Icons.payment,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(mode,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.color)),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    paymentMode = newValue;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -298,6 +378,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               const SizedBox(height: 30),
               _buildLoanTypeSelector(),
               const SizedBox(height: 30),
+              _buildPaymentModeSelector(context),
+              const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.only(left: 8, bottom: 10),
                 child: Text("expected_return_date".tr,
@@ -325,6 +407,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                             personPhone: phoneController.text,
                             amount: double.parse(amountController.text),
                             type: type,
+                            paymentMode: paymentMode,
                             reason: reasonController.text,
                             expectedReturnDate: expectedReturnDate,
                           );
@@ -340,6 +423,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                             expectedReturnDate: expectedReturnDate!,
                             reason: reasonController.text,
                             type: type,
+                            paymentMode: paymentMode,
                             date: date,
                             status: 'pending'.obs,
                           );
@@ -481,6 +565,7 @@ extension LoanExtension on Loan {
     String? personPhone,
     double? amount,
     String? type,
+    String? paymentMode,
     String? reason,
     DateTime? expectedReturnDate,
   }) {
@@ -495,6 +580,7 @@ extension LoanExtension on Loan {
       date: date,
       expectedReturnDate: expectedReturnDate ?? this.expectedReturnDate,
       type: type ?? this.type,
+      paymentMode: paymentMode ?? this.paymentMode,
       reason: reason ?? this.reason,
       paymentHistory: paymentHistory,
     );

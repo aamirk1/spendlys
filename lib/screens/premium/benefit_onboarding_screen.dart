@@ -391,7 +391,7 @@ class _BenefitOnboardingScreenState extends State<BenefitOnboardingScreen>
                           size: 11, color: Color(0xFF4CAF50)),
                       const SizedBox(width: 4),
                       Text(
-                        "One-time payment • No renewal",
+                        "One-time payment + 3% platform fee",
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.white.withOpacity(0.45),
@@ -481,18 +481,47 @@ class _BenefitOnboardingScreenState extends State<BenefitOnboardingScreen>
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        TextButton(
-          onPressed: _completeOnboarding,
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white.withOpacity(0.35),
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text(
-            "Maybe Later",
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: _completeOnboarding,
+          child: Container(
+            height: 50,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.15),
+                  Colors.white.withOpacity(0.05)
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "CONTINUE WITH FREE",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white.withOpacity(0.9),
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

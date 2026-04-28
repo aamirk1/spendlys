@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
+import 'package:spendly/res/components/custom_button.dart';
 
 class NoInternetScreen extends StatefulWidget {
   const NoInternetScreen({super.key});
@@ -10,20 +11,10 @@ class NoInternetScreen extends StatefulWidget {
 }
 
 class _NoInternetScreenState extends State<NoInternetScreen> {
-  bool _isChecking = false;
-
   Future<void> _retryConnection() async {
-    setState(() {
-      _isChecking = true;
-    });
-
     await Future.delayed(const Duration(seconds: 1));
 
     var result = await Connectivity().checkConnectivity();
-
-    setState(() {
-      _isChecking = false;
-    });
 
     if (result.isNotEmpty && !result.contains(ConnectivityResult.none)) {
       // Internet واپس آیا — screen بند کریں
@@ -73,20 +64,12 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              _isChecking
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton.icon(
-                      onPressed: _retryConnection,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+              CustomButton(
+                onPressed: _retryConnection,
+                text: 'Retry',
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                width: 200,
+              ),
             ],
           ),
         ),

@@ -229,7 +229,7 @@ class ViewAllExpense extends StatelessWidget {
                       'amount': double.parse(amountController.text.trim()),
                       'description': descriptionController.text.trim(),
                       'category': selectedCategory,
-                      'date': expense['date'],
+                      'date': (expense['date'] as DateTime).toIso8601String(),
                     });
                     Get.back();
                   },

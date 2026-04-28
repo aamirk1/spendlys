@@ -8,6 +8,7 @@ import 'package:spendly/res/routes/routes_name.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spendly/controllers/payment_controller.dart';
+import 'package:get_storage/get_storage.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,6 +43,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // Always check premium status on home screen load
     final paymentController = Get.put(PaymentController());
     paymentController.checkPremiumStatus();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box = GetStorage();
+      bool benefitOnboardingShown = box.read("benefitOnboardingShown") ?? false;
+      if (!benefitOnboardingShown) {
+        Get.toNamed(RoutesName.benefitOnboarding);
+      }
+    });
 
     screens = [
       MainScreen(myUser: myUser),

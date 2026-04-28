@@ -114,6 +114,30 @@ class InvoiceListController extends GetxController {
     }).toList();
   }
 
+  Future<void> deleteInvoice(String invoiceId) async {
+    String? userId = Get.find<AuthService>().currentUserId;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response = await ApiService.delete('/business/invoices/$invoiceId',
+          headers: {'x-user-id': userId});
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        Utils.showSnackbar("Success", "Invoice deleted successfully",
+            isError: false);
+        fetchInvoices(refresh: true);
+      } else {
+        Utils.showSnackbar(
+            "Error", "Failed to delete invoice: ${response.body}");
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "Failed to delete invoice: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
@@ -299,55 +323,128 @@ class InvoiceListView extends StatelessWidget {
                                                       color:
                                                           Colors.grey.shade600),
                                                 ),
-                                                if (inv['creator_name'] != null &&
+                                                if (inv['creator_name'] !=
+                                                        null &&
                                                     inv['creator_name'] !=
-                                                        Get.find<UserInfoController>()
+                                                        Get.find<
+                                                                UserInfoController>()
                                                             .myUser
                                                             .value
                                                             .name)
                                                   Padding(
-                                                    padding: const EdgeInsets.only(
-                                                        top: 2),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 2),
                                                     child: Text(
                                                       "${'created_by'.tr}: ${inv['creator_name']}",
                                                       style: const TextStyle(
                                                         fontSize: 10,
                                                         color: Colors.blueGrey,
-                                                        fontStyle: FontStyle.italic,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                   ),
                                               ],
                                             ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
                                                       horizontal: 10,
                                                       vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: controller
-                                                    .getStatusColor(
-                                                        inv['status'] ??
-                                                            'pending')
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                (inv['status'] ?? 'pending')
-                                                    .toString()
-                                                    .toUpperCase()
-                                                    .replaceAll('_', ' '),
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      controller.getStatusColor(
-                                                          inv['status'] ??
-                                                              'pending'),
+                                                  decoration: BoxDecoration(
+                                                    color: controller
+                                                        .getStatusColor(
+                                                            inv['status'] ??
+                                                                'pending')
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
+                                                  child: Text(
+                                                    (inv['status'] ?? 'pending')
+                                                        .toString()
+                                                        .toUpperCase()
+                                                        .replaceAll('_', ' '),
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: controller
+                                                          .getStatusColor(
+                                                              inv['status'] ??
+                                                                  'pending'),
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
+                                                PopupMenuButton<String>(
+                                                  onSelected: (value) {
+                                                    if (value == 'delete') {
+                                                      Get.dialog(
+                                                        AlertDialog(
+                                                          title: const Text(
+                                                              "Delete Invoice"),
+                                                          content: const Text(
+                                                              "Are you sure you want to delete this invoice? This action cannot be undone."),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Get.back(),
+                                                              child: const Text(
+                                                                  "CANCEL"),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Get.back();
+                                                                controller
+                                                                    .deleteInvoice(
+                                                                        inv['id']
+                                                                            .toString());
+                                                              },
+                                                              child: const Text(
+                                                                  "DELETE",
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .red)),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                  itemBuilder: (context) => [
+                                                    const PopupMenuItem(
+                                                      value: 'delete',
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(
+                                                              Icons
+                                                                  .delete_outline_rounded,
+                                                              color: Colors.red,
+                                                              size: 20),
+                                                          SizedBox(width: 8),
+                                                          Text('Delete',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .red)),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  icon: const Icon(
+                                                      Icons.more_vert_rounded,
+                                                      size: 20,
+                                                      color: Colors.grey),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints:
+                                                      const BoxConstraints(),
+                                                ),
+                                              ],
                                             )
                                           ],
                                         ),
@@ -355,6 +452,8 @@ class InvoiceListView extends StatelessWidget {
                                         Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
                                           children: [
                                             Column(
                                               crossAxisAlignment:
@@ -402,9 +501,9 @@ class InvoiceListView extends StatelessWidget {
                                                             FontWeight.bold),
                                                   ),
                                               ],
-                                            )
+                                            ),
                                           ],
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),

@@ -22,6 +22,10 @@ class EditInvoiceController extends GetxController {
   final dueDateController = TextEditingController();
   
   final taxPercent = 0.0.obs;
+  
+  final paymentMode = 'Cash'.obs;
+  final paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
+  
   final isLoading = false.obs;
   
   late String invoiceId;
@@ -35,6 +39,7 @@ class EditInvoiceController extends GetxController {
     if (inv['due_date'] != null) {
       dueDateController.text = inv['due_date'].toString().split(" ")[0];
     }
+    paymentMode.value = inv['payment_mode'] ?? 'Cash';
     
     final List invItems = inv['items'] ?? [];
     items.clear();
@@ -109,6 +114,7 @@ class EditInvoiceController extends GetxController {
         "tax": calculatedTax,
         "tax_percent": taxPercent.value,
         "total": total,
+        "payment_mode": paymentMode.value,
         "status": "pending", // Keep status as pending or use existing
         "creator_name": Get.find<UserInfoController>().myUser.value.name,
         "items": items.map((i) => i.toJson()).toList()
@@ -228,6 +234,20 @@ class EditInvoiceView extends StatelessWidget {
                                 },
                                 decoration: _inputDeco("Due Date", Icons.calendar_today),
                               ),
+                              const SizedBox(height: 15),
+                              Obx(() => DropdownButtonFormField<String>(
+                                value: controller.paymentMode.value,
+                                decoration: _inputDeco("Payment Mode", Icons.payment),
+                                items: controller.paymentModes.map((mode) {
+                                  return DropdownMenuItem<String>(
+                                    value: mode,
+                                    child: Text(mode, style: const TextStyle(fontSize: 15)),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) controller.paymentMode.value = val;
+                                },
+                              )),
                             ]
                           ),
                           const SizedBox(height: 25),
