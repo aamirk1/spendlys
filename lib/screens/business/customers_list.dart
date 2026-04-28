@@ -266,68 +266,69 @@ class CustomersListView extends StatelessWidget {
           )
         ],
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.indigo.withOpacity(0.1),
-            child: Text(
-              cust['name'] != null && cust['name'].toString().isNotEmpty
-                  ? cust['name'][0].toUpperCase()
-                  : "?",
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.indigo),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.indigo.withOpacity(0.1),
+              child: Text(
+                cust['name'] != null && cust['name'].toString().isNotEmpty
+                    ? cust['name'][0].toUpperCase()
+                    : "?",
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.indigo),
+              ),
             ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cust['name'] ?? 'Unknown',
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
-                ),
-                const SizedBox(height: 4),
-                if (cust['phone'] != null &&
-                    cust['phone'].toString().isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(Icons.phone_outlined,
-                          size: 14, color: Colors.indigo),
-                      const SizedBox(width: 4),
-                      Text(cust['phone'],
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey.shade700)),
-                    ],
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    cust['name'] ?? 'Unknown',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87),
                   ),
-                if (cust['email'] != null &&
-                    cust['email'].toString().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Row(
+                  const SizedBox(height: 4),
+                  if (cust['phone'] != null &&
+                      cust['phone'].toString().isNotEmpty)
+                    Row(
                       children: [
-                        const Icon(Icons.email_outlined,
+                        const Icon(Icons.phone_outlined,
                             size: 14, color: Colors.indigo),
                         const SizedBox(width: 4),
-                        Text(cust['email'],
+                        Text(cust['phone'],
                             style: TextStyle(
                                 fontSize: 13, color: Colors.grey.shade700)),
                       ],
                     ),
-                  ),
-              ],
+                  if (cust['email'] != null &&
+                      cust['email'].toString().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.email_outlined,
+                              size: 14, color: Colors.indigo),
+                          const SizedBox(width: 4),
+                          Text(cust['email'],
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.grey.shade700)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            height: 60, // Fixed height to allow spaceBetween to work
-            child: Column(
+            const SizedBox(width: 10),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -393,8 +394,8 @@ class CustomersListView extends StatelessWidget {
                 ),
               ],
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
