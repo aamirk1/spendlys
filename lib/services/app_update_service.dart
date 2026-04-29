@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/colors.dart';
@@ -12,24 +14,56 @@ class AppUpdateService extends GetxService {
   static const String defaultStoreUrl =
       "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat";
 
-  /// Checks Firestore for the minimum required version and shows a mandatory
-  /// update dialog if the current version is too old.
+  /// Main entry point to check for updates.
+  /// Tries native Play Store update first on Android, falls back to Firestore config.
   Future<bool> checkForUpdate() async {
+    if (Platform.isAndroid) {
+      bool nativeUpdateStarted = await _checkNativeUpdate();
+      if (nativeUpdateStarted) return true;
+    }
+    
+    return await _checkFirestoreUpdate();
+  }
+
+  /// Native Google Play In-App Update (Mandatory/Immediate)
+  Future<bool> _checkNativeUpdate() async {
     try {
-      // 1. Get current app version
+      AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
+      
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (updateInfo.immediateUpdateAllowed) {
+          // Perform the immediate update
+          AppUpdateResult result = await InAppUpdate.performImmediateUpdate();
+          
+          // If the update was successful, the app might have already restarted.
+          // If not (e.g., user managed to cancel or it failed), we return true to block further app logic.
+          if (result == AppUpdateResult.success) {
+            return true;
+          } else {
+            // Update failed or was cancelled by user
+            debugPrint('AppUpdateService: Native update result: $result');
+            return true; // Still return true to block app entry if mandatory
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('AppUpdateService: Native check failed or not available: $e');
+    }
+    return false;
+  }
+
+
+  /// Firestore-based update check (Fallback or for iOS)
+  Future<bool> _checkFirestoreUpdate() async {
+    try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String currentVersion = packageInfo.version;
 
-      // 2. Fetch remote config from Firestore
-      // Path: /app_config/update
       DocumentSnapshot config =
           await _firestore.collection('app_config').doc('update').get();
 
       if (config.exists) {
         Map<String, dynamic> data = config.data() as Map<String, dynamic>;
-        
-        // Example Firestore data:
-        // { "min_version": "1.0.27", "store_url": "...", "force_update": true }
         String minVersion = data['min_version'] ?? '1.0.0';
         String storeUrl = data['store_url'] ?? defaultStoreUrl;
         bool forceUpdate = data['force_update'] ?? true;
@@ -37,17 +71,17 @@ class AppUpdateService extends GetxService {
         if (_shouldUpdate(currentVersion, minVersion)) {
           if (forceUpdate) {
             _showUpdateDialog(storeUrl);
-            return true; // Update dialog is now blocking the UI
+            return true;
           }
         }
       }
     } catch (e) {
-      debugPrint('AppUpdateService: Error during check: $e');
+      debugPrint('AppUpdateService: Firestore check failed: $e');
     }
     return false;
   }
 
-  /// SemVer comparison logic (e.g., 1.0.25 vs 1.0.26)
+  /// SemVer comparison logic
   bool _shouldUpdate(String current, String minRequired) {
     try {
       List<int> currentParts =
@@ -55,13 +89,12 @@ class AppUpdateService extends GetxService {
       List<int> minParts =
           minRequired.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
-      // Compare parts: major, minor, patch
       for (int i = 0; i < 3; i++) {
         int curr = i < currentParts.length ? currentParts[i] : 0;
         int min = i < minParts.length ? minParts[i] : 0;
 
-        if (curr < min) return true;  // Current is older than minRequired
-        if (curr > min) return false; // Current is newer than minRequired
+        if (curr < min) return true;
+        if (curr > min) return false;
       }
     } catch (e) {
       return false;
@@ -73,10 +106,9 @@ class AppUpdateService extends GetxService {
   void _showUpdateDialog(String storeUrl) {
     Get.dialog(
       PopScope(
-        canPop: false, // Prevents back button dismissal
+        canPop: false,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
-          // You could show a toast here: "Update required to continue"
         },
         child: Dialog(
           elevation: 0,
@@ -159,7 +191,7 @@ class AppUpdateService extends GetxService {
           ),
         ),
       ),
-      barrierDismissible: false, // Prevents clicking outside to dismiss
+      barrierDismissible: false,
     );
   }
 
@@ -170,7 +202,6 @@ class AppUpdateService extends GetxService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        // Fallback for some OS versions
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
@@ -178,3 +209,4 @@ class AppUpdateService extends GetxService {
     }
   }
 }
+

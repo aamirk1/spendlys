@@ -2,7 +2,7 @@ name: spendly
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.32+32
+version: 1.0.33+33
 
 environment:
   sdk: ^3.6.2
@@ -64,6 +64,7 @@ dependencies:
   hive_flutter: ^1.1.0
   firebase_analytics: ^12.3.0
   firebase_crashlytics: ^5.2.0
+  in_app_update: ^4.2.5
   # rive: 
   # shared_preferences: 
   # local_auth: ^2.3.0

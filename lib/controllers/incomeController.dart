@@ -12,7 +12,13 @@ class IncomeController extends GetxController {
   final descriptionController = TextEditingController();
   var selectedCategory = ''.obs;
   var selectedPaymentMode = 'Cash'.obs;
-  final List<String> paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
+  final List<String> paymentModes = [
+    'Cash',
+    'Bank Transfer',
+    'Credit Card',
+    'UPI',
+    'Other'
+  ];
   final formKey = GlobalKey<FormState>();
 
   final RxList<Map<String, dynamic>> incomeCategories = <Map<String, dynamic>>[
@@ -76,11 +82,11 @@ class IncomeController extends GetxController {
       'icon': CupertinoIcons.arrow_2_squarepath,
       'color': Color(0xFF607D8B),
     },
-    {
-      'name': 'Scholarship',
-      'icon': CupertinoIcons.book_fill,
-      'color': Color(0xFFCDDC39),
-    },
+    // {
+    //   'name': 'Scholarship',
+    //   'icon': CupertinoIcons.book_fill,
+    //   'color': Color(0xFFCDDC39),
+    // },
     {
       'name': 'Other',
       'icon': CupertinoIcons.question_circle_fill,
