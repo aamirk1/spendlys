@@ -121,7 +121,7 @@ class PremiumScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Lifetime Access',
+                                    'Annual Access',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
@@ -144,7 +144,7 @@ class PremiumScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                         Obx(() => CustomButton(
                               text: controller.isPremium.value
-                                  ? 'ALREADY PREMIUM'
+                                  ? '${controller.remainingDays} DAYS REMAINING'
                                   : 'UPGRADE NOW',
                               isLoading: controller.isLoading.value,
                               onPressed: controller.isPremium.value

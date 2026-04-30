@@ -12,8 +12,9 @@ class PaymentController extends GetxController {
   late Razorpay _razorpay;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   var isLoading = false.obs;
-  var premiumAmount = 149.obs; // Default
+  var premiumAmount = 99.obs; // Default
   var isPremium = false.obs;
+  var premiumExpiry = Rxn<DateTime>();
   var premiumFeatures = <PremiumFeature>[].obs;
 
   final GetStorage box = GetStorage();
@@ -22,6 +23,9 @@ class PaymentController extends GetxController {
   void onInit() {
     super.onInit();
     isPremium.value = box.read("isPremium") ?? false;
+    if (box.read("premiumExpiry") != null) {
+      premiumExpiry.value = DateTime.parse(box.read("premiumExpiry"));
+    }
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -41,6 +45,10 @@ class PaymentController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         isPremium.value = data['is_premium'] ?? false;
+        if (data['premium_expiry'] != null) {
+          premiumExpiry.value = DateTime.parse(data['premium_expiry']);
+          box.write("premiumExpiry", data['premium_expiry']);
+        }
         box.write("isPremium", isPremium.value);
       }
     } catch (e) {
@@ -171,6 +179,10 @@ class PaymentController extends GetxController {
       if (verifyResp.statusCode == 200) {
         final data = jsonDecode(verifyResp.body);
         isPremium.value = data['is_premium'] ?? true;
+        if (data['premium_expiry'] != null) {
+          premiumExpiry.value = DateTime.parse(data['premium_expiry']);
+          box.write("premiumExpiry", data['premium_expiry']);
+        }
         box.write("isPremium", isPremium.value);
 
         Utils.showSnackbar('Success', 'Welcome to Premium!', isError: false);
@@ -192,6 +204,12 @@ class PaymentController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  int get remainingDays {
+    if (premiumExpiry.value == null) return 0;
+    final diff = premiumExpiry.value!.difference(DateTime.now()).inDays;
+    return diff > 0 ? diff : 0;
   }
 
   @override
