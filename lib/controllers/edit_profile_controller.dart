@@ -35,22 +35,14 @@ class EditProfileController extends GetxController {
 
     try {
       // 1. Sync with Backend API (Source of Truth)
-      // Using PUT /auth/me instead of /auth/sync for clearer profile updates
-      try {
-        final apiClient = Get.find<ApiClient>();
-        await apiClient.put(
-          ApiConstants.profileUpdate,
-          data: {
-            "name": newName,
-            "email": newEmail,
-          },
-        );
-      } catch (e) {
-        debugPrint("API Profile Update failed: $e");
-        AppErrorHandler.handleError(e);
-        isLoading.value = false;
-        return; // Stop if API update fails as it's the source of truth
-      }
+      final apiClient = Get.find<ApiClient>();
+      await apiClient.put(
+        ApiConstants.profileUpdate,
+        data: {
+          "name": newName,
+          "email": newEmail,
+        },
+      );
 
       // 2. Update Local Storage for immediate UI update
       box.write("name", newName);
@@ -64,10 +56,9 @@ class EditProfileController extends GetxController {
             .update({
           'name': newName,
           'email': newEmail,
-        });
+        }).timeout(const Duration(seconds: 5));
       } catch (e) {
-        debugPrint("Firestore update failed: $e");
-        // We continue because backend/local is updated
+        debugPrint("Firestore update failed (non-critical): $e");
       }
 
       Utils.showSnackbar("Success", "profile_updated_successfully".tr,
@@ -77,8 +68,11 @@ class EditProfileController extends GetxController {
         Get.find<UserInfoController>().refreshUser();
       }
 
-      Get.back(result: true); // Return true to indicate update happened
+      // Small delay to allow UI to reflect non-loading state before popping
+      await Future.delayed(const Duration(milliseconds: 300));
+      Get.back(result: true);
     } catch (e) {
+      debugPrint("Profile Update failed: $e");
       AppErrorHandler.handleError(e);
     } finally {
       isLoading.value = false;

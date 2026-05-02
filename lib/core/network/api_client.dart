@@ -1,5 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
+import 'package:get/get.dart' hide Response;
+import 'package:get_storage/get_storage.dart';
+import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/utils/utils.dart';
 
 class ApiClient {
   late Dio _dio;
@@ -28,6 +32,24 @@ class ApiClient {
           options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
+      },
+      onError: (DioException e, handler) async {
+        if (e.response?.statusCode == 401 ||
+            (e.response?.data is Map &&
+                e.response?.data['detail'] ==
+                    'Could not validate credentials')) {
+          // Auto logout logic
+          final box = GetStorage();
+          await box.write("isLoggedIn", false);
+          await _secureStorage.deleteToken();
+
+          // Redirect to login
+          Get.offAllNamed(RoutesName.loginView);
+
+          Utils.showSnackbar("Session Expired", "Please login again",
+              isError: true);
+        }
+        return handler.next(e);
       },
     ));
 

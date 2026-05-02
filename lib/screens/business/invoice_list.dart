@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/controllers/user_info_controller.dart';
+import 'package:spendly/screens/business/business_home_view.dart';
 
 class InvoiceListController extends GetxController {
   final invoices = [].obs;
@@ -126,7 +127,13 @@ class InvoiceListController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 204) {
         Utils.showSnackbar("Success", "Invoice deleted successfully",
             isError: false);
+        // Immediate local removal for cross-screen reactivity
+        invoices.removeWhere((inv) => inv['id'].toString() == invoiceId);
         fetchInvoices(refresh: true);
+        // Refresh home screen business summary
+        if (Get.isRegistered<BusinessHomeController>()) {
+          Get.find<BusinessHomeController>().fetchSummary();
+        }
       } else {
         Utils.showSnackbar(
             "Error", "Failed to delete invoice: ${response.body}");

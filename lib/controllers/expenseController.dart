@@ -281,7 +281,9 @@ class ExpenseController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Deleted', 'Expense removed successfully',
             isError: false);
-        fetchExpenses(); // Refresh list
+        // Immediate local removal for cross-screen reactivity
+        expensesList.removeWhere((e) => e['id'].toString() == docId);
+        fetchExpenses(); // Background refresh
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to delete expense: ${response.body}');

@@ -76,7 +76,12 @@ class AppUpdateService extends GetxService {
         }
       }
     } catch (e) {
-      debugPrint('AppUpdateService: Firestore check failed: $e');
+      if (e is FirebaseException && e.code == 'not-found') {
+        debugPrint(
+            'AppUpdateService: Firestore database not found. Please create a "Cloud Firestore" database in your Firebase Console (project: dailybachat).');
+      } else {
+        debugPrint('AppUpdateService: Firestore check failed: $e');
+      }
     }
     return false;
   }

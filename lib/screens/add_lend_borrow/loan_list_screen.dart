@@ -31,13 +31,13 @@ class _LoansScreenState extends State<LoansScreen>
   void initState() {
     super.initState();
     controller = Get.put(LoanController());
-    controller.fetchLoans();
 
     int initialIndex = 0;
     if (Get.arguments is Map && Get.arguments['index'] != null) {
       initialIndex = Get.arguments['index'];
     }
-    _tabController = TabController(length: 2, vsync: this, initialIndex: initialIndex);
+    _tabController =
+        TabController(length: 2, vsync: this, initialIndex: initialIndex);
   }
 
   @override
@@ -53,17 +53,17 @@ class _LoansScreenState extends State<LoansScreen>
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         leading: IconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Get.back();
-                } else {
-                  Get.offAllNamed(RoutesName.homeView);
-                }
-              },
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-              )),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Get.back();
+              } else {
+                Get.offAllNamed(RoutesName.homeView);
+              }
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+            )),
         backgroundColor: AppColors.primary,
         title: "digital_ledger_title".tr,
         actions: [
@@ -104,7 +104,8 @@ class _LoansScreenState extends State<LoansScreen>
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text("new_ledger_btn".tr,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         elevation: 4,
       ),
     );
@@ -150,7 +151,8 @@ class _LoansScreenState extends State<LoansScreen>
                           Text(
                             "net_balance".tr,
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -187,7 +189,9 @@ class _LoansScreenState extends State<LoansScreen>
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                    child: Divider(
+                        height: 1,
+                        color: Theme.of(context).dividerColor.withOpacity(0.1)),
                   ),
                   Row(
                     children: [
@@ -399,7 +403,8 @@ class _LoansScreenState extends State<LoansScreen>
             searchQuery.value.isEmpty
                 ? "empty_ledger_desc".tr
                 : "search_different_name".tr,
-            style: TextStyle(color: Theme.of(context).disabledColor, fontSize: 14),
+            style:
+                TextStyle(color: Theme.of(context).disabledColor, fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
@@ -469,20 +474,28 @@ class _LoansScreenState extends State<LoansScreen>
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Theme.of(context).textTheme.bodyLarge?.color),
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       DateFormat('dd MMM yyyy')
                                           .format(loan.date),
                                       style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.color,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500),
                                     ),
-                                    if (loan.creatorName != null && loan.userId != widget.myUser.userId)
+                                    if (loan.creatorName != null &&
+                                        loan.userId != widget.myUser.userId)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 4.0),
                                         child: Text(
                                           "${'created_by'.tr}: ${loan.creatorName}",
                                           style: TextStyle(
@@ -503,7 +516,10 @@ class _LoansScreenState extends State<LoansScreen>
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color),
                                   ),
                                   const SizedBox(height: 4),
                                   _buildStatusBadge(
@@ -520,7 +536,10 @@ class _LoansScreenState extends State<LoansScreen>
                                 text: TextSpan(
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: Theme.of(context).textTheme.bodySmall?.color),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color),
                                   children: [
                                     TextSpan(text: "${'paid_label'.tr}: "),
                                     TextSpan(
@@ -528,7 +547,10 @@ class _LoansScreenState extends State<LoansScreen>
                                           "₹${NumberFormat('#,###').format(loan.paidAmount.value)}",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).textTheme.bodyLarge?.color),
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color),
                                     ),
                                   ],
                                 ),
@@ -552,7 +574,9 @@ class _LoansScreenState extends State<LoansScreen>
                                 height: 8,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -600,7 +624,10 @@ class _LoansScreenState extends State<LoansScreen>
                                         fontSize: 11,
                                         color: isOverdue
                                             ? Colors.red
-                                            : Theme.of(context).textTheme.bodySmall?.color,
+                                            : Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color,
                                         fontWeight: isOverdue
                                             ? FontWeight.bold
                                             : FontWeight.normal,

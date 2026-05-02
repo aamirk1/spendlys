@@ -236,7 +236,9 @@ class LoanController extends GetxController {
           final reminderSvc = Get.find<ReminderNotificationService>();
           await reminderSvc.cancelLoanReminders(loanId);
         } catch (_) {}
-        fetchLoans(); // Refresh list
+        // Immediate local removal for cross-screen reactivity
+        loans.removeWhere((l) => l.id == loanId);
+        fetchLoans(); // Refresh list from server
         Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');

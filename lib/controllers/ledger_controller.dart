@@ -28,8 +28,25 @@ class LedgerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    
+    // Ensure Business controllers are registered for reactivity
+    if (!Get.isRegistered<InvoiceListController>()) Get.put(InvoiceListController());
+    
+    // Listen to changes in source lists to update the resolved business list in real-time
+    ever(Get.find<InvoiceListController>().invoices, (_) => _updateBusinessInvoices());
+    ever(customers, (_) => _updateBusinessInvoices());
+
     // Default fetch for loans since it's initial selected type
     fetchData();
+  }
+
+  void _updateBusinessInvoices() {
+    if (!Get.isRegistered<InvoiceListController>()) return;
+    final rawInvoices = Get.find<InvoiceListController>().invoices;
+    invoices.value = rawInvoices.map((inv) {
+      final name = getCustomerName(inv);
+      return {...inv, 'resolved_customer_name': name};
+    }).toList();
   }
 
   void setType(LedgerType type) {
@@ -54,11 +71,7 @@ class LedgerController extends GetxController {
           }
 
           // 3. Inject names into local list
-          final rawInvoices = Get.find<InvoiceListController>().invoices;
-          invoices.value = rawInvoices.map((inv) {
-            final name = getCustomerName(inv);
-            return {...inv, 'resolved_customer_name': name};
-          }).toList();
+          _updateBusinessInvoices();
           break;
         case LedgerType.loan:
           await loanController.fetchLoans();

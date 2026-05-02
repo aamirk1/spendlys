@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/utils/utils.dart';
@@ -36,34 +37,35 @@ class FeedbackController extends GetxController {
       isLoading.value = true;
       Utils.showLoadingDialog();
 
-      final user = _auth.currentUser;
-      if (user == null) throw Exception("User not logged in");
+      final userInfoController = Get.find<UserInfoController>();
+      final userId = userInfoController.myUser.value.userId;
+
+      if (userId.isEmpty) {
+        throw Exception("User ID not found. Please log in again.");
+      }
 
       await _apiClient.post(ApiConstants.feedback, data: {
-        'user_id': user.uid,
+        'user_id': userId,
         'rating': rating.value,
         'category': category.value,
         'message': messageController.text.trim(),
       });
 
       Get.back(); // Close loading dialog
-      
+
       Utils.showSnackbar(
-        "Thank You!", 
-        "Your feedback has been submitted successfully.", 
-        isError: false
-      );
-      
+          "Thank You!", "Your feedback has been submitted successfully.",
+          isError: false);
+
       // Clear fields
       messageController.clear();
       rating.value = 5;
       category.value = 'General';
-      
+
       // Go back to previous screen after a short delay
       Future.delayed(const Duration(seconds: 1), () {
         Get.back();
       });
-
     } catch (e) {
       if (Get.isOverlaysOpen) Get.back(); // Close loading dialog if open
       Utils.showSnackbar("Error", "Failed to submit feedback: $e");

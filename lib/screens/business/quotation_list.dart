@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/controllers/user_info_controller.dart';
+import 'package:spendly/screens/business/business_home_view.dart';
 
 class QuotationListController extends GetxController {
   final quotations = [].obs;
@@ -82,7 +83,13 @@ class QuotationListController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 204) {
         Utils.showSnackbar("Success", "Quotation deleted successfully",
             isError: false);
+        // Immediate local removal for cross-screen reactivity
+        quotations.removeWhere((q) => q['id'].toString() == quotationId);
         fetchQuotations();
+        // Refresh home screen business summary
+        if (Get.isRegistered<BusinessHomeController>()) {
+          Get.find<BusinessHomeController>().fetchSummary();
+        }
       } else {
         Utils.showSnackbar(
             "Error", "Failed to delete quotation: ${response.body}");

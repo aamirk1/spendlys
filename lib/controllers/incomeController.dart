@@ -253,6 +253,8 @@ class IncomeController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Deleted', 'Income removed successfully',
             isError: false);
+        // Immediate local removal for cross-screen reactivity
+        incomeList.removeWhere((e) => e['id'].toString() == docId);
         fetchIncomes(); // Refresh list
       } else {
         Utils.showSnackbar(

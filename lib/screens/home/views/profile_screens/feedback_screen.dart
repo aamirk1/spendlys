@@ -88,6 +88,7 @@ class FeedbackScreen extends StatelessWidget {
             TextField(
               controller: controller.messageController,
               maxLines: 5,
+              autofillHints: const [],
               decoration: InputDecoration(
                 hintText: 'Describe your feedback here...',
                 border: OutlineInputBorder(
