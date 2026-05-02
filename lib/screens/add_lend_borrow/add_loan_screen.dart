@@ -10,6 +10,7 @@ import '../../controllers/loan_controller.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/utils/colors.dart';
+import 'package:spendly/utils/validators.dart';
 
 class AddLoanScreen extends StatefulWidget {
   final LoanController controller;
@@ -71,42 +72,77 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     String? hint,
     IconData? prefixIcon,
     TextInputType keyboardType,
-    String? Function(String?)? validator,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    String? Function(String?)? validator, {
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.color
+                  ?.withOpacity(0.8),
+            ),
           ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        validator: validator,
-        style: TextStyle(
-            fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          labelStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color,
-              fontSize: 14),
-          prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon,
-                  color: Theme.of(context).textTheme.bodySmall?.color, size: 20)
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
-      ),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          maxLines: maxLines,
+          style: TextStyle(
+            fontSize: 16,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: Theme.of(context).disabledColor.withOpacity(0.5),
+              fontSize: 15,
+            ),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: AppColors.primary, size: 22)
+                : null,
+            filled: true,
+            fillColor: Theme.of(context).cardColor,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide:
+                  const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+            errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 12),
+          ),
+        ),
+      ],
     );
   }
 
@@ -115,21 +151,33 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Text("transaction_type".tr,
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodyLarge?.color)),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.8))),
         ),
-        Row(
-          children: [
-            _typeCard('borrowed', "borrowed_label".tr, Icons.arrow_downward,
-                Colors.orange),
-            const SizedBox(width: 15),
-            _typeCard(
-                'lent', "lent_label".tr, Icons.arrow_upward, Colors.green),
-          ],
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          ),
+          child: Row(
+            children: [
+              _typeCard('borrowed', "borrowed_label".tr,
+                  Icons.arrow_downward_rounded, AppColors.orange),
+              _typeCard('lent', "lent_label".tr, Icons.arrow_upward_rounded,
+                  AppColors.green),
+            ],
+          ),
         ),
       ],
     );
@@ -141,33 +189,39 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
       child: InkWell(
         onTap: () => setState(() => type = value),
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected
-                ? color.withOpacity(0.1)
-                : Theme.of(context).cardColor,
+            color: isSelected ? color : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected
-                  ? color
-                  : Theme.of(context).dividerColor.withOpacity(0.1),
-              width: 1.5,
-            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : [],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  size: 16,
-                  color: isSelected ? color : Theme.of(context).disabledColor),
+                  size: 18,
+                  color: isSelected
+                      ? Colors.white
+                      : Theme.of(context).disabledColor),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? color : Theme.of(context).disabledColor,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 14,
+                  color: isSelected
+                      ? Colors.white
+                      : Theme.of(context).disabledColor,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 15,
                 ),
               ),
             ],
@@ -182,45 +236,76 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         ? DateFormat('dd MMM yyyy').format(expectedReturnDate!)
         : 'select_due_date'.tr;
 
-    return InkWell(
-      onTap: () async {
-        final pickedDate = await showDatePicker(
-          context: context,
-          initialDate: expectedReturnDate ??
-              DateTime.now().add(const Duration(days: 30)),
-          firstDate: DateTime(2023),
-          lastDate: DateTime(2030),
-        );
-        if (pickedDate != null) {
-          setState(() => expectedReturnDate = pickedDate);
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text("expected_return_date".tr,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.8))),
+        ),
+        InkWell(
+          onTap: () async {
+            final pickedDate = await showDatePicker(
+              context: context,
+              initialDate: expectedReturnDate ??
+                  DateTime.now().add(const Duration(days: 30)),
+              firstDate: DateTime(2023),
+              lastDate: DateTime(2030),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: AppColors.primary,
+                      onPrimary: Colors.white,
+                      onSurface: Colors.black87,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (pickedDate != null) {
+              setState(() => expectedReturnDate = pickedDate);
+            }
+          },
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.1)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today_outlined,
-                size: 20, color: Colors.blueGrey),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(formattedDate,
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: expectedReturnDate != null
-                          ? Theme.of(context).textTheme.bodyLarge?.color
-                          : Theme.of(context).disabledColor)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1)),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
-          ],
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_rounded,
+                    size: 22, color: AppColors.primary),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(formattedDate,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: expectedReturnDate != null
+                              ? Theme.of(context).textTheme.bodyLarge?.color
+                              : Theme.of(context).disabledColor)),
+                ),
+                Icon(Icons.edit_calendar_rounded,
+                    size: 20, color: Theme.of(context).disabledColor),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -236,12 +321,16 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
-          child: Text("Payment Mode", // You can translate this
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text("Payment Mode",
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodyLarge?.color)),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.8))),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -257,7 +346,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               isExpanded: true,
               dropdownColor: Theme.of(context).cardColor,
               icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Colors.grey),
+                  color: AppColors.primary),
               items: paymentModes.map((String mode) {
                 return DropdownMenuItem<String>(
                   value: mode,
@@ -265,21 +354,22 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                     children: [
                       Icon(
                         mode == 'Cash'
-                            ? Icons.money
+                            ? Icons.money_rounded
                             : mode == 'Bank Transfer'
-                                ? Icons.account_balance
+                                ? Icons.account_balance_rounded
                                 : mode == 'Credit Card'
-                                    ? Icons.credit_card
+                                    ? Icons.credit_card_rounded
                                     : mode == 'UPI'
-                                        ? Icons.qr_code
-                                        : Icons.payment,
+                                        ? Icons.qr_code_scanner_rounded
+                                        : Icons.payment_rounded,
                         color: AppColors.primary,
-                        size: 20,
+                        size: 22,
                       ),
                       const SizedBox(width: 12),
                       Text(mode,
                           style: TextStyle(
                               fontSize: 16,
+                              fontWeight: FontWeight.w500,
                               color: Theme.of(context)
                                   .textTheme
                                   .bodyLarge
@@ -311,134 +401,174 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         backgroundColor: AppColors.primary,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                isEditMode ? "update_record".tr : "digital_ledger_entry".tr,
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.titleLarge?.color),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  )
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                "lending_borrowing_desc".tr,
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodySmall?.color),
-              ),
-              const SizedBox(height: 35),
-              _buildInputField(
-                personController,
-                'contact_name'.tr,
-                'deal_with_hint'.tr,
-                Icons.person_outline,
-                TextInputType.text,
-                (value) => value!.isEmpty ? 'name_required'.tr : null,
-              ),
-              const SizedBox(height: 20),
-              _buildInputField(
-                phoneController,
-                'phone'.tr,
-                'person_phone_hint'.tr,
-                Icons.phone_android_outlined,
-                TextInputType.phone,
-                null,
-              ),
-              const SizedBox(height: 20),
-              _buildInputField(
-                amountController,
-                'amount'.tr,
-                'enter_transaction_amount'.tr,
-                Icons.currency_rupee_outlined,
-                TextInputType.number,
-                (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'amount_required'.tr;
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'invalid_amount'.tr;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildInputField(
-                reasonController,
-                'note_memo'.tr,
-                'reason_hint'.tr,
-                Icons.note_alt_outlined,
-                TextInputType.text,
-                null,
-              ),
-              const SizedBox(height: 30),
-              _buildLoanTypeSelector(),
-              const SizedBox(height: 30),
-              _buildPaymentModeSelector(context),
-              const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 10),
-                child: Text("expected_return_date".tr,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEditMode ? "update_record".tr : "digital_ledger_entry".tr,
+                    style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "lending_borrowing_desc".tr,
                     style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyLarge?.color)),
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w400),
+                  ),
+                ],
               ),
-              _buildDatePicker(context),
-              const SizedBox(height: 50),
-              Obx(() => CustomButton(
-                    text: isEditMode ? 'update_record'.tr : 'save_record'.tr,
-                    isLoading: widget.controller.isLoading.value,
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        if (expectedReturnDate == null) {
-                          Utils.showSnackbar(
-                              "warning".tr, "set_return_date".tr);
-                          return;
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildInputField(
+                      personController,
+                      'contact_name'.tr,
+                      'deal_with_hint'.tr,
+                      Icons.person_rounded,
+                      TextInputType.text,
+                      (value) => (value == null || value.isEmpty)
+                          ? 'name_required'.tr
+                          : null,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildInputField(
+                      phoneController,
+                      'phone'.tr,
+                      'person_phone_hint'.tr,
+                      Icons.phone_iphone_rounded,
+                      TextInputType.phone,
+                      (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'amount_required'.tr;
                         }
+                        if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                          return 'Enter a valid 10-digit phone number'; // I should check if there's a translation for this
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    _buildInputField(
+                      amountController,
+                      'amount'.tr,
+                      'enter_transaction_amount'.tr,
+                      Icons.currency_rupee_rounded,
+                      TextInputType.number,
+                      (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'amount_required'.tr;
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'invalid_amount'.tr;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    _buildInputField(
+                      reasonController,
+                      'note_memo'.tr,
+                      'reason_hint'.tr,
+                      Icons.description_rounded,
+                      TextInputType.multiline,
+                      (value) {
+                        if (value != null && value.length > 100) {
+                          return 'Note is too long (max 100 chars)';
+                        }
+                        return null;
+                      },
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 32),
+                    _buildLoanTypeSelector(),
+                    const SizedBox(height: 24),
+                    _buildPaymentModeSelector(context),
+                    const SizedBox(height: 24),
+                    _buildDatePicker(context),
+                    const SizedBox(height: 48),
+                    Obx(() => CustomButton(
+                          text: isEditMode
+                              ? 'update_record'.tr
+                              : 'save_record'.tr,
+                          isLoading: widget.controller.isLoading.value,
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              if (expectedReturnDate == null) {
+                                Utils.showSnackbar(
+                                    "warning".tr, "set_return_date".tr);
+                                return;
+                              }
 
-                        if (isEditMode) {
-                          final updatedLoan = widget.loan!.copyWith(
-                            personName: personController.text,
-                            personPhone: phoneController.text,
-                            amount: double.parse(amountController.text),
-                            type: type,
-                            paymentMode: paymentMode,
-                            reason: reasonController.text,
-                            expectedReturnDate: expectedReturnDate,
-                          );
-                          await widget.controller.updateLoan(updatedLoan);
-                        } else {
-                          final loan = Loan(
-                            userId: widget.myUser.userId,
-                            id: const Uuid().v4(),
-                            personName: personController.text,
-                            personPhone: phoneController.text,
-                            amount: double.parse(amountController.text),
-                            paidAmount: 0.0.obs,
-                            expectedReturnDate: expectedReturnDate!,
-                            reason: reasonController.text,
-                            type: type,
-                            paymentMode: paymentMode,
-                            date: date,
-                            status: 'pending'.obs,
-                          );
-                          await widget.controller.addLoan(loan);
-                        }
-                      }
-                    },
-                    backgroundColor: AppColors.primary,
-                    textColor: Colors.white,
-                    borderRadius: 16,
-                  )),
-              const SizedBox(height: 35),
-              _buildRecentEntries(),
-            ],
-          ),
+                              if (isEditMode) {
+                                final updatedLoan = widget.loan!.copyWith(
+                                  personName: personController.text,
+                                  personPhone: phoneController.text,
+                                  amount: double.parse(amountController.text),
+                                  type: type,
+                                  paymentMode: paymentMode,
+                                  reason: reasonController.text,
+                                  expectedReturnDate: expectedReturnDate,
+                                );
+                                await widget.controller.updateLoan(updatedLoan);
+                              } else {
+                                final loan = Loan(
+                                  userId: widget.myUser.userId,
+                                  id: const Uuid().v4(),
+                                  personName: personController.text,
+                                  personPhone: phoneController.text,
+                                  amount: double.parse(amountController.text),
+                                  paidAmount: 0.0.obs,
+                                  expectedReturnDate: expectedReturnDate!,
+                                  reason: reasonController.text,
+                                  type: type,
+                                  paymentMode: paymentMode,
+                                  date: date,
+                                  status: 'pending'.obs,
+                                );
+                                await widget.controller.addLoan(loan);
+                              }
+                            }
+                          },
+                          backgroundColor: AppColors.primary,
+                          textColor: Colors.white,
+                          borderRadius: 18,
+                        )),
+                    const SizedBox(height: 40),
+                    _buildRecentEntries(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -501,26 +631,29 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               final icon = isLent ? Icons.arrow_upward : Icons.arrow_downward;
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
                     BoxShadow(
-                        color: Color(0x05000000),
-                        blurRadius: 5,
-                        offset: Offset(0, 2))
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4))
                   ],
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: color.withOpacity(0.15),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                      ),
                       child: Icon(icon, color: color, size: 22),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,14 +661,16 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                           Text(loan.personName,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 16,
                                   color: Theme.of(context)
                                       .textTheme
                                       .bodyLarge
                                       ?.color)),
+                          const SizedBox(height: 2),
                           Text(DateFormat('dd MMM yyyy').format(loan.date),
                               style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                   color: Theme.of(context)
                                       .textTheme
                                       .bodySmall
@@ -543,11 +678,20 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                         ],
                       ),
                     ),
-                    Text("₹${loan.amount.toStringAsFixed(0)}",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: color)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text("₹${loan.amount.toStringAsFixed(0)}",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: color)),
+                        Text(loan.paymentMode ?? 'N/A',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).disabledColor)),
+                      ],
+                    ),
                   ],
                 ),
               );
