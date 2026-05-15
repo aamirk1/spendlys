@@ -7,12 +7,10 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
 /// Notification ID ranges to avoid collisions:
-///   1000–1999  → Loan creation confirmations
-///   2000–2999  → Loan due-date reminders (1 day before)
-///   3000–5999  → Loan due-date every-2-hour reminders (up to 10 per loan × 3 slots)
-///   6000–6999  → Invoice creation confirmations
-///   7000–7999  → Invoice due-date reminders (1 day before)
-///   8000–9999  → Invoice due-date every-2-hour reminders
+///   100,000–199,999  → Loan creation confirmations
+///   200,000–399,999  → Loan due-date reminders (Day Before & Due Day)
+///   600,000–699,999  → Invoice creation confirmations
+///   700,000–899,999  → Invoice due-date reminders (Day Before & Due Day)
 
 const String _channelId = 'reminders_channel';
 const String _channelName = 'Payment Reminders';
@@ -231,25 +229,22 @@ class ReminderNotificationService extends GetxService {
       );
     }
 
-    // --- Due Day: every 2 hours from 8 AM to 8 PM ---
-    final reminderHours = [8, 10, 12, 14, 16, 18, 20];
-    for (int i = 0; i < reminderHours.length; i++) {
-      final reminderTime = DateTime(
-        dueDate.year,
-        dueDate.month,
-        dueDate.day,
-        reminderHours[i],
-        0,
+    // --- Due Day: 10:00 AM ---
+    final dueDayTime = DateTime(
+      dueDate.year,
+      dueDate.month,
+      dueDate.day,
+      10,
+      0,
+    );
+    if (dueDayTime.isAfter(now)) {
+      await _scheduleAt(
+        id: baseId + 1,
+        scheduledTime: tz.TZDateTime.from(dueDayTime, local),
+        title: title,
+        body: bodyOnDueDay,
+        payload: payload,
       );
-      if (reminderTime.isAfter(now)) {
-        await _scheduleAt(
-          id: baseId + i + 1, // baseId + 1, +2, ... +7
-          scheduledTime: tz.TZDateTime.from(reminderTime, local),
-          title: title,
-          body: bodyOnDueDay,
-          payload: payload,
-        );
-      }
     }
   }
 
@@ -322,15 +317,15 @@ class ReminderNotificationService extends GetxService {
     );
   }
 
-  // ID computation — uses a stable int derived from the UUID string
-  int _loanConfirmId(String loanId) => 1000 + loanId.hashCode.abs() % 999;
+  // ID computation — uses a larger space to avoid collisions
+  int _loanConfirmId(String loanId) => 100000 + loanId.hashCode.abs() % 99999;
 
   int _loanReminderBaseId(String loanId) =>
-      2000 + (loanId.hashCode.abs() % 99) * 10;
+      200000 + (loanId.hashCode.abs() % 19999) * 10;
 
   int _invoiceConfirmId(String invoiceId) =>
-      6000 + invoiceId.hashCode.abs() % 999;
+      600000 + invoiceId.hashCode.abs() % 99999;
 
   int _invoiceReminderBaseId(String invoiceId) =>
-      7000 + (invoiceId.hashCode.abs() % 99) * 10;
+      700000 + (invoiceId.hashCode.abs() % 19999) * 10;
 }

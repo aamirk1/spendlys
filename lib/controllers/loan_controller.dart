@@ -85,6 +85,21 @@ class LoanController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Success', 'Loan updated successfully!',
             isError: false);
+        
+        // ── Reschedule notifications ─────────────────
+        if (loan.expectedReturnDate != null) {
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            await reminderSvc.scheduleLoanNotifications(
+              loanId: loan.id,
+              personName: loan.personName,
+              amount: loan.amount,
+              type: loan.type,
+              dueDate: loan.expectedReturnDate!,
+            );
+          } catch (_) {}
+        }
+
         fetchLoans();
         Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
