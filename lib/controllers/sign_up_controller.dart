@@ -440,6 +440,7 @@ class SignUpController extends GetxController {
         box.write("userId", myUser.userId);
         box.write("email", myUser.email);
         box.write("name", myUser.name);
+        box.write("phoneNumber", myUser.phoneNumber);
         box.write('hasSeenOnboarding', true);
 
         Get.back(); // Close dialog
