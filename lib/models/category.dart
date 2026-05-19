@@ -1,6 +1,4 @@
-
 import 'package:spendly/models/myuser.dart';
-
 
 class Category {
   MyUser userId;
@@ -19,8 +17,13 @@ class Category {
     required this.color,
   });
 
-  static final empty =
-      Category(userId: MyUser.empty, categoryId: '', name: '', totalExpenses: 0, icon: '', color: 0);
+  static final empty = Category(
+      userId: MyUser.empty,
+      categoryId: '',
+      name: '',
+      totalExpenses: 0,
+      icon: '',
+      color: 0);
 
   // CategoryEntity toEntity() {
   //   return CategoryEntity(

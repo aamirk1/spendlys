@@ -6,7 +6,6 @@ import 'package:spendly/controllers/theme_controller.dart';
 import 'package:spendly/services/app_update_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-
 class AppSettingsScreen extends StatelessWidget {
   const AppSettingsScreen({super.key});
 
@@ -20,7 +19,8 @@ class AppSettingsScreen extends StatelessWidget {
         title: Text('settings'.tr,
             style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: AnimationLimiter(
+      body: SafeArea(
+          child: AnimationLimiter(
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: AnimationConfiguration.toStaggeredList(
@@ -82,7 +82,7 @@ class AppSettingsScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 

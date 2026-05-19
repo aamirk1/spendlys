@@ -17,12 +17,15 @@ class BusinessExportHelper {
     required List data,
   }) async {
     final pdf = pw.Document();
-    final String title = type == BusinessExportType.customers ? "CUSTOMER LIST" : "INVENTORY LIST";
+    final String title = type == BusinessExportType.customers
+        ? "CUSTOMER LIST"
+        : "INVENTORY LIST";
     final String dateStr = DateFormat('dd MMM yyyy').format(DateTime.now());
 
     pw.ImageProvider? watermarkImage;
     try {
-      final logoBytes = (await rootBundle.load('assets/logos/logo.png')).buffer.asUint8List();
+      final logoBytes =
+          (await rootBundle.load('assets/logos/logo.png')).buffer.asUint8List();
       watermarkImage = pw.MemoryImage(logoBytes);
     } catch (_) {}
 
@@ -87,7 +90,8 @@ class BusinessExportHelper {
   }
 
   // Print Preview presentation phase
-  static Future<void> showPrintPreview(Uint8List pdfData, BusinessExportType type) async {
+  static Future<void> showPrintPreview(
+      Uint8List pdfData, BusinessExportType type) async {
     final dateStr = DateFormat('ddMMMyyyy').format(DateTime.now());
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdfData,
@@ -132,7 +136,7 @@ class BusinessExportHelper {
             .map((cell) => '"${cell.toString().replaceAll('"', '""')}"')
             .join(','))
         .join('\n');
-    
+
     final directory = await getTemporaryDirectory();
     final file = File('${directory.path}/${type.name}_export.csv');
     await file.writeAsString(csvString);
@@ -140,11 +144,14 @@ class BusinessExportHelper {
   }
 
   // Share Sheet presentation phase
-  static Future<void> showShareSheet(String filePath, BusinessExportType type) async {
-    await Share.shareXFiles([XFile(filePath)], text: '${type.name.toUpperCase()} Export');
+  static Future<void> showShareSheet(
+      String filePath, BusinessExportType type) async {
+    await Share.shareXFiles([XFile(filePath)],
+        text: '${type.name.toUpperCase()} Export');
   }
 
-  static List<List<String>> _getFormattedDataForPdf(BusinessExportType type, List data) {
+  static List<List<String>> _getFormattedDataForPdf(
+      BusinessExportType type, List data) {
     List<List<String>> result = [];
     if (type == BusinessExportType.customers) {
       result.add(['Name', 'Phone', 'Email', 'Pending']);

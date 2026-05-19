@@ -68,14 +68,15 @@ class _SwipeToState extends State<SwipeTo> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  void _runAnimation({required bool onRight, required DragUpdateDetails details}) {
+  void _runAnimation(
+      {required bool onRight, required DragUpdateDetails details}) {
     _animation = Tween(
       begin: const Offset(0.0, 0.0),
       end: Offset(onRight ? widget.offsetDx : -widget.offsetDx, 0.0),
     ).animate(
       CurvedAnimation(curve: Curves.decelerate, parent: _controller),
     );
-    
+
     if (onRight) {
       _leftIconAnimation = Tween(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(curve: Curves.decelerate, parent: _controller),
@@ -85,7 +86,7 @@ class _SwipeToState extends State<SwipeTo> with SingleTickerProviderStateMixin {
         CurvedAnimation(curve: Curves.decelerate, parent: _controller),
       );
     }
-    
+
     _controller.forward().whenComplete(() {
       _controller.reverse().whenComplete(() {
         if (onRight) {
@@ -125,7 +126,8 @@ class _SwipeToState extends State<SwipeTo> with SingleTickerProviderStateMixin {
                     Icon(
                       widget.iconOnRightSwipe,
                       size: widget.iconSize,
-                      color: widget.iconColor ?? Theme.of(context).iconTheme.color,
+                      color:
+                          widget.iconColor ?? Theme.of(context).iconTheme.color,
                     ),
               ),
               AnimatedOpacity(
@@ -136,7 +138,8 @@ class _SwipeToState extends State<SwipeTo> with SingleTickerProviderStateMixin {
                     Icon(
                       widget.iconOnLeftSwipe,
                       size: widget.iconSize,
-                      color: widget.iconColor ?? Theme.of(context).iconTheme.color,
+                      color:
+                          widget.iconColor ?? Theme.of(context).iconTheme.color,
                     ),
               ),
             ],

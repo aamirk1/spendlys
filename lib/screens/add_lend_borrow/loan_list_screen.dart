@@ -73,7 +73,8 @@ class _LoansScreenState extends State<LoansScreen>
           ),
         ],
       ),
-      body: Stack(
+      body: SafeArea(
+          child: Stack(
         children: [
           Column(
             children: [
@@ -94,7 +95,7 @@ class _LoansScreenState extends State<LoansScreen>
             ],
           ),
         ],
-      ),
+      )),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         onPressed: () => Get.to(() => AddLoanScreen(

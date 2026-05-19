@@ -49,7 +49,8 @@ class AppErrorHandler {
         } else if (data is Map && data.containsKey('message')) {
           message = data['message'].toString();
         } else {
-          message = "Server error: ${error.response?.statusCode}. Please try again later.";
+          message =
+              "Server error: ${error.response?.statusCode}. Please try again later.";
         }
       } else {
         message = "Network error: ${error.message}";

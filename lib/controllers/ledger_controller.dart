@@ -28,12 +28,14 @@ class LedgerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    
+
     // Ensure Business controllers are registered for reactivity
-    if (!Get.isRegistered<InvoiceListController>()) Get.put(InvoiceListController());
-    
+    if (!Get.isRegistered<InvoiceListController>())
+      Get.put(InvoiceListController());
+
     // Listen to changes in source lists to update the resolved business list in real-time
-    ever(Get.find<InvoiceListController>().invoices, (_) => _updateBusinessInvoices());
+    ever(Get.find<InvoiceListController>().invoices,
+        (_) => _updateBusinessInvoices());
     ever(customers, (_) => _updateBusinessInvoices());
 
     // Default fetch for loans since it's initial selected type
@@ -118,11 +120,11 @@ class LedgerController extends GetxController {
   // Filtered Getters
   List get filteredBusiness => invoices.where((inv) {
         if (searchQuery.value.isEmpty) return true;
-        final name = (inv['resolved_customer_name'] ?? '').toString().toLowerCase();
+        final name =
+            (inv['resolved_customer_name'] ?? '').toString().toLowerCase();
         final id = (inv['invoice_number'] ?? '').toString().toLowerCase();
-        final matchesSearch =
-            name.contains(searchQuery.value.toLowerCase()) ||
-                id.contains(searchQuery.value.toLowerCase());
+        final matchesSearch = name.contains(searchQuery.value.toLowerCase()) ||
+            id.contains(searchQuery.value.toLowerCase());
 
         bool matchesDate = true;
         if (dateRange.value != null && inv['date'] != null) {
@@ -140,8 +142,8 @@ class LedgerController extends GetxController {
 
     if (dateRange.value != null) {
       all = all.where((l) {
-        return l.date.isAfter(dateRange.value!.start
-                .subtract(const Duration(seconds: 1))) &&
+        return l.date.isAfter(
+                dateRange.value!.start.subtract(const Duration(seconds: 1))) &&
             l.date.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
       }).toList();
     }
@@ -168,8 +170,8 @@ class LedgerController extends GetxController {
     if (dateRange.value != null) {
       all = all.where((item) {
         final d = item['date'] as DateTime;
-        return d.isAfter(dateRange.value!.start
-                .subtract(const Duration(seconds: 1))) &&
+        return d.isAfter(
+                dateRange.value!.start.subtract(const Duration(seconds: 1))) &&
             d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
       }).toList();
     }

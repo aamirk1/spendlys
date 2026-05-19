@@ -66,7 +66,8 @@ class ForgotPasswordScreen extends StatelessWidget {
                         prefixIcon:
                             const Icon(Icons.phone, color: AppColors.primary),
                         validator: (val) {
-                          if (val!.isEmpty) return 'Please enter your phone number';
+                          if (val!.isEmpty)
+                            return 'Please enter your phone number';
                           if (val.length < 10) {
                             return 'Please enter a valid phone number';
                           }
@@ -75,79 +76,86 @@ class ForgotPasswordScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 32),
                       // Submit Button
-                      Obx(() => controller.showOtpField.value 
-                        ? Column(
-                            children: [
-                              MyTextField(
-                                controller: controller.otpController,
-                                hintText: 'Enter 6-digit OTP',
-                                obscureText: false,
-                                keyboardType: TextInputType.number,
-                                prefixIcon: const Icon(Icons.lock_clock, color: AppColors.primary),
-                              ),
-                              const SizedBox(height: 16),
-                              MyTextField(
-                                controller: controller.newPasswordController,
-                                hintText: 'New Password',
-                                obscureText: true,
-                                keyboardType: TextInputType.visiblePassword,
-                                prefixIcon: const Icon(Icons.lock_reset, color: AppColors.primary),
-                              ),
-                              const SizedBox(height: 32),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: controller.isResetting.value ? null : () => controller.resetPassword(),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  ),
-                                  child: controller.isResetting.value 
-                                    ? const CircularProgressIndicator(color: Colors.white) 
-                                    : const Text('Reset Password'),
+                      Obx(() => controller.showOtpField.value
+                          ? Column(
+                              children: [
+                                MyTextField(
+                                  controller: controller.otpController,
+                                  hintText: 'Enter 6-digit OTP',
+                                  obscureText: false,
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: const Icon(Icons.lock_clock,
+                                      color: AppColors.primary),
                                 ),
-                              ),
-                            ],
-                          )
-                        : AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: controller.isSending.value
-                                ? 60
-                                : double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: controller.isSending.value
-                                  ? null
-                                  : () {
-                                      if (controller.formKey.currentState!
-                                          .validate()) {
-                                        controller.requestPasswordReset();
-                                      }
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                const SizedBox(height: 16),
+                                MyTextField(
+                                  controller: controller.newPasswordController,
+                                  hintText: 'New Password',
+                                  obscureText: true,
+                                  keyboardType: TextInputType.visiblePassword,
+                                  prefixIcon: const Icon(Icons.lock_reset,
+                                      color: AppColors.primary),
                                 ),
-                                elevation: 5,
-                              ),
-                              child: controller.isSending.value
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2.5,
-                                    )
-                                  : Text(
-                                      'send_reset_link'.tr,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                const SizedBox(height: 32),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    onPressed: controller.isResetting.value
+                                        ? null
+                                        : () => controller.resetPassword(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
                                     ),
-                            ),
-                          )),
+                                    child: controller.isResetting.value
+                                        ? const CircularProgressIndicator(
+                                            color: Colors.white)
+                                        : const Text('Reset Password'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: controller.isSending.value
+                                  ? 60
+                                  : double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: controller.isSending.value
+                                    ? null
+                                    : () {
+                                        if (controller.formKey.currentState!
+                                            .validate()) {
+                                          controller.requestPasswordReset();
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 5,
+                                ),
+                                child: controller.isSending.value
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2.5,
+                                      )
+                                    : Text(
+                                        'send_reset_link'.tr,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            )),
                     ],
                   ),
                 ),

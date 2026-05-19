@@ -17,12 +17,14 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('profile'.tr,
-            style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+            style: const TextStyle(
+                fontWeight: FontWeight.w800, letterSpacing: 1.2)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: AnimationLimiter(
+      body: SafeArea(
+          child: AnimationLimiter(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 30),
           children: AnimationConfiguration.toStaggeredList(
@@ -38,13 +40,18 @@ class ProfileScreen extends StatelessWidget {
               const ProfileStats(),
               const SizedBox(height: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
                 child: Text(
                   'account'.tr.toUpperCase(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.5),
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -55,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

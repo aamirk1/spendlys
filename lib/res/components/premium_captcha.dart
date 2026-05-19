@@ -25,7 +25,8 @@ class _PremiumCaptchaState extends State<PremiumCaptcha> {
   void _generateCaptcha() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid ambiguous chars
     _captchaText = String.fromCharCodes(
-      Iterable.generate(5, (_) => chars.codeUnitAt(math.Random().nextInt(chars.length))),
+      Iterable.generate(
+          5, (_) => chars.codeUnitAt(math.Random().nextInt(chars.length))),
     );
     _controller.clear();
     _isVerified = false;
@@ -63,7 +64,10 @@ class _PremiumCaptchaState extends State<PremiumCaptcha> {
         children: [
           const Text(
             "Quick Security Check",
-            style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+            style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 12),
           Row(
@@ -88,18 +92,20 @@ class _PremiumCaptchaState extends State<PremiumCaptcha> {
                     alignment: Alignment.center,
                     children: [
                       // Distortion lines
-                      ...List.generate(5, (index) => Positioned(
-                        left: math.Random().nextDouble() * 100,
-                        top: math.Random().nextDouble() * 40,
-                        child: Transform.rotate(
-                          angle: math.Random().nextDouble() * 2,
-                          child: Container(
-                            width: 60,
-                            height: 1,
-                            color: Colors.white.withOpacity(0.1),
-                          ),
-                        ),
-                      )),
+                      ...List.generate(
+                          5,
+                          (index) => Positioned(
+                                left: math.Random().nextDouble() * 100,
+                                top: math.Random().nextDouble() * 40,
+                                child: Transform.rotate(
+                                  angle: math.Random().nextDouble() * 2,
+                                  child: Container(
+                                    width: 60,
+                                    height: 1,
+                                    color: Colors.white.withOpacity(0.1),
+                                  ),
+                                ),
+                              )),
                       Text(
                         _captchaText,
                         style: const TextStyle(
@@ -118,12 +124,14 @@ class _PremiumCaptchaState extends State<PremiumCaptcha> {
               // Refresh Icon
               IconButton(
                 onPressed: _generateCaptcha,
-                icon: const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 24),
+                icon: const Icon(Icons.refresh_rounded,
+                    color: AppColors.primary, size: 24),
               ),
               const Expanded(child: SizedBox()),
               // Verification Indicator
               if (_isVerified)
-                const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
+                const Icon(Icons.check_circle_rounded,
+                    color: Colors.greenAccent, size: 28),
             ],
           ),
           const SizedBox(height: 16),
@@ -137,17 +145,22 @@ class _PremiumCaptchaState extends State<PremiumCaptcha> {
               hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
               filled: true,
               fillColor: Colors.white.withOpacity(0.05),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: _isVerified ? Colors.greenAccent : Colors.white.withOpacity(0.1),
+                  color: _isVerified
+                      ? Colors.greenAccent
+                      : Colors.white.withOpacity(0.1),
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: _isVerified ? Colors.greenAccent.withOpacity(0.5) : Colors.white.withOpacity(0.1),
+                  color: _isVerified
+                      ? Colors.greenAccent.withOpacity(0.5)
+                      : Colors.white.withOpacity(0.1),
                 ),
               ),
               focusedBorder: OutlineInputBorder(

@@ -20,7 +20,8 @@ class InvoiceDetailView extends StatelessWidget {
         Get.back();
         Utils.showSnackbar("Error", "Invoice data missing.");
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     final Map<String, dynamic> inv = args;
@@ -62,7 +63,8 @@ class InvoiceDetailView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +86,8 @@ class InvoiceDetailView extends StatelessWidget {
               _buildInfoRow("Number", inv['invoice_number'] ?? "N/A"),
               _buildInfoRow("Date", dateFormatted),
               _buildInfoRow("Due Date", dueDateFormatted),
-              if (inv['payment_mode'] != null && inv['payment_mode'].toString().isNotEmpty)
+              if (inv['payment_mode'] != null &&
+                  inv['payment_mode'].toString().isNotEmpty)
                 _buildInfoRow("Payment Mode", inv['payment_mode'].toString()),
             ]),
             const SizedBox(height: 20),
@@ -131,7 +134,7 @@ class InvoiceDetailView extends StatelessWidget {
               ),
           ],
         ),
-      ),
+      )),
     );
   }
 

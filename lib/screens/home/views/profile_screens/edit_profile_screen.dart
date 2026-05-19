@@ -24,7 +24,8 @@ class EditProfileScreen extends StatelessWidget {
         foregroundColor: Get.isDarkMode ? Colors.white : Colors.black87,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: controller.formKey,
@@ -58,7 +59,7 @@ class EditProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 

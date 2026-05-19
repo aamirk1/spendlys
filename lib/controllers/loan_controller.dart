@@ -85,7 +85,7 @@ class LoanController extends GetxController {
       if (response.statusCode == 200) {
         Utils.showSnackbar('Success', 'Loan updated successfully!',
             isError: false);
-        
+
         // ── Reschedule notifications ─────────────────
         if (loan.expectedReturnDate != null) {
           try {

@@ -25,7 +25,7 @@ class ViewAllExpense extends StatelessWidget {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
       ),
-      body: Obx(() {
+      body: SafeArea(child: Obx(() {
         final expenses = (expenseController.expensesList.toList()
           ..sort((a, b) => b['date'].compareTo(a['date'])));
 
@@ -138,7 +138,7 @@ class ViewAllExpense extends StatelessWidget {
             },
           ),
         );
-      }),
+      })),
     );
   }
 

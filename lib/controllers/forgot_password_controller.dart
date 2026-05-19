@@ -8,12 +8,12 @@ import 'package:spendly/core/error/app_error_handler.dart';
 
 class ForgotPasswordController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
-  
+
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
   final newPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  
+
   var isSending = false.obs;
   var isResetting = false.obs;
   var showOtpField = false.obs;
@@ -33,7 +33,8 @@ class ForgotPasswordController extends GetxController {
 
       if (response.statusCode == 200) {
         showOtpField.value = true;
-        Utils.showSnackbar('Success', 'Reset OTP sent to your phone.', isError: false);
+        Utils.showSnackbar('Success', 'Reset OTP sent to your phone.',
+            isError: false);
       } else {
         throw Exception(response.data['detail'] ?? 'Failed to request reset');
       }
@@ -45,8 +46,10 @@ class ForgotPasswordController extends GetxController {
   }
 
   Future<void> resetPassword() async {
-    if (otpController.text.length != 6 || newPasswordController.text.length < 6) {
-      Utils.showSnackbar('Error', 'Please enter a valid 6-digit OTP and a password (min 6 chars).');
+    if (otpController.text.length != 6 ||
+        newPasswordController.text.length < 6) {
+      Utils.showSnackbar('Error',
+          'Please enter a valid 6-digit OTP and a password (min 6 chars).');
       return;
     }
 
@@ -62,7 +65,8 @@ class ForgotPasswordController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Password reset successfully!', isError: false);
+        Utils.showSnackbar('Success', 'Password reset successfully!',
+            isError: false);
         Get.back(); // Return to Login
       } else {
         throw Exception(response.data['detail'] ?? 'Reset failed');

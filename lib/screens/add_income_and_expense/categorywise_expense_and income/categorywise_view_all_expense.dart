@@ -19,7 +19,7 @@ class CategorywiseViewAllExpense extends StatelessWidget {
         backgroundColor: const Color(0xFFFF8D6C),
         title: Text("$selectedCategory Expenses"), // Show selected category
       ),
-      body: Obx(() {
+      body: SafeArea(child: Obx(() {
         // 🔹 Filter expenses by category
         final expenses = expenseController.expensesList
             .where((expense) => expense['category'] == selectedCategory)
@@ -78,7 +78,7 @@ class CategorywiseViewAllExpense extends StatelessWidget {
             );
           },
         );
-      }),
+      })),
     );
   }
 

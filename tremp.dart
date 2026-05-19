@@ -1,5 +1,5 @@
 // // First, add these dependencies to your pubspec.yaml:
-// // 
+// //
 // // dependencies:
 // //   flutter:
 // //     sdk: flutter
@@ -65,12 +65,12 @@
 //   final RxBool isUploading = false.obs;
 //   final RxBool faceDetected = false.obs;
 //   final RxInt currentStep = 0.obs;
-  
+
 //   // List of available currencies
 //   final List<String> currencies = [
 //     'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CNY', 'INR'
 //   ];
-  
+
 //   // List of available languages
 //   final List<Map<String, String>> languages = [
 //     {'code': 'en', 'name': 'English'},
@@ -82,7 +82,7 @@
 //     {'code': 'ar', 'name': 'Arabic'},
 //     {'code': 'hi', 'name': 'Hindi'},
 //   ];
-  
+
 //   // Face detector instance
 //   final FaceDetector _faceDetector = FaceDetector(
 //     options: FaceDetectorOptions(
@@ -90,19 +90,19 @@
 //       enableClassification: true,
 //     ),
 //   );
-  
+
 //   void nextStep() {
 //     if (currentStep.value < 3) {
 //       currentStep.value++;
 //     }
 //   }
-  
+
 //   void previousStep() {
 //     if (currentStep.value > 0) {
 //       currentStep.value--;
 //     }
 //   }
-  
+
 //   Future<void> pickImage(ImageSource source) async {
 //     try {
 //       final ImagePicker picker = ImagePicker();
@@ -110,16 +110,16 @@
 //         source: source,
 //         imageQuality: 80,
 //       );
-      
+
 //       if (image != null) {
 //         isUploading.value = true;
 //         faceDetected.value = false;
-        
+
 //         // Check for face in the image
 //         final File imageFile = File(image.path);
 //         final InputImage inputImage = InputImage.fromFile(imageFile);
 //         final List<Face> faces = await _faceDetector.processImage(inputImage);
-        
+
 //         if (faces.isNotEmpty) {
 //           profileImage.value = imageFile;
 //           faceDetected.value = true;
@@ -143,29 +143,29 @@
 //       );
 //     }
 //   }
-  
+
 //   Future<bool> saveUserPreferences() async {
 //     try {
 //       isUploading.value = true;
 //       final User? user = FirebaseAuth.instance.currentUser;
-      
+
 //       if (user == null) {
 //         throw Exception('User not authenticated');
 //       }
-      
+
 //       String? profileImageUrl;
-      
+
 //       // Upload profile image if available
 //       if (profileImage.value != null) {
 //         final Reference storageRef = FirebaseStorage.instance
 //             .ref()
 //             .child('profile_images')
 //             .child('${user.uid}.jpg');
-            
+
 //         await storageRef.putFile(profileImage.value!);
 //         profileImageUrl = await storageRef.getDownloadURL();
 //       }
-      
+
 //       // Save user preferences to Firestore
 //       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
 //         'currency': selectedCurrency.value,
@@ -176,7 +176,7 @@
 //         'setupCompleted': true,
 //         'updatedAt': FieldValue.serverTimestamp(),
 //       }, SetOptions(merge: true));
-      
+
 //       isUploading.value = false;
 //       return true;
 //     } catch (e) {
@@ -190,7 +190,7 @@
 //       return false;
 //     }
 //   }
-  
+
 //   @override
 //   void onClose() {
 //     _faceDetector.close();
@@ -201,7 +201,7 @@
 // class OnboardingFlow extends StatelessWidget {
 //   final SetupController controller = Get.put(SetupController());
 //   final PageController pageController = PageController();
-  
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
@@ -214,7 +214,7 @@
 //               backgroundColor: Colors.grey[300],
 //               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
 //             )),
-            
+
 //             // Skip button
 //             Align(
 //               alignment: Alignment.topRight,
@@ -223,7 +223,7 @@
 //                 child: Text('Skip', style: TextStyle(color: AppColors.tertiary)),
 //               ),
 //             ),
-            
+
 //             // Main content
 //             Expanded(
 //               child: Obx(() => PageView(
@@ -238,7 +238,7 @@
 //                 ],
 //               )),
 //             ),
-            
+
 //             // Navigation buttons
 //             Padding(
 //               padding: const EdgeInsets.all(16.0),
@@ -260,7 +260,7 @@
 //                             child: Text('Back'),
 //                           )
 //                         : SizedBox(width: 80),
-                    
+
 //                     // Next/Finish button
 //                     ElevatedButton(
 //                       onPressed: controller.isUploading.value
@@ -304,7 +304,7 @@
 //       ),
 //     );
 //   }
-  
+
 //   void _confirmSkip(BuildContext context) {
 //     showDialog(
 //       context: context,
@@ -390,7 +390,7 @@
 // // Currency and Language Selection Screen
 // class CurrencyLanguageScreen extends StatelessWidget {
 //   final SetupController controller = Get.find<SetupController>();
-  
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return SingleChildScrollView(
@@ -406,7 +406,7 @@
 //             ),
 //           ),
 //           SizedBox(height: 30),
-          
+
 //           // Currency selection
 //           Text(
 //             'Select Currency',
@@ -449,7 +449,7 @@
 //             )),
 //           ),
 //           SizedBox(height: 30),
-          
+
 //           // Language selection
 //           Text(
 //             'Select Language',
@@ -473,7 +473,7 @@
 //               itemBuilder: (context, index) {
 //                 final language = controller.languages[index];
 //                 final isSelected = controller.selectedLanguage.value == language['name'];
-                
+
 //                 return ListTile(
 //                   title: Text(language['name']!),
 //                   trailing: isSelected
@@ -491,7 +491,7 @@
 //       ),
 //     );
 //   }
-  
+
 //   String _getCurrencySymbol(String currencyCode) {
 //     switch (currencyCode) {
 //       case 'USD': return '₹';
@@ -510,7 +510,7 @@
 // // Country Selection Screen
 // class CountrySelectionScreen extends StatelessWidget {
 //   final SetupController controller = Get.find<SetupController>();
-  
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Padding(
@@ -526,7 +526,7 @@
 //             ),
 //           ),
 //           SizedBox(height: 30),
-          
+
 //           Text(
 //             'Select Your Country',
 //             style: TextStyle(
@@ -544,7 +544,7 @@
 //             ),
 //           ),
 //           SizedBox(height: 30),
-          
+
 //           // Selected country display
 //           Obx(() {
 //             if (controller.selectedCountry.value != null) {
@@ -592,9 +592,9 @@
 //               return Container();
 //             }
 //           }),
-          
+
 //           SizedBox(height: 24),
-          
+
 //           // Country picker button
 //           ElevatedButton.icon(
 //             onPressed: () {
@@ -640,7 +640,7 @@
 // // Profile Picture Screen
 // class ProfilePictureScreen extends StatelessWidget {
 //   final SetupController controller = Get.find<SetupController>();
-  
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Padding(
@@ -668,7 +668,7 @@
 //             textAlign: TextAlign.center,
 //           ),
 //           SizedBox(height: 40),
-          
+
 //           // Profile image
 //           Obx(() {
 //             return Container(
@@ -678,8 +678,8 @@
 //                 color: Colors.grey[200],
 //                 shape: BoxShape.circle,
 //                 border: Border.all(
-//                   color: controller.faceDetected.value 
-//                     ? AppColors.secondary 
+//                   color: controller.faceDetected.value
+//                     ? AppColors.secondary
 //                     : Colors.grey[300]!,
 //                   width: 4,
 //                 ),
@@ -699,9 +699,9 @@
 //                   : null,
 //             );
 //           }),
-          
+
 //           SizedBox(height: 30),
-          
+
 //           // Upload buttons
 //           Obx(() {
 //             if (controller.isUploading.value) {
@@ -709,7 +709,7 @@
 //                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
 //               );
 //             }
-            
+
 //             return Row(
 //               mainAxisAlignment: MainAxisAlignment.center,
 //               children: [
@@ -726,7 +726,7 @@
 //                   ),
 //                 ),
 //                 SizedBox(width: 16),
-                
+
 //                 // Gallery button
 //                 ElevatedButton.icon(
 //                   onPressed: () => controller.pickImage(ImageSource.gallery),
@@ -742,9 +742,9 @@
 //               ],
 //             );
 //           }),
-          
+
 //           SizedBox(height: 16),
-          
+
 //           // Skip text
 //           TextButton(
 //             onPressed: () {
@@ -759,9 +759,9 @@
 //               ),
 //             ),
 //           ),
-          
+
 //           Spacer(),
-          
+
 //           // Info box
 //           Obx(() {
 //             if (controller.faceDetected.value) {

@@ -45,7 +45,7 @@ class CreateInvoiceController extends GetxController {
 
   // Tax %
   final taxPercent = 0.0.obs;
-  
+
   // Payment mode
   final paymentMode = 'Cash'.obs;
   final paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
@@ -167,7 +167,8 @@ class CreateInvoiceController extends GetxController {
   double get calculatedTax => subtotal * (taxPercent.value / 100);
   double get total => subtotal + calculatedTax;
 
-  void addItem(String desc, double qty, double price, bool shouldSaveToInventory) {
+  void addItem(
+      String desc, double qty, double price, bool shouldSaveToInventory) {
     items.add(InvoiceItem(description: desc, quantity: qty, unitPrice: price));
     if (shouldSaveToInventory) {
       _saveProductToInventory(desc, price);
@@ -245,7 +246,8 @@ class CreateInvoiceController extends GetxController {
           (c) => c['id'].toString() == selectedCustomerId.value,
           orElse: () => {'name': 'Customer', 'phone': ''},
         );
-        final customerName = (selectedCustomer['name'] ?? 'Customer').toString();
+        final customerName =
+            (selectedCustomer['name'] ?? 'Customer').toString();
 
         // ── Local push + due-date reminders ───────────────────────────
         try {
@@ -471,44 +473,66 @@ class CreateInvoiceView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 15),
                                 Obx(() => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(color: Colors.green.shade100),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: controller.paymentMode.value,
-                                      isExpanded: true,
-                                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
-                                      items: controller.paymentModes.map((String mode) {
-                                        return DropdownMenuItem<String>(
-                                          value: mode,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                mode == 'Cash' ? Icons.money :
-                                                mode == 'Bank Transfer' ? Icons.account_balance :
-                                                mode == 'Credit Card' ? Icons.credit_card :
-                                                mode == 'UPI' ? Icons.qr_code : Icons.payment,
-                                                color: Colors.green.shade600,
-                                                size: 20,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                            color: Colors.green.shade100),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: controller.paymentMode.value,
+                                          isExpanded: true,
+                                          icon: const Icon(
+                                              Icons.keyboard_arrow_down_rounded,
+                                              color: Colors.black54),
+                                          items: controller.paymentModes
+                                              .map((String mode) {
+                                            return DropdownMenuItem<String>(
+                                              value: mode,
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    mode == 'Cash'
+                                                        ? Icons.money
+                                                        : mode ==
+                                                                'Bank Transfer'
+                                                            ? Icons
+                                                                .account_balance
+                                                            : mode ==
+                                                                    'Credit Card'
+                                                                ? Icons
+                                                                    .credit_card
+                                                                : mode == 'UPI'
+                                                                    ? Icons
+                                                                        .qr_code
+                                                                    : Icons
+                                                                        .payment,
+                                                    color:
+                                                        Colors.green.shade600,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Text(mode,
+                                                      style: const TextStyle(
+                                                          fontSize: 15,
+                                                          color:
+                                                              Colors.black87)),
+                                                ],
                                               ),
-                                              const SizedBox(width: 12),
-                                              Text(mode, style: const TextStyle(fontSize: 15, color: Colors.black87)),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (String? newValue) {
-                                        if (newValue != null) {
-                                          controller.paymentMode.value = newValue;
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                )),
+                                            );
+                                          }).toList(),
+                                          onChanged: (String? newValue) {
+                                            if (newValue != null) {
+                                              controller.paymentMode.value =
+                                                  newValue;
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    )),
                               ]),
                               const SizedBox(height: 25),
                               Row(

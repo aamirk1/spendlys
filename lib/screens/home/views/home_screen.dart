@@ -63,58 +63,61 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D000000), // black ~5% opacity
-              blurRadius: 20,
-              offset: Offset(0, -5),
+      bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0D000000), // black ~5% opacity
+                  blurRadius: 20,
+                  offset: Offset(0, -5),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BottomNavigationBar(
-            onTap: (value) {
-              setState(() {
-                index = value;
-              });
-            },
-            currentIndex: index,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Theme.of(context).disabledColor,
-            elevation: 0,
-            backgroundColor: Theme.of(context).cardColor,
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(CupertinoIcons.house_fill),
-                activeIcon: const Icon(CupertinoIcons.house_fill),
-                label: 'home'.tr,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(30)),
+              child: BottomNavigationBar(
+                onTap: (value) {
+                  setState(() {
+                    index = value;
+                  });
+                },
+                currentIndex: index,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                selectedItemColor: Theme.of(context).colorScheme.primary,
+                unselectedItemColor: Theme.of(context).disabledColor,
+                elevation: 0,
+                backgroundColor: Theme.of(context).cardColor,
+                type: BottomNavigationBarType.fixed,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: const Icon(CupertinoIcons.house_fill),
+                    activeIcon: const Icon(CupertinoIcons.house_fill),
+                    label: 'home'.tr,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(CupertinoIcons.briefcase),
+                    activeIcon: const Icon(CupertinoIcons.briefcase_fill),
+                    label: 'business'.tr,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(CupertinoIcons.list_bullet),
+                    activeIcon: const Icon(CupertinoIcons.list_bullet_indent),
+                    label: 'ledger'.tr,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(CupertinoIcons.person),
+                    activeIcon: const Icon(CupertinoIcons.person_fill),
+                    label: 'profile'.tr,
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: const Icon(CupertinoIcons.briefcase),
-                activeIcon: const Icon(CupertinoIcons.briefcase_fill),
-                label: 'business'.tr,
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(CupertinoIcons.list_bullet),
-                activeIcon: const Icon(CupertinoIcons.list_bullet_indent),
-                label: 'ledger'.tr,
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(CupertinoIcons.person),
-                activeIcon: const Icon(CupertinoIcons.person_fill),
-                label: 'profile'.tr,
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          )),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         heroTag: null,

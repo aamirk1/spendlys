@@ -9,10 +9,12 @@ class LocalCacheService {
   static Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
     final encryptionKey = await EncryptionService.getOrCreateEncryptionKey();
-    
+
     await Hive.initFlutter(directory.path);
-    await Hive.openBox(_cacheBoxName, encryptionCipher: HiveAesCipher(encryptionKey));
-    await Hive.openBox(_pendingSyncBoxName, encryptionCipher: HiveAesCipher(encryptionKey));
+    await Hive.openBox(_cacheBoxName,
+        encryptionCipher: HiveAesCipher(encryptionKey));
+    await Hive.openBox(_pendingSyncBoxName,
+        encryptionCipher: HiveAesCipher(encryptionKey));
   }
 
   // --- API Cache Methods ---

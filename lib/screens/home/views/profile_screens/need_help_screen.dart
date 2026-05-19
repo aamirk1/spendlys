@@ -20,7 +20,8 @@ class NeedHelpScreen extends StatelessWidget {
         title: Text('need_help'.tr,
             style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: Padding(
+      body: SafeArea(
+          child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -56,7 +57,7 @@ class NeedHelpScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

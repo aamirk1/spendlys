@@ -316,11 +316,11 @@ class UserInfoSection extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey.shade400),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 14, color: Colors.grey.shade400),
           ],
         ),
       ),
     );
   }
 }
-

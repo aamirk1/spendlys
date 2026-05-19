@@ -61,7 +61,8 @@ class ChangePasswordController extends GetxController {
 
       if (response.statusCode == 200) {
         Get.back();
-        Utils.showSnackbar("Success", "Password changed successfully!", isError: false);
+        Utils.showSnackbar("Success", "Password changed successfully!",
+            isError: false);
       } else {
         throw Exception(response.data['detail'] ?? 'Password change failed');
       }

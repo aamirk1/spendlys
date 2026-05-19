@@ -15,9 +15,10 @@ class MessageController extends GetxController {
   ScrollController scrollController = ScrollController();
   FocusNode focusNode = FocusNode();
   RxBool showEmoji = false.obs;
-  
-  RxList<DocumentSnapshot<ChatMessageModel>> localChats = <DocumentSnapshot<ChatMessageModel>>[].obs;
-  
+
+  RxList<DocumentSnapshot<ChatMessageModel>> localChats =
+      <DocumentSnapshot<ChatMessageModel>>[].obs;
+
   late ChatConnectionModel chatConnectionModel;
   late String senderId;
   bool isConnected = true;
@@ -33,8 +34,10 @@ class MessageController extends GetxController {
     super.onInit();
     chatConnectionModel = Get.arguments['data'];
     isConnected = Get.arguments['connected'] ?? true;
-    senderId = Get.arguments['senderId'] ?? FirebaseAuth.instance.currentUser?.uid ?? "";
-    
+    senderId = Get.arguments['senderId'] ??
+        FirebaseAuth.instance.currentUser?.uid ??
+        "";
+
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
         showEmoji.value = false;
@@ -66,7 +69,8 @@ class MessageController extends GetxController {
 
   void loadChats() {
     FirebaseFirestore.instance
-        .collection('${FireChatUtils.getChatroomsCollection(chatConnectionModel.userID!)}/${chatConnectionModel.id}/messages')
+        .collection(
+            '${FireChatUtils.getChatroomsCollection(chatConnectionModel.userID!)}/${chatConnectionModel.id}/messages')
         .orderBy('timeStamp', descending: true)
         .limit(30)
         .withConverter<ChatMessageModel>(
@@ -75,14 +79,14 @@ class MessageController extends GetxController {
         )
         .snapshots()
         .listen((snapshot) {
-          localChats.value = snapshot.docs;
-        });
+      localChats.value = snapshot.docs;
+    });
   }
 
   Future<void> sendMessage() async {
     String text = messageController.text.trim();
     if (text.isEmpty) return;
-    
+
     messageController.clear();
 
     if (!isConnected) {
@@ -113,10 +117,11 @@ class MessageController extends GetxController {
     isReplying.value = false;
     replyMessage.value = '';
     replyMessageSender.value = '';
-    
+
     // Scroll to bottom
     if (scrollController.hasClients) {
-      scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
   }
 
@@ -126,15 +131,15 @@ class MessageController extends GetxController {
         .doc(userId)
         .snapshots()
         .listen((doc) {
-          if (doc.exists) {
-            isActive.value = doc.data()?['active'] ?? false;
-          }
-        });
+      if (doc.exists) {
+        isActive.value = doc.data()?['active'] ?? false;
+      }
+    });
   }
 
   Widget buildMessageBubble(ChatMessageModel model, int index) {
     bool isMe = model.senderId == senderId;
-    
+
     if (!isMe && !model.isSeen) {
       FireChatUtils.updateRead(
         chatroomId: chatConnectionModel.id,

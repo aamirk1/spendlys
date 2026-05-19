@@ -1,7 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
-
 class Loan {
   String id;
   String userId;
@@ -63,7 +62,6 @@ class Loan {
     };
   }
 
-
   /// Convert Firestore map to Loan object
   factory Loan.fromMap(Map<String, dynamic> map, String id) {
     DateTime parseDate(dynamic d) {
@@ -81,21 +79,32 @@ class Loan {
     return Loan(
       id: id,
       userId: map['user_id']?.toString() ?? map['userId']?.toString() ?? '',
-      personName: map['person_name']?.toString() ?? map['personName']?.toString() ?? 'Unknown',
-      personPhone: map['person_phone']?.toString() ?? map['personPhone']?.toString(),
+      personName: map['person_name']?.toString() ??
+          map['personName']?.toString() ??
+          'Unknown',
+      personPhone:
+          map['person_phone']?.toString() ?? map['personPhone']?.toString(),
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
-      paidAmount: (map['paid_amount'] as num? ?? map['paidAmount'] as num? ?? 0.0).toDouble().obs,
+      paidAmount:
+          (map['paid_amount'] as num? ?? map['paidAmount'] as num? ?? 0.0)
+              .toDouble()
+              .obs,
       status: (map['status']?.toString() ?? 'pending').obs,
       date: parseDate(map['date']),
-      expectedReturnDate: (map['expected_return_date'] != null || map['expectedReturnDate'] != null)
+      expectedReturnDate: (map['expected_return_date'] != null ||
+              map['expectedReturnDate'] != null)
           ? parseDate(map['expected_return_date'] ?? map['expectedReturnDate'])
           : null,
       type: map['type']?.toString() ?? 'lent',
       paymentMode: map['payment_mode']?.toString(),
-      creatorName: map['creator_name']?.toString() ?? map['creatorName']?.toString(),
+      creatorName:
+          map['creator_name']?.toString() ?? map['creatorName']?.toString(),
       reason: map['reason']?.toString(),
       paymentHistory: RxList<Map<String, dynamic>>.from(
-        (map['payment_history'] as List<dynamic>? ?? map['paymentHistory'] as List<dynamic>? ?? []).map((e) {
+        (map['payment_history'] as List<dynamic>? ??
+                map['paymentHistory'] as List<dynamic>? ??
+                [])
+            .map((e) {
           final entry = e as Map<String, dynamic>;
           return {
             'amount': (entry['amount'] as num?)?.toDouble() ?? 0.0,
@@ -105,5 +114,4 @@ class Loan {
       ),
     );
   }
-
 }

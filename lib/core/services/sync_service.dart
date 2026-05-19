@@ -24,7 +24,8 @@ class SyncService extends GetxService {
     if (pendingRequests.isEmpty) return;
 
     _isSyncing.value = true;
-    debugPrint("--- Sync Starting: Found ${pendingRequests.length} pending items ---");
+    debugPrint(
+        "--- Sync Starting: Found ${pendingRequests.length} pending items ---");
 
     for (var req in pendingRequests) {
       final id = req['id'];
@@ -36,11 +37,14 @@ class SyncService extends GetxService {
       try {
         late dynamic response;
         if (method == 'POST') {
-          response = await ApiService.post(endpoint, headers: headers, body: body, bypassCache: true);
+          response = await ApiService.post(endpoint,
+              headers: headers, body: body, bypassCache: true);
         } else if (method == 'PUT') {
-          response = await ApiService.put(endpoint, headers: headers, body: body, bypassCache: true);
+          response = await ApiService.put(endpoint,
+              headers: headers, body: body, bypassCache: true);
         } else if (method == 'DELETE') {
-          response = await ApiService.delete(endpoint, headers: headers, bypassCache: true);
+          response = await ApiService.delete(endpoint,
+              headers: headers, bypassCache: true);
         }
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -61,4 +65,3 @@ class SyncService extends GetxService {
     debugPrint("--- Sync Finished ---");
   }
 }
-

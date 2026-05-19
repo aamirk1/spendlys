@@ -28,29 +28,31 @@ class MessageView extends StatelessWidget {
             children: [
               Text(controller.chatConnectionModel.title),
               Obx(() => Text(
-                controller.isActive.value ? "Online" : "Offline",
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-              )),
+                    controller.isActive.value ? "Online" : "Offline",
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.normal),
+                  )),
             ],
           ),
         ),
-        body: Column(
+        body: SafeArea(
+            child: Column(
           children: [
             Expanded(
               child: Obx(() => ListView.builder(
-                controller: controller.scrollController,
-                reverse: true,
-                padding: const EdgeInsets.all(16),
-                itemCount: controller.localChats.length,
-                itemBuilder: (context, index) {
-                  final message = controller.localChats[index].data()!;
-                  return controller.buildMessageBubble(message, index);
-                },
-              )),
+                    controller: controller.scrollController,
+                    reverse: true,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: controller.localChats.length,
+                    itemBuilder: (context, index) {
+                      final message = controller.localChats[index].data()!;
+                      return controller.buildMessageBubble(message, index);
+                    },
+                  )),
             ),
             _buildInputArea(controller),
           ],
-        ),
+        )),
       ),
     );
   }
@@ -108,8 +110,8 @@ class MessageView extends StatelessWidget {
                     ),
                     filled: true,
                     fillColor: Colors.grey.shade100,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
                   ),
                   maxLines: 5,
                   minLines: 1,

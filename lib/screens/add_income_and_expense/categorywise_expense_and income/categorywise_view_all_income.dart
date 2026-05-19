@@ -17,7 +17,7 @@ class ViewAllIncome extends StatelessWidget {
           backgroundColor: Color(0xFFE064F7),
           automaticallyImplyLeading: false,
           title: Center(child: const Text("All Incomes"))),
-      body: Obx(() {
+      body: SafeArea(child: Obx(() {
         final incomes = incomeController.incomeList;
 
         if (incomes.isEmpty) {
@@ -74,7 +74,7 @@ class ViewAllIncome extends StatelessWidget {
             );
           },
         );
-      }),
+      })),
     );
   }
 

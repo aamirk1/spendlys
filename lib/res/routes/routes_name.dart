@@ -7,7 +7,6 @@ class RoutesName {
   static const String forgotPasswordView = '/forgot_password_view';
   static const String otpVerifyView = '/otp_verify_view';
 
-
 // ---------------------------------------------------------------
   static const String homeView = '/home_view';
   static const String profileView = '/profile_view';
@@ -29,7 +28,7 @@ class RoutesName {
   static const String addLendBorrowView = '/add_lend_borrow_view';
   static const String addLoanScreen = '/add_loan_screen';
   static const String viewLoan = '/view_loan';
-  
+
   static const String chatListView = '/chat_list_view';
   static const String messageView = '/message_view';
 

@@ -23,7 +23,8 @@ class EditCategoryScreen extends StatelessWidget {
             'Edit Category',
             style: const TextStyle(color: Colors.white),
           ))),
-      body: Padding(
+      body: SafeArea(
+          child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +75,7 @@ class EditCategoryScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

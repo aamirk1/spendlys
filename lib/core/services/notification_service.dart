@@ -162,7 +162,8 @@ class NotificationService extends GetxService {
           _fetchAndNavigate(
             endpoint: '/business/invoices/${data['invoice_id']}',
             routeName: RoutesName.viewInvoice,
-            argKey: 'invoice', // Detail view uses 'inv' but we will pass Map directly as expected by InvoiceDetailView
+            argKey:
+                'invoice', // Detail view uses 'inv' but we will pass Map directly as expected by InvoiceDetailView
             isMapDirect: true,
           );
         } else {
@@ -225,7 +226,8 @@ class NotificationService extends GetxService {
     );
 
     try {
-      final response = await ApiService.get(endpoint, headers: {'x-user-id': userId});
+      final response =
+          await ApiService.get(endpoint, headers: {'x-user-id': userId});
       Get.back(); // hide loading
 
       if (response.statusCode == 200) {
@@ -234,12 +236,12 @@ class NotificationService extends GetxService {
           final loanController = Get.isRegistered<LoanController>()
               ? Get.find<LoanController>()
               : Get.put(LoanController());
-          
+
           final loan = Loan.fromMap(data, data['id'] ?? '');
-          
+
           // Reconstruct MyUser
           final myUser = MyUser.fromStorage();
-          
+
           Get.toNamed(routeName, arguments: {
             'loan': loan, // Pass actual Loan object
             'controller': loanController,

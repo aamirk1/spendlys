@@ -15,7 +15,8 @@ class SignUpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -40,7 +41,11 @@ class SignUpScreen extends StatelessWidget {
                     'Join Spendly today and start tracking your expenses effortlessly.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -121,7 +126,9 @@ class SignUpScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context).dividerColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                      border: Border.all(
+                          color:
+                              Theme.of(context).dividerColor.withOpacity(0.1)),
                     ),
                     child: Column(
                       children: [
@@ -205,7 +212,7 @@ class SignUpScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 

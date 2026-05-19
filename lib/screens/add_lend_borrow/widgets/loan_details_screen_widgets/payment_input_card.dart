@@ -44,7 +44,8 @@ class PaymentInputCard extends StatelessWidget {
                   if (paymentAmount != null && paymentAmount > 0) {
                     controller.updatePayment(loanId, paymentAmount).then((_) {
                       paymentController.clear();
-                      Utils.showSnackbar("Success", "Payment recorded!", isError: false);
+                      Utils.showSnackbar("Success", "Payment recorded!",
+                          isError: false);
                     });
                   } else {
                     Utils.showSnackbar("Error", "Invalid amount");

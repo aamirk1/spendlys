@@ -103,7 +103,7 @@ class PaymentController extends GetxController {
     isLoading.value = true;
     try {
       final userId = box.read("userId");
-      
+
       // Add 3% payment platform charges
       final int totalAmountWithFee = (amount * 1.03).round();
 

@@ -75,7 +75,8 @@ class BusinessHomeView extends StatelessWidget {
           )
         ],
       ),
-      body: RefreshIndicator(
+      body: SafeArea(
+          child: RefreshIndicator(
         onRefresh: () => controller.fetchSummary(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -99,7 +100,7 @@ class BusinessHomeView extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 

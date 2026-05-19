@@ -66,7 +66,10 @@ class _CustomButtonState extends State<CustomButton>
   }
 
   Future<void> _handlePress() async {
-    if (widget.onPressed == null || widget.isDisabled || widget.isLoading || _innerLoading) return;
+    if (widget.onPressed == null ||
+        widget.isDisabled ||
+        widget.isLoading ||
+        _innerLoading) return;
 
     HapticFeedback.lightImpact();
     _animationController.forward().then((_) => _animationController.reverse());
@@ -92,9 +95,11 @@ class _CustomButtonState extends State<CustomButton>
   @override
   Widget build(BuildContext context) {
     final bool loading = widget.isLoading || _innerLoading;
-    final bool disabled = widget.isDisabled || widget.onPressed == null || loading;
-    
-    final effectiveBackgroundColor = widget.backgroundColor ?? AppColors.primary;
+    final bool disabled =
+        widget.isDisabled || widget.onPressed == null || loading;
+
+    final effectiveBackgroundColor =
+        widget.backgroundColor ?? AppColors.primary;
     final effectiveTextColor = widget.textColor ?? Colors.white;
 
     return AnimatedBuilder(
@@ -108,22 +113,29 @@ class _CustomButtonState extends State<CustomButton>
         height: widget.height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          gradient: !disabled ? (widget.gradient ?? LinearGradient(
-            colors: [
-              effectiveBackgroundColor,
-              effectiveBackgroundColor.withOpacity(0.85),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )) : null,
-          color: disabled ? effectiveBackgroundColor.withOpacity(0.5) : (widget.gradient == null ? effectiveBackgroundColor : null),
-          boxShadow: disabled ? null : [
-            BoxShadow(
-              color: effectiveBackgroundColor.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          gradient: !disabled
+              ? (widget.gradient ??
+                  LinearGradient(
+                    colors: [
+                      effectiveBackgroundColor,
+                      effectiveBackgroundColor.withOpacity(0.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ))
+              : null,
+          color: disabled
+              ? effectiveBackgroundColor.withOpacity(0.5)
+              : (widget.gradient == null ? effectiveBackgroundColor : null),
+          boxShadow: disabled
+              ? null
+              : [
+                  BoxShadow(
+                    color: effectiveBackgroundColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
         ),
         child: Material(
           color: Colors.transparent,

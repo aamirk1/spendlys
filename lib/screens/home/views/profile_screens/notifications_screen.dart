@@ -22,13 +22,15 @@ class NotificationsScreen extends StatelessWidget {
         actions: [
           Obx(() => notificationService.notifications.isNotEmpty
               ? TextButton(
-                  onPressed: () => _showClearAllConfirm(context, notificationService),
-                  child: const Text('Clear All', style: TextStyle(color: Colors.red)),
+                  onPressed: () =>
+                      _showClearAllConfirm(context, notificationService),
+                  child: const Text('Clear All',
+                      style: TextStyle(color: Colors.red)),
                 )
               : const SizedBox.shrink()),
         ],
       ),
-      body: Obx(() {
+      body: SafeArea(child: Obx(() {
         if (notificationService.notifications.isEmpty) {
           return _buildEmptyState();
         }
@@ -65,7 +67,8 @@ class NotificationsScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
                               notificationService.markAsRead(notification.id);
-                              notificationService.handleNavigation(notification.data);
+                              notificationService
+                                  .handleNavigation(notification.data);
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(16),
@@ -82,7 +85,8 @@ class NotificationsScreen extends StatelessWidget {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      _getIconForNotification(notification.data),
+                                      _getIconForNotification(
+                                          notification.data),
                                       color: theme.primaryColor,
                                       size: 20,
                                     ),
@@ -91,19 +95,22 @@ class NotificationsScreen extends StatelessWidget {
                                   // Content
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
                                               child: Text(
                                                 notification.title,
                                                 style: TextStyle(
                                                   fontSize: 16,
-                                                  fontWeight: notification.isRead
-                                                      ? FontWeight.w500
-                                                      : FontWeight.bold,
+                                                  fontWeight:
+                                                      notification.isRead
+                                                          ? FontWeight.w500
+                                                          : FontWeight.bold,
                                                   color: notification.isRead
                                                       ? Colors.black87
                                                       : Colors.black,
@@ -153,7 +160,7 @@ class NotificationsScreen extends StatelessWidget {
             },
           ),
         );
-      }),
+      })),
     );
   }
 
@@ -168,12 +175,16 @@ class NotificationsScreen extends StatelessWidget {
               color: Colors.grey[100],
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.notifications_none_rounded, size: 80, color: Colors.grey[400]),
+            child: Icon(Icons.notifications_none_rounded,
+                size: 80, color: Colors.grey[400]),
           ),
           const SizedBox(height: 24),
           const Text(
             'No notifications yet',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87),
           ),
           const SizedBox(height: 8),
           Text(

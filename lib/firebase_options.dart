@@ -83,5 +83,4 @@ class DefaultFirebaseOptions {
     authDomain: 'dailybachat.firebaseapp.com',
     storageBucket: 'dailybachat.firebasestorage.app',
   );
-
 }

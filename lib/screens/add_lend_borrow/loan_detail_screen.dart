@@ -99,7 +99,8 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         child: Column(
           children: [
             _buildAnimatedPremiumHeader(context),
@@ -126,7 +127,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen>
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 

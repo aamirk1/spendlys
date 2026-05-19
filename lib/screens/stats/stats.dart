@@ -19,7 +19,7 @@ class StatScreen extends StatelessWidget {
               Text(
                 'Transactions',
                 style: TextStyle(
-                    fontSize: 20, 
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.titleLarge?.color),
               ),

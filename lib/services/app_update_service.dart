@@ -9,7 +9,7 @@ import '../utils/colors.dart';
 
 class AppUpdateService extends GetxService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   // Default store URL for the app
   static const String defaultStoreUrl =
       "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat";
@@ -21,7 +21,7 @@ class AppUpdateService extends GetxService {
       bool nativeUpdateStarted = await _checkNativeUpdate();
       if (nativeUpdateStarted) return true;
     }
-    
+
     return await _checkFirestoreUpdate();
   }
 
@@ -29,12 +29,12 @@ class AppUpdateService extends GetxService {
   Future<bool> _checkNativeUpdate() async {
     try {
       AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
-      
+
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         if (updateInfo.immediateUpdateAllowed) {
           // Perform the immediate update
           AppUpdateResult result = await InAppUpdate.performImmediateUpdate();
-          
+
           // If the update was successful, the app might have already restarted.
           // If not (e.g., user managed to cancel or it failed), we return true to block further app logic.
           if (result == AppUpdateResult.success) {
@@ -51,7 +51,6 @@ class AppUpdateService extends GetxService {
     }
     return false;
   }
-
 
   /// Firestore-based update check (Fallback or for iOS)
   Future<bool> _checkFirestoreUpdate() async {
@@ -214,4 +213,3 @@ class AppUpdateService extends GetxService {
     }
   }
 }
-

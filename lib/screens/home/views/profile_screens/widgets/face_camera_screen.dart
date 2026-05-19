@@ -94,7 +94,8 @@ class _ProfileImageCaptureState extends State<ProfileImageCapture> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Capture and Edit Profile Pic')),
-      body: Padding(
+      body: SafeArea(
+          child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -117,7 +118,7 @@ class _ProfileImageCaptureState extends State<ProfileImageCapture> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

@@ -48,7 +48,10 @@ class BusinessMessageCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 ),
                 Icon(
                   isInvoice ? Icons.receipt_long : Icons.request_quote,
@@ -64,11 +67,14 @@ class BusinessMessageCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  message.message, // This should contain the preview text (e.g. INV #123)
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  message
+                      .message, // This should contain the preview text (e.g. INV #123)
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 5),
-                const Text("Click below to view details or download PDF.", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                const Text("Click below to view details or download PDF.",
+                    style: TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           ),

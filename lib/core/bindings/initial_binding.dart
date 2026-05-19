@@ -17,18 +17,20 @@ class InitialBinding extends Bindings {
     // 1. Core Services & Infrastructure
     final secureStorage = SecureStorageService();
     Get.put(secureStorage, permanent: true);
-    Get.put(ApiClient(baseUrl: ApiConstants.baseUrl, secureStorage: secureStorage), permanent: true);
+    Get.put(
+        ApiClient(baseUrl: ApiConstants.baseUrl, secureStorage: secureStorage),
+        permanent: true);
     Get.put(NetworkService(), permanent: true);
-    
+
     // 2. State Management (Controllers)
     Get.put(LocalizationController(), permanent: true);
     Get.put(ThemeController(), permanent: true);
-    
+
     // AuthService MUST be put before SignInController since SignInController depends on it
     Get.put(AuthService());
     Get.put(AppUpdateService(), permanent: true);
     Get.put(SignInController());
-    
+
     // AuthController for OTP flow
     Get.put(AuthController());
     Get.put(BusinessService(), permanent: true);

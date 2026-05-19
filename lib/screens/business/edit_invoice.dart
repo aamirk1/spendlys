@@ -183,7 +183,8 @@ class EditInvoiceView extends StatelessWidget {
         Get.back();
         Utils.showSnackbar("Error", "Required data missing. Please try again.");
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     final Map<String, dynamic> inv = args;

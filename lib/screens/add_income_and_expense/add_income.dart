@@ -18,7 +18,8 @@ class AddIncome extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         child: Column(
           children: [
             _buildInputForm(context),
@@ -26,7 +27,7 @@ class AddIncome extends StatelessWidget {
             _buildRecentList(context),
           ],
         ),
-      ),
+      )),
     );
   }
 
@@ -163,37 +164,49 @@ class AddIncome extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Obx(() => DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: controller.selectedPaymentMode.value,
-          isExpanded: true,
-          dropdownColor: Theme.of(context).cardColor,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
-          items: controller.paymentModes.map((String mode) {
-            return DropdownMenuItem<String>(
-              value: mode,
-              child: Row(
-                children: [
-                  Icon(
-                    mode == 'Cash' ? Icons.money :
-                    mode == 'Bank Transfer' ? Icons.account_balance :
-                    mode == 'Credit Card' ? Icons.credit_card :
-                    mode == 'UPI' ? Icons.qr_code : Icons.payment,
-                    color: AppColors.primary,
-                    size: 20,
+            child: DropdownButton<String>(
+              value: controller.selectedPaymentMode.value,
+              isExpanded: true,
+              dropdownColor: Theme.of(context).cardColor,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                  color: Colors.grey),
+              items: controller.paymentModes.map((String mode) {
+                return DropdownMenuItem<String>(
+                  value: mode,
+                  child: Row(
+                    children: [
+                      Icon(
+                        mode == 'Cash'
+                            ? Icons.money
+                            : mode == 'Bank Transfer'
+                                ? Icons.account_balance
+                                : mode == 'Credit Card'
+                                    ? Icons.credit_card
+                                    : mode == 'UPI'
+                                        ? Icons.qr_code
+                                        : Icons.payment,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(mode,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.color)),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Text(mode, style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                ],
-              ),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              controller.selectedPaymentMode.value = newValue;
-            }
-          },
-        ),
-      )),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  controller.selectedPaymentMode.value = newValue;
+                }
+              },
+            ),
+          )),
     );
   }
 

@@ -31,9 +31,11 @@ class AppThemes {
     ),
     textTheme: const TextTheme(
       displayLarge: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+      displayMedium:
+          TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       displaySmall: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+      headlineMedium:
+          TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       titleLarge: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       bodyLarge: TextStyle(color: Colors.black),
       bodyMedium: TextStyle(color: Colors.black87),
@@ -103,9 +105,11 @@ class AppThemes {
     ),
     textTheme: const TextTheme(
       displayLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      displayMedium:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       displaySmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      headlineMedium:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       bodyLarge: TextStyle(color: Colors.white),
       bodyMedium: TextStyle(color: Colors.white70),

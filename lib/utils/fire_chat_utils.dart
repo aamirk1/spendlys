@@ -21,7 +21,8 @@ class FireChatUtils {
         .update({'active': status});
   }
 
-  static Future<void> removeDot(bool status, String roomId, {required String receiverId}) async {
+  static Future<void> removeDot(bool status, String roomId,
+      {required String receiverId}) async {
     await fireStoreInstance
         .collection(getChatroomsCollection(receiverId))
         .doc(roomId)
@@ -74,8 +75,9 @@ class FireChatUtils {
     String lastMessage = '',
     required String receiverId,
   }) async {
-    final chatroomsRef = fireStoreInstance.collection(getChatroomsCollection(receiverId));
-    
+    final chatroomsRef =
+        fireStoreInstance.collection(getChatroomsCollection(receiverId));
+
     Map<String, dynamic> chatroomData = {
       'chatroomId': chatroomId,
       'chatroomname': "", // Will be dynamically displayed based on members
@@ -88,7 +90,8 @@ class FireChatUtils {
       'createdAt': FieldValue.serverTimestamp(),
       'dot': true,
       'lastsender': senderId,
-      'bothId': (senderId + receiverId).replaceAll("/", AppConstants.firebaseSlashEscape),
+      'bothId': (senderId + receiverId)
+          .replaceAll("/", AppConstants.firebaseSlashEscape),
     };
 
     await chatroomsRef.doc(chatroomId).set(chatroomData);
@@ -119,10 +122,11 @@ class FireChatUtils {
     required String receiverId,
   }) async {
     await fireStoreInstance
-        .collection('${getChatroomsCollection(receiverId)}/$chatroomId/messages')
+        .collection(
+            '${getChatroomsCollection(receiverId)}/$chatroomId/messages')
         .doc(docId)
         .update({'read': true});
-    
+
     await fireStoreInstance
         .collection(getChatroomsCollection(receiverId))
         .doc(chatroomId)
@@ -130,7 +134,10 @@ class FireChatUtils {
   }
 
   static Future<MyUser?> fetchUserData(String userId) async {
-    final doc = await fireStoreInstance.collection(AppConstants.firestoreAllUsers).doc(userId).get();
+    final doc = await fireStoreInstance
+        .collection(AppConstants.firestoreAllUsers)
+        .doc(userId)
+        .get();
     if (doc.exists && doc.data() != null) {
       return MyUser.fromMap(doc.data()!);
     }
@@ -143,7 +150,8 @@ class FireChatUtils {
     required String receiverId,
   }) async {
     await fireStoreInstance
-        .collection('${getChatroomsCollection(receiverId)}/$chatroomId/messages')
+        .collection(
+            '${getChatroomsCollection(receiverId)}/$chatroomId/messages')
         .doc(docId)
         .delete();
   }
@@ -157,18 +165,18 @@ class FireChatUtils {
 
   static Future<List<MyUser>> searchUsers(String query) async {
     if (query.isEmpty) return [];
-    
+
     // Fetch all and filter locally for simplicity and flexibility with name/phone
     // or use Filter.or if query is exact or prefix.
     // For "name or phoneNumber", local filtering is often better for small-mid size datasets
     final snapshot = await fireStoreInstance
         .collection(AppConstants.firestoreAllUsers)
         .get();
-    
+
     return snapshot.docs
         .map((doc) => MyUser.fromMap(doc.data()))
-        .where((user) => 
-            user.name.toLowerCase().contains(query.toLowerCase()) || 
+        .where((user) =>
+            user.name.toLowerCase().contains(query.toLowerCase()) ||
             user.phoneNumber.contains(query))
         .toList();
   }

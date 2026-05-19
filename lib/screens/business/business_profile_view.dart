@@ -61,7 +61,9 @@ class BusinessProfileController extends GetxController {
         emailController.text = data['email'] ?? '';
         gstController.text = data['gst_number'] ?? '';
         logoUrl.value = data['logo_url'];
-        if (data != null && data['name'] != null && data['name'].toString().isNotEmpty) {
+        if (data != null &&
+            data['name'] != null &&
+            data['name'].toString().isNotEmpty) {
           Get.find<BusinessService>().setProfileCreated(true);
         }
         debugPrint("Fetched Profile: logo_url = ${logoUrl.value}");
@@ -287,11 +289,17 @@ class BusinessProfileView extends StatelessWidget {
                                                       null
                                                   ? DecorationImage(
                                                       image: NetworkImage(() {
-                                                        String url = controller.logoUrl.value!;
-                                                        if (!url.startsWith('http')) {
-                                                          url = "https://dailybachatapi.serwex.in$url";
+                                                        String url = controller
+                                                            .logoUrl.value!;
+                                                        if (!url.startsWith(
+                                                            'http')) {
+                                                          url =
+                                                              "https://dailybachatapi.serwex.in$url";
                                                         }
-                                                        String connector = url.contains('?') ? '&' : '?';
+                                                        String connector =
+                                                            url.contains('?')
+                                                                ? '&'
+                                                                : '?';
                                                         return "$url${connector}t=${DateTime.now().millisecondsSinceEpoch}";
                                                       }()),
                                                       fit: BoxFit.cover,

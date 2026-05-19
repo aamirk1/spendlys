@@ -32,7 +32,8 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBackgroundColor = backgroundColor ?? Theme.of(context).primaryColor;
+    final effectiveBackgroundColor =
+        backgroundColor ?? Theme.of(context).primaryColor;
     final effectiveTextColor = textColor ?? Colors.white;
 
     return ElevatedButton(

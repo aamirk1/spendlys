@@ -24,7 +24,7 @@
 //         ),
 //         backgroundColor: AppColors.primary,
 //       ),
-//       body: Padding(
+//       body: SafeArea(child: Padding(
 //         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
 //         child: Column(
 //           children: [
@@ -175,7 +175,7 @@
 //             )
 //           ],
 //         ),
-//       ),
+//       )),
 //     );
 //   }
 

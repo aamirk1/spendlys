@@ -118,7 +118,8 @@ class AuthController extends GetxController {
             if (isLoading.value) return;
             isLoading.value = true;
 
-            UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+            UserCredential userCredential =
+                await FirebaseAuth.instance.signInWithCredential(credential);
             User? user = userCredential.user;
             if (user != null) {
               await syncUserWithBackend(user);

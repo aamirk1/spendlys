@@ -34,7 +34,7 @@ class ChatView extends StatelessWidget {
           ),
         ),
       ),
-      body: Obx(() {
+      body: SafeArea(child: Obx(() {
         if (controller.isSearching.value) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -68,7 +68,8 @@ class ChatView extends StatelessWidget {
             final chat = controller.chatConnections[index];
             return ListTile(
               leading: CircleAvatar(
-                backgroundImage: chat.image != null ? NetworkImage(chat.image!) : null,
+                backgroundImage:
+                    chat.image != null ? NetworkImage(chat.image!) : null,
                 child: chat.image == null ? Text(chat.title[0]) : null,
               ),
               title: Text(chat.title),
@@ -77,9 +78,10 @@ class ChatView extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontWeight: chat.dot && chat.lastsender != controller.currentUserId 
-                      ? FontWeight.bold 
-                      : FontWeight.normal,
+                  fontWeight:
+                      chat.dot && chat.lastsender != controller.currentUserId
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                 ),
               ),
               trailing: Column(
@@ -106,7 +108,7 @@ class ChatView extends StatelessWidget {
             );
           },
         );
-      }),
+      })),
     );
   }
 

@@ -11,10 +11,12 @@ class FeedbackScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Feedback',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +31,7 @@ class FeedbackScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 30),
-            
+
             // Category Selection
             const Text(
               'Category',
@@ -37,26 +39,30 @@ class FeedbackScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Obx(() => Wrap(
-              spacing: 10,
-              children: controller.categories.map((category) {
-                final isSelected = controller.category.value == category;
-                return ChoiceChip(
-                  label: Text(category),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) controller.setCategory(category);
-                  },
-                  selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).primaryColor : Colors.black,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                );
-              }).toList(),
-            )),
-            
+                  spacing: 10,
+                  children: controller.categories.map((category) {
+                    final isSelected = controller.category.value == category;
+                    return ChoiceChip(
+                      label: Text(category),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) controller.setCategory(category);
+                      },
+                      selectedColor:
+                          Theme.of(context).primaryColor.withOpacity(0.2),
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? Theme.of(context).primaryColor
+                            : Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    );
+                  }).toList(),
+                )),
+
             const SizedBox(height: 30),
-            
+
             // Rating
             const Text(
               'How would you rate your experience?',
@@ -64,21 +70,23 @@ class FeedbackScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Obx(() => Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < controller.rating.value ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: Colors.amber,
-                    size: 40,
-                  ),
-                  onPressed: () => controller.setRating(index + 1),
-                );
-              }),
-            )),
-            
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        index < controller.rating.value
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                        color: Colors.amber,
+                        size: 40,
+                      ),
+                      onPressed: () => controller.setRating(index + 1),
+                    );
+                  }),
+                )),
+
             const SizedBox(height: 30),
-            
+
             // Message input
             const Text(
               'Your Message',
@@ -95,12 +103,14 @@ class FeedbackScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: Get.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                fillColor: Get.isDarkMode
+                    ? Colors.grey.shade900
+                    : Colors.grey.shade100,
               ),
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Submit Button
             SizedBox(
               width: double.infinity,
@@ -123,7 +133,7 @@ class FeedbackScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

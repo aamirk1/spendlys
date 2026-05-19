@@ -19,13 +19,14 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
+      body: SafeArea(
+          child: const Center(
         child: Text(
           "Welcome to DailyBachat!\nYou are successfully logged in.",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18),
         ),
-      ),
+      )),
     );
   }
 }

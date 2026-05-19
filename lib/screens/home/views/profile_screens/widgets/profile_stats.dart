@@ -180,7 +180,11 @@ class ProfileStats extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+              color: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.color
+                  ?.withOpacity(0.7),
               fontWeight: FontWeight.w500,
             ),
           ),

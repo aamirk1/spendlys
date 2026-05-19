@@ -42,7 +42,8 @@ class LedgerScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
+      body: SafeArea(
+          child: Column(
         children: [
           _buildTypeSelector(controller, context),
           Padding(
@@ -68,7 +69,7 @@ class LedgerScreen extends StatelessWidget {
             }),
           ),
         ],
-      ),
+      )),
     );
   }
 

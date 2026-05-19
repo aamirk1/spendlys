@@ -13,7 +13,8 @@ class PhoneInputScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: SafeArea(
+          child: Center(
         child: AnimationLimiter(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -139,7 +140,7 @@ class PhoneInputScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

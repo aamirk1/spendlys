@@ -76,14 +76,13 @@ class ApiService {
       }
       return resp;
     } catch (e) {
-      // Network error — cache سے serve کریں اگر ملے
       if (useCache) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) {
           return http.Response(jsonEncode(cachedData), 200);
         }
       }
-      // Cache بھی نہیں — screen دکھائیں
+
       _showNoInternetScreen();
       rethrow;
     }
@@ -94,8 +93,6 @@ class ApiService {
       dynamic body,
       bool bypassCache = false}) async {
     if (!_conn.isOnline.value && !bypassCache) {
-      // 1. Optimistic Update: If it's a known resource type, append it to its GET list in cache
-      // Example: POST /transactions -> try to update GET_transactions
       final baseResource = endpoint.split('/')[1]; // very basic heuristic
       final listCacheKey = 'GET_/$baseResource';
 
@@ -150,7 +147,8 @@ class ApiService {
     final request = http.MultipartRequest('POST', url);
 
     final mergedHeaders = await _authHeaders(headers);
-    mergedHeaders.remove('Content-Type'); // Allow http to set multipart/form-data
+    mergedHeaders
+        .remove('Content-Type'); // Allow http to set multipart/form-data
     request.headers.addAll(mergedHeaders);
 
     request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
@@ -222,8 +220,8 @@ class ApiService {
 
     if (resp.statusCode == 401) {
       if (await _handle401()) {
-        resp =
-            await _retryRequest('PATCH', endpoint, headers: headers, body: body);
+        resp = await _retryRequest('PATCH', endpoint,
+            headers: headers, body: body);
         _logResponse(endpoint, resp);
       }
     }

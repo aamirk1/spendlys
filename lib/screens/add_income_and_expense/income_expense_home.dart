@@ -36,7 +36,8 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
+      body: SafeArea(
+          child: Column(
         children: [
           _buildHeader(),
           const SizedBox(height: 8),
@@ -51,7 +52,7 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
             ),
           )
         ],
-      ),
+      )),
     );
   }
 

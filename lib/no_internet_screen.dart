@@ -17,7 +17,6 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
     var result = await Connectivity().checkConnectivity();
 
     if (result.isNotEmpty && !result.contains(ConnectivityResult.none)) {
-      // Internet واپس آیا — screen بند کریں
       Get.back();
     } else {
       Get.snackbar(
@@ -35,7 +34,8 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
+      body: SafeArea(
+          child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -73,7 +73,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

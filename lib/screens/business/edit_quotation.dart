@@ -23,10 +23,10 @@ class EditQuotationController extends GetxController {
   final advanceAmountController = TextEditingController(text: "0.0");
 
   final taxPercent = 0.0.obs;
-  
+
   final paymentMode = 'Cash'.obs;
   final paymentModes = ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Other'];
-  
+
   final isLoading = false.obs;
 
   late String quotationId;
@@ -155,7 +155,8 @@ class EditQuotationView extends StatelessWidget {
         Get.back();
         Utils.showSnackbar("Error", "Required data missing. Please try again.");
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     final Map<String, dynamic> quot = args;
@@ -243,18 +244,23 @@ class EditQuotationView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 15),
                                 Obx(() => DropdownButtonFormField<String>(
-                                  value: controller.paymentMode.value,
-                                  decoration: _inputDeco("Payment Mode", Icons.payment),
-                                  items: controller.paymentModes.map((mode) {
-                                    return DropdownMenuItem<String>(
-                                      value: mode,
-                                      child: Text(mode, style: const TextStyle(fontSize: 15)),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) {
-                                    if (val != null) controller.paymentMode.value = val;
-                                  },
-                                )),
+                                      value: controller.paymentMode.value,
+                                      decoration: _inputDeco(
+                                          "Payment Mode", Icons.payment),
+                                      items:
+                                          controller.paymentModes.map((mode) {
+                                        return DropdownMenuItem<String>(
+                                          value: mode,
+                                          child: Text(mode,
+                                              style: const TextStyle(
+                                                  fontSize: 15)),
+                                        );
+                                      }).toList(),
+                                      onChanged: (val) {
+                                        if (val != null)
+                                          controller.paymentMode.value = val;
+                                      },
+                                    )),
                               ]),
                               const SizedBox(height: 25),
                               Row(

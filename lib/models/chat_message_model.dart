@@ -11,7 +11,7 @@ class ChatMessageModel {
   String time;
   String messageId;
   String createdAt;
-  
+
   // New fields for Business Module
   String type; // 'text', 'invoice', 'quotation'
   String? invoiceId;
@@ -37,7 +37,8 @@ class ChatMessageModel {
     this.shareLink,
   });
 
-  factory ChatMessageModel.fromJson(Map<String, dynamic> json) => ChatMessageModel(
+  factory ChatMessageModel.fromJson(Map<String, dynamic> json) =>
+      ChatMessageModel(
         message: json['message'] ?? '',
         isBlocked: (json['isBlocked'] ?? json['isBloacked']) as bool? ?? false,
         senderId: json['senderId'] as String? ?? '',
@@ -45,7 +46,7 @@ class ChatMessageModel {
         replyOn: json['mainMessage'] as String? ?? '',
         senderName: json['name'] as String? ?? '',
         isSeen: (json['read'] ?? json['isSeen']) as bool? ?? false,
-        time: json['time'] != null 
+        time: json['time'] != null
             ? ChatUtils.utcToLocal(DateTime.parse(json['time']), forChat: true)
             : '',
         messageId: json['messageId'] as String? ?? '',

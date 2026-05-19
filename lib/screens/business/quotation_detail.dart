@@ -22,7 +22,8 @@ class QuotationDetailView extends StatelessWidget {
         Get.back();
         Utils.showSnackbar("Error", "Quotation data missing.");
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     final Map<String, dynamic> quot = args;
@@ -71,7 +72,8 @@ class QuotationDetailView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +98,8 @@ class QuotationDetailView extends StatelessWidget {
                 "Expiry",
                 formatDate(quot['expiry_date']),
               ),
-              if (quot['payment_mode'] != null && quot['payment_mode'].toString().isNotEmpty)
+              if (quot['payment_mode'] != null &&
+                  quot['payment_mode'].toString().isNotEmpty)
                 _buildInfoRow("Payment Mode", quot['payment_mode'].toString()),
             ]),
             const SizedBox(height: 20),
@@ -124,7 +127,7 @@ class QuotationDetailView extends StatelessWidget {
               ),
           ],
         ),
-      ),
+      )),
     );
   }
 
@@ -199,8 +202,8 @@ class QuotationDetailView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(item['description'] ?? "No Description"),
-        subtitle:
-            Text("Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
+        subtitle: Text(
+            "Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
         trailing: Text(
           "\u20b9${_formatPrice(item['amount'])}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
@@ -217,7 +220,8 @@ class QuotationDetailView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildInfoRow("Subtotal", "\u20b9${_formatPrice(quot['subtotal'])}"),
+            _buildInfoRow(
+                "Subtotal", "\u20b9${_formatPrice(quot['subtotal'])}"),
             _buildInfoRow(
                 "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)",
                 "\u20b9${_formatPrice(quot['tax'])}"),

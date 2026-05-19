@@ -26,7 +26,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         child: SizedBox(
           height: MediaQuery.of(context).size.height,
           child: Stack(
@@ -111,7 +112,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }
