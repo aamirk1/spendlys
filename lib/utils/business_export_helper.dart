@@ -8,6 +8,8 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'package:open_file/open_file.dart';
+
 enum BusinessExportType { customers, inventory }
 
 class BusinessExportHelper {
@@ -146,8 +148,20 @@ class BusinessExportHelper {
   // Share Sheet presentation phase
   static Future<void> showShareSheet(
       String filePath, BusinessExportType type) async {
-    await Share.shareXFiles([XFile(filePath)],
-        text: '${type.name.toUpperCase()} Export');
+    try {
+      final result = await OpenFile.open(filePath);
+      if (result.type != ResultType.done) {
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: '${type.name.toUpperCase()} Export',
+        );
+      }
+    } catch (_) {
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: '${type.name.toUpperCase()} Export',
+      );
+    }
   }
 
   static List<List<String>> _getFormattedDataForPdf(

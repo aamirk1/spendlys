@@ -378,7 +378,25 @@ class LedgerScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.titleLarge?.color)),
             const SizedBox(height: 20),
-            Text("Filter by Date Range",
+            Text("Quick Date Filters",
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodySmall?.color)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildQuickFilterChip(context, controller, 'all', 'All Time'),
+                _buildQuickFilterChip(context, controller, '1m', '1 Month'),
+                _buildQuickFilterChip(context, controller, '3m', '3 Months'),
+                _buildQuickFilterChip(context, controller, '6m', '6 Months'),
+                _buildQuickFilterChip(context, controller, '1y', '1 Year'),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text("Custom Date Range",
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -393,7 +411,7 @@ class LedgerScreen extends StatelessWidget {
                   trailing: controller.dateRange.value != null
                       ? IconButton(
                           icon: const Icon(Icons.clear),
-                          onPressed: () => controller.dateRange.value = null,
+                          onPressed: () => controller.applyQuickFilter('all'),
                         )
                       : null,
                   tileColor: AppColors.primary.withOpacity(0.05),
@@ -408,6 +426,7 @@ class LedgerScreen extends StatelessWidget {
                     );
                     if (picked != null) {
                       controller.dateRange.value = picked;
+                      controller.selectedQuickFilter.value = 'custom';
                     }
                   },
                 )),
@@ -431,5 +450,37 @@ class LedgerScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildQuickFilterChip(
+      BuildContext context, LedgerController controller, String value, String label) {
+    return Obx(() {
+      final isSelected = controller.selectedQuickFilter.value == value;
+      final theme = Theme.of(context);
+      return ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : (theme.textTheme.bodyMedium?.color ?? Colors.black87),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        selected: isSelected,
+        selectedColor: AppColors.primary,
+        backgroundColor: theme.cardColor,
+        checkmarkColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isSelected ? AppColors.primary : theme.dividerColor,
+          ),
+        ),
+        onSelected: (selected) {
+          if (selected) {
+            controller.applyQuickFilter(value);
+          }
+        },
+      );
+    });
   }
 }

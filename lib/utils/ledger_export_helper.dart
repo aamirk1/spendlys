@@ -8,6 +8,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:spendly/controllers/ledger_controller.dart';
 import 'package:flutter/services.dart' show Uint8List, rootBundle;
 
+import 'package:open_file/open_file.dart';
+
 class LedgerExportHelper {
   // PDF Generation phase
   static Future<Uint8List> generatePdfData({
@@ -189,8 +191,20 @@ class LedgerExportHelper {
 
   // Share Sheet presentation phase
   static Future<void> showShareSheet(String filePath, LedgerType type) async {
-    await Share.shareXFiles([XFile(filePath)],
-        text: '${type.name.toUpperCase()} Ledger Export');
+    try {
+      final result = await OpenFile.open(filePath);
+      if (result.type != ResultType.done) {
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: '${type.name.toUpperCase()} Ledger Export',
+        );
+      }
+    } catch (_) {
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: '${type.name.toUpperCase()} Ledger Export',
+      );
+    }
   }
 
   static List<List<String>> _getFormattedDataForPdf(

@@ -66,6 +66,7 @@ dependencies:
   firebase_analytics: ^12.3.0
   firebase_crashlytics: ^5.2.0
   in_app_update: ^4.2.5
+  open_file: ^3.5.11
   # rive: 
   # shared_preferences: 
   # local_auth: ^2.3.0

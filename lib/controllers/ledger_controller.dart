@@ -15,6 +15,42 @@ class LedgerController extends GetxController {
   // Search and Filter
   final searchQuery = ''.obs;
   final dateRange = Rxn<DateTimeRange>();
+  final selectedQuickFilter = 'all'.obs; // 'all', '1m', '3m', '6m', '1y', 'custom'
+
+  void applyQuickFilter(String filter) {
+    selectedQuickFilter.value = filter;
+    final now = DateTime.now();
+    switch (filter) {
+      case '1m':
+        dateRange.value = DateTimeRange(
+          start: DateTime(now.year, now.month - 1, now.day),
+          end: now,
+        );
+        break;
+      case '3m':
+        dateRange.value = DateTimeRange(
+          start: DateTime(now.year, now.month - 3, now.day),
+          end: now,
+        );
+        break;
+      case '6m':
+        dateRange.value = DateTimeRange(
+          start: DateTime(now.year, now.month - 6, now.day),
+          end: now,
+        );
+        break;
+      case '1y':
+        dateRange.value = DateTimeRange(
+          start: DateTime(now.year - 1, now.month, now.day),
+          end: now,
+        );
+        break;
+      case 'all':
+      default:
+        dateRange.value = null;
+        break;
+    }
+  }
 
   // We reuse existing controllers for data
   final LoanController loanController = Get.find<LoanController>();

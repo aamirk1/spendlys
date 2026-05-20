@@ -243,7 +243,7 @@ class MainScreen extends StatelessWidget {
             const SizedBox(width: 15),
             _overviewCard(
               context,
-              title: "digital_ledger".tr,
+              title: "loans".tr,
               subtitle: "lent_borrowed".tr,
               icon: Icons.menu_book_rounded,
               color: Colors.orange.shade600,

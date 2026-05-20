@@ -205,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _actionButton(
                     context: context,
-                    icon: CupertinoIcons.money_dollar,
-                    label: 'loans'.tr,
+                    icon: Icons.currency_rupee,
+                    label: 'lent_borrowed'.tr,
                     color: Colors.indigo,
                     onTap: () {
                       Get.back();
