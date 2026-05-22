@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/utils/utils.dart';
 import 'package:spendly/core/error/app_error_handler.dart';
 
 class ForgotPasswordController extends GetxController {

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/utils/utils.dart';
 
 class FeedbackController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final messageController = TextEditingController();
   final rating = 5.obs;

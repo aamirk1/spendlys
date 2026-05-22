@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
-import 'package:spendly/res/app_constants.dart';
+import 'package:spendly/core/constants/app_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
-import 'package:spendly/no_internet_screen.dart';
+import 'package:spendly/core/widgets/no_internet_screen.dart';
 import 'package:spendly/core/network/api_constants.dart';
 
 class ApiService {
@@ -259,7 +260,7 @@ class ApiService {
 
   static void _logResponse(String endpoint, http.Response response) {
     if (response.statusCode >= 400) {
-      print(
+      debugPrint(
           "API ERROR [$endpoint] Status: ${response.statusCode} Body: ${response.body}");
     }
   }
@@ -325,7 +326,7 @@ class ApiService {
 
       return false;
     } catch (e) {
-      print("Auto re-auth failed: $e");
+      debugPrint("Auto re-auth failed: $e");
       return false;
     }
   }

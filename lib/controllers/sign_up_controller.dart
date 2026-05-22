@@ -8,12 +8,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:spendly/models/myuser.dart';
-import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
+import 'package:spendly/core/routes/routes_name.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/utils/utils.dart';
 import 'package:pinput/pinput.dart';
 import 'package:spendly/core/error/app_error_handler.dart';
 
@@ -169,7 +169,7 @@ class SignUpController extends GetxController {
         fontWeight: FontWeight.bold,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(Get.context!).dividerColor.withOpacity(0.05),
+        color: Theme.of(Get.context!).dividerColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.transparent),
       ),
@@ -185,9 +185,9 @@ class SignUpController extends GetxController {
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        color: Theme.of(Get.context!).colorScheme.primary.withOpacity(0.05),
+        color: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.05),
         border: Border.all(
-            color: Theme.of(Get.context!).colorScheme.primary.withOpacity(0.2)),
+            color: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.2)),
       ),
     );
 
@@ -199,7 +199,7 @@ class SignUpController extends GetxController {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               spreadRadius: 5,
             ),
@@ -221,7 +221,7 @@ class SignUpController extends GetxController {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00B2E7).withOpacity(0.1),
+                  color: const Color(0xFF00B2E7).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -386,7 +386,7 @@ class SignUpController extends GetxController {
       ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
     );
   }
 

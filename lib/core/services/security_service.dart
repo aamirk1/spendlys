@@ -46,8 +46,8 @@ class SecurityService extends GetxService {
     // Show a persistent dialog or navigate to a dedicated screen
     // Since this is initialized in main, we use Get.dialog with absolute persistence
     Get.dialog(
-      WillPopScope(
-        onWillPop: () async => false,
+      PopScope(
+        canPop: false,
         child: AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

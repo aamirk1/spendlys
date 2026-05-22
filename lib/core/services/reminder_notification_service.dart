@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:spendly/core/services/notification_service.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -44,7 +45,7 @@ class ReminderNotificationService extends GetxService {
             final Map<String, dynamic> data = jsonDecode(response.payload!);
             Get.find<NotificationService>().handleNavigation(data);
           } catch (e) {
-            print("Error parsing payload in ReminderService: $e");
+            debugPrint("Error parsing payload in ReminderService: $e");
           }
         }
       },

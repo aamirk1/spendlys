@@ -5,12 +5,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/features/auth/data/models/my_user_model.dart';
-import 'package:spendly/models/notification_model.dart';
-import 'package:spendly/res/routes/routes_name.dart';
-import 'package:spendly/controllers/loan_controller.dart';
-import 'package:spendly/models/loan_modal.dart';
+import 'package:spendly/core/models/notification_model.dart';
+import 'package:spendly/core/routes/routes_name.dart';
+import 'package:spendly/features/lend_borrow/data/models/loan_model.dart';
 import 'package:spendly/core/services/api_service.dart';
-import 'package:spendly/services/auth_service.dart';
+import 'package:spendly/features/auth/data/services/auth_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 
@@ -85,7 +84,7 @@ class NotificationService extends GetxService {
             final Map<String, dynamic> data = jsonDecode(response.payload!);
             handleNavigation(data);
           } catch (e) {
-            print("Error parsing payload: $e");
+            debugPrint("Error parsing payload: $e");
           }
         }
       },
@@ -116,13 +115,13 @@ class NotificationService extends GetxService {
 
   void _configureFCM() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Received foreground message: ${message.notification?.title}");
+      debugPrint("Received foreground message: ${message.notification?.title}");
       _processIncomingMessage(message);
       _showLocalNotification(message);
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("App opened via notification: ${message.data}");
+      debugPrint("App opened via notification: ${message.data}");
       handleNavigation(message.data);
     });
 
@@ -149,7 +148,7 @@ class NotificationService extends GetxService {
 
   void handleNavigation(Map<String, dynamic> data) {
     final target = data['target_screen'];
-    print("Navigating to target: $target");
+    debugPrint("Navigating to target: $target");
 
     // Reconstruct MyUser from storage for screens that need it
 
@@ -233,10 +232,6 @@ class NotificationService extends GetxService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (isLoan) {
-          final loanController = Get.isRegistered<LoanController>()
-              ? Get.find<LoanController>()
-              : Get.put(LoanController());
-
           final loan = Loan.fromMap(data, data['id'] ?? '');
 
           // Reconstruct MyUser
@@ -244,7 +239,6 @@ class NotificationService extends GetxService {
 
           Get.toNamed(routeName, arguments: {
             'loan': loan, // Pass actual Loan object
-            'controller': loanController,
             'myUser': myUser,
           });
         } else if (isMapDirect) {
@@ -257,7 +251,7 @@ class NotificationService extends GetxService {
       }
     } catch (e) {
       Get.back();
-      print("Fetch error: $e");
+      debugPrint("Fetch error: $e");
       Get.snackbar("Error", "An error occurred while fetching details");
     }
   }

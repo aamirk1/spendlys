@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:spendly/models/chat_connection_model.dart';
-import 'package:spendly/models/chat_message_model.dart';
-import 'package:spendly/utils/fire_chat_utils.dart';
-import 'package:spendly/widgets/chat/message_bubbles.dart';
-import 'package:spendly/widgets/chat/swipe_to.dart';
-import 'package:spendly/widgets/chat/business_message_card.dart';
+import 'package:spendly/features/chat/data/models/chat_connection_model.dart';
+import 'package:spendly/features/chat/data/models/chat_message_model.dart';
+import 'package:spendly/core/utils/fire_chat_utils.dart';
+import 'package:spendly/features/chat/presentation/widgets/message_bubbles.dart';
+import 'package:spendly/features/chat/presentation/widgets/swipe_to.dart';
+import 'package:spendly/features/chat/presentation/widgets/business_message_card.dart';
 
 class MessageController extends GetxController {
   TextEditingController messageController = TextEditingController();

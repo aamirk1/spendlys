@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:spendly/services/auth_service.dart';
+import 'package:spendly/features/auth/data/services/auth_service.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
-import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/core/routes/routes_name.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io';
@@ -227,10 +227,10 @@ class AuthController extends GetxController {
           box.write("isPremium", userData['is_premium'] ?? false);
         }
 
-        print("Backend sync successful: ${response.data}");
+        debugPrint("Backend sync successful: ${response.data}");
       }
     } catch (e) {
-      print("Warning: Backend sync failed: $e");
+      debugPrint("Warning: Backend sync failed: $e");
     }
   }
 

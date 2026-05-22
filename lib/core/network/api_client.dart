@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
-import 'package:spendly/res/routes/routes_name.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/routes/routes_name.dart';
+import 'package:spendly/core/utils/utils.dart';
 
 class ApiClient {
   late Dio _dio;

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/core/utils/utils.dart';
 
 class AppErrorHandler {
   static void handleError(dynamic error, {String? customTitle}) {

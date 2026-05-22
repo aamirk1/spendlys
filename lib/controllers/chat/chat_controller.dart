@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:spendly/models/chat_connection_model.dart';
-import 'package:spendly/models/myuser.dart';
-import 'package:spendly/res/app_constants.dart';
-import 'package:spendly/utils/fire_chat_utils.dart';
-import 'package:spendly/screens/chat/message_view.dart';
+import 'package:spendly/features/chat/data/models/chat_connection_model.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
+import 'package:spendly/core/constants/app_constants.dart';
+import 'package:spendly/core/utils/fire_chat_utils.dart';
+import 'package:spendly/features/chat/presentation/screens/message_view.dart';
 
 class ChatController extends GetxController {
   RxList<ChatConnectionModel> chatConnections = <ChatConnectionModel>[].obs;

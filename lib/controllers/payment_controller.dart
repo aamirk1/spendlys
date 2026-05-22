@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:spendly/core/services/api_service.dart';
-import 'package:spendly/models/premium_feature.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/features/premium/data/models/premium_feature_model.dart';
+import 'package:spendly/core/utils/utils.dart';
 
 class PaymentController extends GetxController {
   late Razorpay _razorpay;

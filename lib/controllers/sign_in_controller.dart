@@ -9,12 +9,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/core/error/app_error_handler.dart';
-import 'package:spendly/models/myuser.dart';
-import 'package:spendly/res/routes/routes_name.dart';
-import 'package:spendly/utils/utils.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
+import 'package:spendly/core/routes/routes_name.dart';
+import 'package:spendly/core/utils/utils.dart';
 import 'package:spendly/core/network/api_client.dart';
 import 'package:spendly/core/network/api_constants.dart';
-import 'package:spendly/services/auth_service.dart';
+import 'package:spendly/features/auth/data/services/auth_service.dart';
 import 'package:spendly/core/storage/secure_storage_service.dart';
 
 enum AuthMode { login, signup }
@@ -470,9 +470,9 @@ class SignInController extends GetxController {
         'device_info': deviceInfo,
         'fcm_token': fcmToken,
       });
-      print("User synced with backend successfully.");
+      debugPrint("User synced with backend successfully.");
     } catch (e) {
-      print("Warning: Failed to sync user with backend: $e");
+      debugPrint("Warning: Failed to sync user with backend: $e");
     }
   }
 

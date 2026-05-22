@@ -1,5 +1,5 @@
-import 'package:spendly/models/category.dart';
-import 'package:spendly/models/myuser.dart';
+import 'package:spendly/features/category/data/models/category_model.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
 
 class Expense {
   MyUser userId;

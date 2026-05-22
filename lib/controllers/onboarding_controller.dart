@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:spendly/models/myuser.dart';
-import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/features/auth/data/models/my_user_model.dart';
+import 'package:spendly/core/routes/routes_name.dart';
 
 class OnboardingController extends GetxController {
   var currentIndex = 0.obs;

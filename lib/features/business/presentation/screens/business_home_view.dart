@@ -1,0 +1,380 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:spendly/features/auth/data/services/auth_service.dart';
+import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/routes/routes_name.dart';
+import 'package:spendly/features/business/data/services/business_service.dart';
+import 'package:spendly/features/business/presentation/widgets/business_dialogs.dart';
+
+class BusinessHomeController extends GetxController {
+  final totalRevenue = 0.0.obs;
+  final paidAmount = 0.0.obs;
+  final pendingAmount = 0.0.obs;
+  final isLoading = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    Get.find<BusinessService>().checkProfileStatus();
+    fetchSummary();
+  }
+
+  Future<void> fetchSummary() async {
+    String? userId = Get.find<AuthService>().currentUserId;
+    if (userId == null) return;
+
+    isLoading.value = true;
+    try {
+      final response = await ApiService.get('/business/invoices',
+          headers: {'x-user-id': userId});
+      if (response.statusCode == 200) {
+        final List invoices = jsonDecode(response.body);
+        double total = 0;
+        double paidAcc = 0;
+        double pending = 0;
+        for (var inv in invoices) {
+          double invTotal = (inv['total'] ?? 0.0).toDouble();
+          double invPaid = (inv['paid_amount'] ?? 0.0).toDouble();
+          total += invTotal;
+          paidAcc += invPaid;
+          pending += (invTotal - invPaid);
+        }
+        totalRevenue.value = total;
+        paidAmount.value = paidAcc;
+        pendingAmount.value = pending;
+      }
+    } catch (e) {
+      debugPrint("Error fetching summary: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+}
+
+class BusinessHomeView extends StatelessWidget {
+  const BusinessHomeView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.put(BusinessHomeController());
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text("business_center_title".tr,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () => controller.fetchSummary(),
+            icon: const Icon(Icons.refresh_rounded),
+          )
+        ],
+      ),
+      body: SafeArea(
+          child: RefreshIndicator(
+        onRefresh: () => controller.fetchSummary(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 25),
+              _buildQuickActions(context),
+              const SizedBox(height: 30),
+              _buildAnalyticsSummary(context, controller),
+              const SizedBox(height: 30),
+              Text("management".tr,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodySmall?.color)),
+              const SizedBox(height: 15),
+              _buildModuleList(context),
+            ],
+          ),
+        ),
+      )),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          Theme.of(context).primaryColor,
+          Theme.of(context).primaryColor.withValues(alpha: 0.8),
+        ]),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8))
+        ],
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.white24,
+            child: Icon(Icons.business_rounded, color: Colors.white, size: 30),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("business_header_title".tr,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                Text("business_header_subtitle".tr,
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Row(
+      children: [
+        _actionButton(context, Icons.receipt_long_rounded, "create_invoice".tr,
+            Colors.orange, () => _safeNavigate(RoutesName.createInvoice)),
+        const SizedBox(width: 15),
+        _actionButton(context, Icons.request_quote_rounded, "quotation".tr,
+            Colors.teal, () => _safeNavigate(RoutesName.createQuotation)),
+      ],
+    );
+  }
+
+  void _safeNavigate(String route) async {
+    final businessService = Get.find<BusinessService>();
+
+    if (businessService.isProfileCreated.value) {
+      Get.toNamed(route);
+    } else {
+      // Try refreshing status once before showing dialog
+      await businessService.checkProfileStatus();
+      if (businessService.isProfileCreated.value) {
+        Get.toNamed(route);
+      } else {
+        BusinessDialogs.showProfileRequiredDialog();
+      }
+    }
+  }
+
+  Widget _actionButton(BuildContext context, IconData icon, String label,
+      Color color, VoidCallback onTap) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsSummary(
+      BuildContext context, BusinessHomeController controller) {
+    return Obx(() {
+      final String monthYear = DateFormat('MMMM yyyy').format(DateTime.now());
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("monthly_revenue".tr,
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.titleLarge?.color)),
+                Text(monthYear,
+                    style: TextStyle(
+                        fontSize: 12, color: Theme.of(context).disabledColor)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (controller.isLoading.value)
+              const Center(
+                  child: Padding(
+                padding: EdgeInsets.all(10.0),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ))
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _statItem(
+                      "paid_label".tr,
+                      "₹${controller.paidAmount.value.toStringAsFixed(2)}",
+                      Colors.green,
+                      context),
+                  Container(
+                    width: 1,
+                    height: 30,
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                  ),
+                  _statItem(
+                      "pending".tr,
+                      "₹${controller.pendingAmount.value.toStringAsFixed(2)}",
+                      Colors.redAccent,
+                      context),
+                ],
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _statItem(
+      String label, String value, Color color, BuildContext context) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                color: color, fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(label,
+            style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildModuleList(BuildContext context) {
+    return Column(
+      children: [
+        _luxuryListTile(
+            context,
+            Icons.group_rounded,
+            "customers".tr,
+            "clients_ledgers".tr,
+            Colors.indigo,
+            () => _safeNavigate(RoutesName.customersList)),
+        _luxuryListTile(
+            context,
+            Icons.history_rounded,
+            "invoice_history".tr,
+            "past_transactions".tr,
+            Colors.deepPurple,
+            () => _safeNavigate(RoutesName.invoiceList)),
+        _luxuryListTile(
+            context,
+            Icons.request_quote_outlined,
+            "quotation_history".tr,
+            "view_past_quotes".tr,
+            Colors.teal,
+            () => _safeNavigate(RoutesName.quotationList)),
+        _luxuryListTile(
+            context,
+            Icons.settings_suggest_rounded,
+            "business_profile".tr,
+            "account_settings".tr,
+            Colors.blueGrey,
+            () => Get.toNamed(RoutesName.businessProfile)),
+        _luxuryListTile(
+            context,
+            Icons.inventory_2_rounded,
+            "Inventory Management",
+            "Products & Stock",
+            Colors.teal,
+            () => _safeNavigate(RoutesName.inventoryList)),
+      ],
+    );
+  }
+
+  Widget _luxuryListTile(BuildContext context, IconData icon, String title,
+      String subtitle, Color color, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 5,
+              offset: const Offset(0, 2))
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color)),
+        subtitle: Text(subtitle,
+            style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12)),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded,
+            size: 16, color: Colors.grey),
+        onTap: onTap,
+      ),
+    );
+  }
+}

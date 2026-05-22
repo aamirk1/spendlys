@@ -7,11 +7,9 @@ class ConnectivityService extends GetxService {
   final Connectivity _connectivity = Connectivity();
   final RxBool isOnline = true.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // _checkInitialConnectivity();
-    // _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  ConnectivityService() {
+    _checkInitialConnectivity();
+    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   Future<void> _checkInitialConnectivity() async {
