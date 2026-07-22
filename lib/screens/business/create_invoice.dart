@@ -236,30 +236,36 @@ class CreateInvoiceController extends GetxController {
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
           body: payload);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Invoice Generated!", isError: false);
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Invoice queued offline. Will sync when online." : "Invoice Generated!",
+            isError: false);
 
-        // Resolve customer details for notifications
-        final bodyData = jsonDecode(response.body);
-        final invoiceId = bodyData['id']?.toString() ?? '';
-        final selectedCustomer = customers.firstWhere(
-          (c) => c['id'].toString() == selectedCustomerId.value,
-          orElse: () => {'name': 'Customer', 'phone': ''},
-        );
-        final customerName =
-            (selectedCustomer['name'] ?? 'Customer').toString();
-
-        // ── Local push + due-date reminders ───────────────────────────
-        try {
-          final reminderSvc = Get.find<ReminderNotificationService>();
-          await reminderSvc.scheduleInvoiceNotifications(
-            invoiceId: invoiceId,
-            invoiceNumber: invoiceNumberController.text.trim(),
-            total: total,
-            customerName: customerName,
-            dueDate: selectedDueDate,
+        if (!isOffline) {
+          // Resolve customer details for notifications
+          final bodyData = jsonDecode(response.body);
+          final invoiceId = bodyData['id']?.toString() ?? '';
+          final selectedCustomer = customers.firstWhere(
+            (c) => c['id'].toString() == selectedCustomerId.value,
+            orElse: () => {'name': 'Customer', 'phone': ''},
           );
-        } catch (_) {}
+          final customerName =
+              (selectedCustomer['name'] ?? 'Customer').toString();
+
+          // ── Local push + due-date reminders ───────────────────────────
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            await reminderSvc.scheduleInvoiceNotifications(
+              invoiceId: invoiceId,
+              invoiceNumber: invoiceNumberController.text.trim(),
+              total: total,
+              customerName: customerName,
+              dueDate: selectedDueDate,
+            );
+          } catch (_) {}
+        }
 
         Get.offNamed(RoutesName.invoiceList);
       } else {

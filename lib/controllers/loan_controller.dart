@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
@@ -20,28 +21,30 @@ class LoanController extends GetxController {
     super.onInit();
   }
 
-  Future<void> fetchLoans() async {
+  Future<void> fetchLoans({bool forceRefresh = false}) async {
     final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/loans/?user_id=$userId';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      _parseAndSetLoans(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      _parseAndSetLoans(cachedData);
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       final response = await ApiService.get('/loans/?user_id=$userId');
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        final fetchedLoans = (data).map((item) {
-          final map = item as Map<String, dynamic>;
-          final id = map['id']?.toString() ?? '';
-          return Loan.fromMap(map, id);
-        }).toList();
-
-        // Sort by date descending (latest first)
-        fetchedLoans.sort((a, b) {
-          return b.date.compareTo(a.date);
-        });
-
-        loans.value = fetchedLoans;
-        errorMsg.value = null;
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          List<dynamic> data = jsonDecode(response.body);
+          _parseAndSetLoans(data);
+        }
       } else {
         errorMsg.value = 'Failed to fetch loans: ${response.body}';
       }
@@ -50,6 +53,22 @@ class LoanController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _parseAndSetLoans(List<dynamic> data) {
+    final fetchedLoans = (data).map((item) {
+      final map = item as Map<String, dynamic>;
+      final id = map['id']?.toString() ?? '';
+      return Loan.fromMap(map, id);
+    }).toList();
+
+    // Sort by date descending (latest first)
+    fetchedLoans.sort((a, b) {
+      return b.date.compareTo(a.date);
+    });
+
+    loans.value = fetchedLoans;
+    errorMsg.value = null;
   }
 
   List<Loan> get borrowed =>
@@ -82,12 +101,17 @@ class LoanController extends GetxController {
         'status': loan.status.value,
       });
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Loan updated successfully!',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Loan update saved offline. Will sync when online.'
+                : 'Loan updated successfully!',
             isError: false);
 
         // ── Reschedule notifications ─────────────────
-        if (loan.expectedReturnDate != null) {
+        if (!isOffline && loan.expectedReturnDate != null) {
           try {
             final reminderSvc = Get.find<ReminderNotificationService>();
             await reminderSvc.scheduleLoanNotifications(
@@ -100,7 +124,7 @@ class LoanController extends GetxController {
           } catch (_) {}
         }
 
-        fetchLoans();
+        fetchLoans(forceRefresh: true);
         Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
         Utils.showSnackbar('Error', 'Failed to update loan: ${response.body}');
@@ -147,14 +171,21 @@ class LoanController extends GetxController {
             .toList(),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Loan added successfully!',
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Loan added offline. Will sync when online.'
+                : 'Loan added successfully!',
             isError: false);
-        fetchLoans(); // Refresh list
+        fetchLoans(forceRefresh: true); // Refresh list
         Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
 
         // ── Local push notification + due-date reminders ─────────────────
-        if (loan.expectedReturnDate != null) {
+        if (!isOffline && loan.expectedReturnDate != null) {
           try {
             final reminderSvc = Get.find<ReminderNotificationService>();
             await reminderSvc.scheduleLoanNotifications(
@@ -213,17 +244,22 @@ class LoanController extends GetxController {
             .toList(),
       });
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment updated successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Payment update saved offline. Will sync when online.'
+                : 'Payment updated successfully',
             isError: false);
         // If fully paid, cancel all reminders
-        if (loan.status.value == 'paid') {
+        if (!isOffline && loan.status.value == 'paid') {
           try {
             final reminderSvc = Get.find<ReminderNotificationService>();
             await reminderSvc.cancelLoanReminders(loanId);
           } catch (_) {}
         }
-        fetchLoans(); // Refresh list to be sure
+        fetchLoans(forceRefresh: true); // Refresh list to be sure
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to update payment: ${response.body}');
@@ -243,17 +279,24 @@ class LoanController extends GetxController {
       final userId = Get.find<AuthService>().currentUserId;
       final response =
           await ApiService.delete('/loans/$loanId?user_id=$userId');
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Loan Deleted', 'The loan was removed successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Loan Deleted',
+            isOffline
+                ? 'Loan deletion scheduled offline. Will sync when online.'
+                : 'The loan was removed successfully',
             isError: false);
         // Cancel any scheduled reminders for this loan
-        try {
-          final reminderSvc = Get.find<ReminderNotificationService>();
-          await reminderSvc.cancelLoanReminders(loanId);
-        } catch (_) {}
+        if (!isOffline) {
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            await reminderSvc.cancelLoanReminders(loanId);
+          } catch (_) {}
+        }
         // Immediate local removal for cross-screen reactivity
         loans.removeWhere((l) => l.id == loanId);
-        fetchLoans(); // Refresh list from server
+        fetchLoans(forceRefresh: true); // Refresh list from server
         Get.offAllNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
       } else {
         Utils.showSnackbar('Error', 'Failed to delete loan: ${response.body}');
@@ -304,10 +347,15 @@ class LoanController extends GetxController {
             .toList(),
       });
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment updated successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Payment edit saved offline. Will sync when online.'
+                : 'Payment updated successfully',
             isError: false);
-        fetchLoans(); // Refresh list
+        fetchLoans(forceRefresh: true); // Refresh list
         Get.offAllNamed(RoutesName.homeView, arguments: {'index': 2});
       } else {
         Utils.showSnackbar(
@@ -358,10 +406,15 @@ class LoanController extends GetxController {
             .toList(),
       });
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Payment deleted successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Payment deletion saved offline. Will sync when online.'
+                : 'Payment deleted successfully',
             isError: false);
-        fetchLoans(); // Refresh list
+        fetchLoans(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to delete payment: ${response.body}');

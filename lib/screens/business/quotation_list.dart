@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -52,16 +53,30 @@ class QuotationListController extends GetxController {
     fetchQuotations();
   }
 
-  Future<void> fetchQuotations() async {
+  Future<void> fetchQuotations({bool forceRefresh = false}) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/business/quotations';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      quotations.value = List<Map<String, dynamic>>.from(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      quotations.value = List<Map<String, dynamic>>.from(cachedData);
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       final response = await ApiService.get('/business/quotations',
           headers: {'x-user-id': userId});
-      if (response.statusCode == 200) {
-        quotations.value = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          quotations.value = jsonDecode(response.body);
+        }
       }
     } catch (e) {
       Utils.showSnackbar("Error", "Failed to load quotations: $e");
@@ -80,12 +95,15 @@ class QuotationListController extends GetxController {
           '/business/quotations/$quotationId',
           headers: {'x-user-id': userId});
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        Utils.showSnackbar("Success", "Quotation deleted successfully",
+      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Quotation deletion scheduled offline. Will sync when online." : "Quotation deleted successfully",
             isError: false);
         // Immediate local removal for cross-screen reactivity
         quotations.removeWhere((q) => q['id'].toString() == quotationId);
-        fetchQuotations();
+        fetchQuotations(forceRefresh: true);
         // Refresh home screen business summary
         if (Get.isRegistered<BusinessHomeController>()) {
           Get.find<BusinessHomeController>().fetchSummary();

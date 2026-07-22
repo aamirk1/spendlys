@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:get/get.dart';
@@ -108,41 +109,31 @@ class IncomeController extends GetxController {
     fetchIncomes();
   }
 
-  Future<void> fetchIncomes() async {
+  Future<void> fetchIncomes({bool forceRefresh = false}) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading(true);
+    final cacheKey = 'GET_/transactions/?user_id=$userId&type=income';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      _parseAndSetIncomes(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      _parseAndSetIncomes(cachedData);
+    } else {
+      isLoading(true);
+    }
+
     try {
       final response =
           await ApiService.get('/transactions/?user_id=$userId&type=income');
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        List<Map<String, dynamic>> tempIncomes = [];
-        Map<String, double> tempTotals = {};
-        double total = 0;
-
-        for (var item in data) {
-          String category = item['category'] ?? 'Unknown';
-          double amount = (item['amount'] as num).toDouble();
-          DateTime date = DateTime.parse(item['date']);
-
-          tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-          total += amount;
-
-          tempIncomes.add({
-            'id': item['id'].toString(),
-            'description': item['description'] ?? '',
-            'category': category,
-            'amount': amount,
-            'date': date,
-          });
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          List<dynamic> data = jsonDecode(response.body);
+          _parseAndSetIncomes(data);
         }
-
-        incomeList.value = tempIncomes;
-        categoryTotals.value = tempTotals;
-        totalIncome.value = total;
-        updateChartData();
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to fetch incomes: ${response.body}');
@@ -154,12 +145,41 @@ class IncomeController extends GetxController {
     }
   }
 
+  void _parseAndSetIncomes(List<dynamic> data) {
+    List<Map<String, dynamic>> tempIncomes = [];
+    Map<String, double> tempTotals = {};
+    double total = 0;
+
+    for (var item in data) {
+      String category = item['category'] ?? 'Unknown';
+      double amount = (item['amount'] as num).toDouble();
+      DateTime date = DateTime.parse(item['date']);
+
+      tempTotals[category] = (tempTotals[category] ?? 0) + amount;
+      total += amount;
+
+      tempIncomes.add({
+        'id': item['id'].toString(),
+        'description': item['description'] ?? '',
+        'category': category,
+        'amount': amount,
+        'date': date,
+        'status': item['status'] ?? 'synced',
+      });
+    }
+
+    incomeList.value = tempIncomes;
+    categoryTotals.value = tempTotals;
+    totalIncome.value = total;
+    updateChartData();
+  }
+
   // Inside your IncomeController
   Future<void> fetchChartIncomeTotals(String filter) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    await fetchIncomes();
+    await fetchIncomes(forceRefresh: true);
   }
 
   void updateChartData() {
@@ -208,13 +228,20 @@ class IncomeController extends GetxController {
         'date': DateTime.now().toIso8601String(),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Income added successfully!',
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Income added offline. Will sync when online.'
+                : 'Income added successfully!',
             isError: false);
         amountController.clear();
         descriptionController.clear();
         selectedCategory.value = '';
-        fetchIncomes(); // Refresh list
+        fetchIncomes(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar('Error', 'Failed to add income: ${response.body}');
       }
@@ -231,10 +258,15 @@ class IncomeController extends GetxController {
     try {
       final response =
           await ApiService.put('/transactions/$docId', body: updatedData);
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Income updated successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Income update saved offline. Will sync when online.'
+                : 'Income updated successfully',
             isError: false);
-        fetchIncomes(); // Refresh list
+        fetchIncomes(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to update income: ${response.body}');
@@ -250,12 +282,17 @@ class IncomeController extends GetxController {
     isLoading(true);
     try {
       final response = await ApiService.delete('/transactions/$docId');
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Income removed successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Deleted',
+            isOffline
+                ? 'Income deletion scheduled offline. Will sync when online.'
+                : 'Income removed successfully',
             isError: false);
         // Immediate local removal for cross-screen reactivity
         incomeList.removeWhere((e) => e['id'].toString() == docId);
-        fetchIncomes(); // Refresh list
+        fetchIncomes(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to delete income: ${response.body}');

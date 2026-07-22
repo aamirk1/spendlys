@@ -125,11 +125,14 @@ class EditQuotationController extends GetxController {
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
           body: payload);
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar("Success", "Quotation Updated Successfully!",
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Quotation update queued offline. Will sync when online." : "Quotation Updated Successfully!",
             isError: false);
         if (Get.isRegistered<QuotationListController>()) {
-          Get.find<QuotationListController>().fetchQuotations();
+          Get.find<QuotationListController>().fetchQuotations(forceRefresh: true);
         }
         Get.back(); // back to detail
         Get.back(); // back to list (to refresh data)

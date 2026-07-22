@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -54,30 +55,47 @@ class InvoiceListController extends GetxController {
       hasMoreData = true;
     }
 
-    if (loadMore) {
-      isMoreLoading.value = true;
+    final endpoint = '/business/invoices?page=$currentPage&limit=$limit';
+    final cacheKey = 'GET_$endpoint';
+
+    if (!loadMore && !refresh) {
+      final cachedData = LocalCacheService.getCache(cacheKey);
+      if (cachedData != null && cachedData is List) {
+        invoices.assignAll(cachedData);
+        return;
+      }
+    }
+
+    if (!loadMore) {
+      final cachedData = LocalCacheService.getCache(cacheKey);
+      if (cachedData != null && cachedData is List) {
+        invoices.assignAll(cachedData);
+      } else {
+        isLoading.value = true;
+      }
     } else {
-      isLoading.value = true;
+      isMoreLoading.value = true;
     }
 
     try {
-      final endpoint = '/business/invoices?page=$currentPage&limit=$limit';
       final response =
           await ApiService.get(endpoint, headers: {'x-user-id': userId});
 
-      if (response.statusCode == 200) {
-        final List newData = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          final List newData = jsonDecode(response.body);
 
-        if (refresh || !loadMore) {
-          invoices.assignAll(newData);
-        } else {
-          invoices.addAll(newData);
-        }
+          if (refresh || !loadMore) {
+            invoices.assignAll(newData);
+          } else {
+            invoices.addAll(newData);
+          }
 
-        if (newData.length < limit) {
-          hasMoreData = false;
-        } else {
-          currentPage++;
+          if (newData.length < limit) {
+            hasMoreData = false;
+          } else {
+            currentPage++;
+          }
         }
       }
     } catch (e) {
@@ -124,8 +142,11 @@ class InvoiceListController extends GetxController {
       final response = await ApiService.delete('/business/invoices/$invoiceId',
           headers: {'x-user-id': userId});
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        Utils.showSnackbar("Success", "Invoice deleted successfully",
+      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Invoice deletion scheduled offline. Will sync when online." : "Invoice deleted successfully",
             isError: false);
         // Immediate local removal for cross-screen reactivity
         invoices.removeWhere((inv) => inv['id'].toString() == invoiceId);

@@ -129,35 +129,40 @@ class EditInvoiceController extends GetxController {
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
           body: payload);
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar("Success", "Invoice Updated Successfully!",
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Invoice update queued offline. Will sync when online." : "Invoice Updated Successfully!",
             isError: false);
 
-        // ── Reschedule notifications ─────────────────
-        try {
-          final reminderSvc = Get.find<ReminderNotificationService>();
-          final dueDateStr = dueDateController.text.trim();
-          DateTime? dueDate;
-          if (dueDateStr.isNotEmpty) {
-            // Handle YYYY-MM-DD or other formats
-            dueDate = DateTime.tryParse(dueDateStr);
-          }
+        if (!isOffline) {
+          // ── Reschedule notifications ─────────────────
+          try {
+            final reminderSvc = Get.find<ReminderNotificationService>();
+            final dueDateStr = dueDateController.text.trim();
+            DateTime? dueDate;
+            if (dueDateStr.isNotEmpty) {
+              // Handle YYYY-MM-DD or other formats
+              dueDate = DateTime.tryParse(dueDateStr);
+            }
 
-          await reminderSvc.scheduleInvoiceNotifications(
-            invoiceId: invoiceId,
-            invoiceNumber: invoiceNumberController.text.trim(),
-            total: total,
-            customerName: customers.firstWhere(
-                  (c) => c['id'].toString() == selectedCustomerId.value,
-                  orElse: () => {'name': 'Customer'},
-                )['name'] ??
-                'Customer',
-            dueDate: dueDate,
-          );
-        } catch (_) {}
+            await reminderSvc.scheduleInvoiceNotifications(
+              invoiceId: invoiceId,
+              invoiceNumber: invoiceNumberController.text.trim(),
+              total: total,
+              customerName: customers.firstWhere(
+                    (c) => c['id'].toString() == selectedCustomerId.value,
+                orElse: () => {'name': 'Customer'},
+              )['name'] ??
+                  'Customer',
+              dueDate: dueDate,
+            );
+          } catch (_) {}
+        }
 
         if (Get.isRegistered<InvoiceListController>()) {
-          Get.find<InvoiceListController>().fetchInvoices();
+          Get.find<InvoiceListController>().fetchInvoices(refresh: true);
         }
         Get.back(); // back to detail
         Get.back(); // back to list

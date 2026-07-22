@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 
@@ -41,13 +42,23 @@ class CategoryController extends GetxController {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/categories/?user_id=$userId';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (cachedData != null && cachedData is List) {
+      categories.value =
+          cachedData.map((item) => item as Map<String, dynamic>).toList();
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       final response = await ApiService.get('/categories/?user_id=$userId');
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        categories.value =
-            data.map((item) => item as Map<String, dynamic>).toList();
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          List<dynamic> data = jsonDecode(response.body);
+          categories.value =
+              data.map((item) => item as Map<String, dynamic>).toList();
+        }
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to fetch categories: ${response.body}');
@@ -78,8 +89,15 @@ class CategoryController extends GetxController {
         'color': selectedColor.value.value.toRadixString(16),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Category added successfully!',
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Category added offline. Will sync when online.'
+                : 'Category added successfully!',
             isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
@@ -113,8 +131,13 @@ class CategoryController extends GetxController {
         'color': selectedColor.value.value.toRadixString(16),
       });
 
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Category updated successfully!',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Category update saved offline. Will sync when online.'
+                : 'Category updated successfully!',
             isError: false);
         nameController.clear();
         selectedIcon.value = Icons.shopping_cart;
@@ -134,8 +157,13 @@ class CategoryController extends GetxController {
   Future<void> deleteCategory(String categoryId) async {
     try {
       final response = await ApiService.delete('/categories/$categoryId');
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Category removed successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Deleted',
+            isOffline
+                ? 'Category deletion scheduled offline. Will sync when online.'
+                : 'Category removed successfully',
             isError: false);
         fetchCategories(); // Refresh list
       } else {

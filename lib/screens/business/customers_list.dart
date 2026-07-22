@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -27,16 +28,30 @@ class CustomersController extends GetxController {
     fetchCustomers();
   }
 
-  Future<void> fetchCustomers() async {
+  Future<void> fetchCustomers({bool forceRefresh = false}) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/business/customers';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      customers.value = List<Map<String, dynamic>>.from(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      customers.value = List<Map<String, dynamic>>.from(cachedData);
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       final response = await ApiService.get('/business/customers',
           headers: {'x-user-id': userId});
-      if (response.statusCode == 200) {
-        customers.value = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          customers.value = jsonDecode(response.body);
+        }
       } else if (response.statusCode == 400 &&
           response.body.contains("business profile first")) {
         // Not configured yet
@@ -70,14 +85,17 @@ class CustomersController extends GetxController {
         "address": addressController.text.trim(),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Customer added successfully",
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Customer added offline. Will sync when online." : "Customer added successfully",
             isError: false);
         nameController.clear();
         phoneController.clear();
         emailController.clear();
         addressController.clear();
-        fetchCustomers();
+        fetchCustomers(forceRefresh: true);
       } else {
         Utils.showSnackbar("Error", "Failed to add customer: ${response.body}");
       }
@@ -98,10 +116,13 @@ class CustomersController extends GetxController {
           '/business/customers/$customerId',
           headers: {'x-user-id': userId});
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        Utils.showSnackbar("Success", "Customer deleted successfully",
+      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Customer deletion scheduled offline. Will sync when online." : "Customer deleted successfully",
             isError: false);
-        fetchCustomers();
+        fetchCustomers(forceRefresh: true);
       } else {
         Utils.showSnackbar(
             "Error", "Failed to delete customer: ${response.body}");

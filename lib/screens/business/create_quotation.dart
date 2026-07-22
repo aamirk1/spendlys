@@ -182,8 +182,11 @@ class CreateQuotationController extends GetxController {
           headers: {'Content-Type': 'application/json', 'x-user-id': userId},
           body: payload);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar("Success", "Quotation Generated Successfully!",
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline ? "Quotation queued offline. Will sync when online." : "Quotation Generated Successfully!",
             isError: false);
         Get.offNamed(RoutesName.quotationList);
       } else {

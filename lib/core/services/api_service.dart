@@ -93,21 +93,12 @@ class ApiService {
       dynamic body,
       bool bypassCache = false}) async {
     if (!_conn.isOnline.value && !bypassCache) {
-      final baseResource = endpoint.split('/')[1]; // very basic heuristic
-      final listCacheKey = 'GET_/$baseResource';
+      await LocalCacheService.updateMatchingListCaches(
+        endpoint: endpoint,
+        method: 'POST',
+        body: body,
+      );
 
-      final cachedList = LocalCacheService.getCache(listCacheKey);
-      if (cachedList is List) {
-        final newList = List.from(cachedList);
-        newList.insert(0, {
-          ...body,
-          'id': 'temp_${DateTime.now().millisecondsSinceEpoch}',
-          'status': 'syncing'
-        });
-        await LocalCacheService.setCache(listCacheKey, newList);
-      }
-
-      // 2. Queue it for sync
       await LocalCacheService.addPendingRequest(
         endpoint: endpoint,
         method: 'POST',
@@ -162,6 +153,16 @@ class ApiService {
       dynamic body,
       bool bypassCache = false}) async {
     if (!_conn.isOnline.value && !bypassCache) {
+      final uriParts = endpoint.split('/');
+      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+
+      await LocalCacheService.updateMatchingListCaches(
+        endpoint: endpoint,
+        method: 'PUT',
+        body: body,
+        id: itemId,
+      );
+
       await LocalCacheService.addPendingRequest(
         endpoint: endpoint,
         method: 'PUT',
@@ -198,6 +199,16 @@ class ApiService {
       dynamic body,
       bool bypassCache = false}) async {
     if (!_conn.isOnline.value && !bypassCache) {
+      final uriParts = endpoint.split('/');
+      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+
+      await LocalCacheService.updateMatchingListCaches(
+        endpoint: endpoint,
+        method: 'PATCH',
+        body: body,
+        id: itemId,
+      );
+
       await LocalCacheService.addPendingRequest(
         endpoint: endpoint,
         method: 'PATCH',
@@ -232,6 +243,15 @@ class ApiService {
   static Future<http.Response> delete(String endpoint,
       {Map<String, String>? headers, bool bypassCache = false}) async {
     if (!_conn.isOnline.value && !bypassCache) {
+      final uriParts = endpoint.split('/');
+      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+
+      await LocalCacheService.updateMatchingListCaches(
+        endpoint: endpoint,
+        method: 'DELETE',
+        id: itemId,
+      );
+
       await LocalCacheService.addPendingRequest(
         endpoint: endpoint,
         method: 'DELETE',

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -53,11 +54,23 @@ class InventoryController extends GetxController {
     fetchProducts();
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchProducts({bool forceRefresh = false}) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/business/inventory/?';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      products.value = List<Map<String, dynamic>>.from(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      products.value = List<Map<String, dynamic>>.from(cachedData);
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       String url = '/business/inventory/?';
       if (searchQuery.value.isNotEmpty) url += 'search=${searchQuery.value}&';
@@ -68,8 +81,10 @@ class InventoryController extends GetxController {
 
       final response =
           await ApiService.get(url, headers: {'x-user-id': userId});
-      if (response.statusCode == 200) {
-        products.value = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          products.value = jsonDecode(response.body);
+        }
       }
     } catch (e) {
       Utils.showSnackbar("Error", "Failed to load inventory: $e");
@@ -100,11 +115,18 @@ class InventoryController extends GetxController {
         final response = await ApiService.post('/business/inventory/',
             headers: {'Content-Type': 'application/json', 'x-user-id': userId},
             body: payload);
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          Utils.showSnackbar("Success", "Product added to inventory",
+        if (response.statusCode == 200 ||
+            response.statusCode == 201 ||
+            response.statusCode == 202) {
+          final isOffline = response.statusCode == 202;
+          Utils.showSnackbar(
+              isOffline ? "Offline" : "Success",
+              isOffline
+                  ? "Product queued offline. Will sync when online."
+                  : "Product added to inventory",
               isError: false);
           _clearControllers();
-          fetchProducts();
+          fetchProducts(forceRefresh: true);
         } else {
           Utils.showSnackbar(
               "Error", "Failed to add product: ${response.body}");
@@ -114,10 +136,16 @@ class InventoryController extends GetxController {
         final response = await ApiService.put('/business/inventory/$productId',
             headers: {'Content-Type': 'application/json', 'x-user-id': userId},
             body: payload);
-        if (response.statusCode == 200) {
-          Utils.showSnackbar("Success", "Product updated", isError: false);
+        if (response.statusCode == 200 || response.statusCode == 202) {
+          final isOffline = response.statusCode == 202;
+          Utils.showSnackbar(
+              isOffline ? "Offline" : "Success",
+              isOffline
+                  ? "Product update queued offline. Will sync when online."
+                  : "Product updated",
+              isError: false);
           _clearControllers();
-          fetchProducts();
+          fetchProducts(forceRefresh: true);
         } else {
           Utils.showSnackbar(
               "Error", "Failed to update product: ${response.body}");
@@ -140,10 +168,15 @@ class InventoryController extends GetxController {
         '/business/inventory/$productId',
         headers: {'x-user-id': userId},
       );
-      if (response.statusCode == 200) {
-        Utils.showSnackbar("Deleted", "Product removed from inventory",
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Deleted",
+            isOffline
+                ? "Product deletion scheduled offline. Will sync when online."
+                : "Product removed from inventory",
             isError: false);
-        fetchProducts();
+        fetchProducts(forceRefresh: true);
       } else {
         Utils.showSnackbar(
             "Error", "Failed to delete product: ${response.body}");

@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'dart:convert';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 
@@ -149,37 +150,31 @@ class ExpenseController extends GetxController {
   }
 
   // Real-time listener for expense updates
-  Future<void> fetchExpenses() async {
+  Future<void> fetchExpenses({bool forceRefresh = false}) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    isLoading.value = true;
+    final cacheKey = 'GET_/transactions/?user_id=$userId&type=expense';
+    final cachedData = LocalCacheService.getCache(cacheKey);
+    if (!forceRefresh && cachedData != null && cachedData is List) {
+      _parseAndSetExpenses(cachedData);
+      return;
+    }
+
+    if (cachedData != null && cachedData is List) {
+      _parseAndSetExpenses(cachedData);
+    } else {
+      isLoading.value = true;
+    }
+
     try {
       final response =
           await ApiService.get('/transactions/?user_id=$userId&type=expense');
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        Map<String, double> tempTotals = {};
-        List<Map<String, dynamic>> tempExpenses = [];
-
-        for (var item in data) {
-          String category = item['category'] ?? "Unknown";
-          double amount = (item['amount'] as num).toDouble();
-          DateTime date = DateTime.parse(item['date']);
-
-          tempTotals[category] = (tempTotals[category] ?? 0) + amount;
-
-          tempExpenses.add({
-            'id': item['id'].toString(),
-            'description': item['description'] ?? "",
-            'category': category,
-            'amount': amount,
-            'date': date,
-          });
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.statusCode == 200) {
+          List<dynamic> data = jsonDecode(response.body);
+          _parseAndSetExpenses(data);
         }
-
-        categoryTotals.assignAll(tempTotals);
-        expensesList.assignAll(tempExpenses);
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to fetch expenses: ${response.body}');
@@ -191,13 +186,38 @@ class ExpenseController extends GetxController {
     }
   }
 
+  void _parseAndSetExpenses(List<dynamic> data) {
+    Map<String, double> tempTotals = {};
+    List<Map<String, dynamic>> tempExpenses = [];
+
+    for (var item in data) {
+      String category = item['category'] ?? "Unknown";
+      double amount = (item['amount'] as num).toDouble();
+      DateTime date = DateTime.parse(item['date']);
+
+      tempTotals[category] = (tempTotals[category] ?? 0) + amount;
+
+      tempExpenses.add({
+        'id': item['id'].toString(),
+        'description': item['description'] ?? "",
+        'category': category,
+        'amount': amount,
+        'date': date,
+        'status': item['status'] ?? 'synced',
+      });
+    }
+
+    categoryTotals.assignAll(tempTotals);
+    expensesList.assignAll(tempExpenses);
+  }
+
   // Fetch filtered expense totals for charts (non-real-time)
   Future<void> fetchChartExpenseTotals(String filter) async {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
     // For now, we fetch all and filter in app, or you can add filter params to API
-    await fetchExpenses();
+    await fetchExpenses(forceRefresh: true);
 
     // Filtering logic can be more specific if needed
   }
@@ -240,13 +260,20 @@ class ExpenseController extends GetxController {
         'date': DateTime.now().toIso8601String(),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar('Success', 'Expense added successfully!',
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Expense added offline. Will sync when online.'
+                : 'Expense added successfully!',
             isError: false);
         amountController.clear();
         descriptionController.clear();
         selectedCategory.value = '';
-        fetchExpenses(); // Refresh list
+        fetchExpenses(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar('Error', 'Failed to add expense: ${response.body}');
       }
@@ -264,10 +291,15 @@ class ExpenseController extends GetxController {
     try {
       final response =
           await ApiService.put('/transactions/$docId', body: updatedData);
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Success', 'Expense updated successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Success',
+            isOffline
+                ? 'Expense update saved offline. Will sync when online.'
+                : 'Expense updated successfully',
             isError: false);
-        fetchExpenses(); // Refresh list
+        fetchExpenses(forceRefresh: true); // Refresh list
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to update expense: ${response.body}');
@@ -284,12 +316,17 @@ class ExpenseController extends GetxController {
     isLoading.value = true;
     try {
       final response = await ApiService.delete('/transactions/$docId');
-      if (response.statusCode == 200) {
-        Utils.showSnackbar('Deleted', 'Expense removed successfully',
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? 'Offline' : 'Deleted',
+            isOffline
+                ? 'Expense deletion scheduled offline. Will sync when online.'
+                : 'Expense removed successfully',
             isError: false);
         // Immediate local removal for cross-screen reactivity
         expensesList.removeWhere((e) => e['id'].toString() == docId);
-        fetchExpenses(); // Background refresh
+        fetchExpenses(forceRefresh: true); // Background refresh
       } else {
         Utils.showSnackbar(
             'Error', 'Failed to delete expense: ${response.body}');
