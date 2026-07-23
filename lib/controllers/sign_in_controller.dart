@@ -476,6 +476,95 @@ class SignInController extends GetxController {
     }
   }
 
+  Future<void> performBackgroundSilentLogin() async {
+    try {
+      final credentials = await _secureStorage.getCredentials();
+      final email = credentials['email'];
+      final password = credentials['password'];
+
+      String deviceInfo = await _getDeviceDetails();
+      String? fcmToken = await _firebaseMessaging.getToken();
+      dynamic userData;
+      String? accessToken;
+
+      if (email != null &&
+          password != null &&
+          email.isNotEmpty &&
+          password.isNotEmpty) {
+        final response = await _apiClient.post(ApiConstants.login, data: {
+          'email': email.trim(),
+          'password': password.trim(),
+          'device_info': deviceInfo,
+          'fcm_token': fcmToken,
+        });
+
+        final data = response.data;
+        accessToken = data['access_token'];
+        final customToken = data['firebase_custom_token'];
+        userData = data['user'];
+
+        if (customToken != null) {
+          await auth
+              .signInWithCustomToken(customToken)
+              .timeout(const Duration(seconds: 30));
+        }
+      } else {
+        final firebaseUser = auth.currentUser;
+        if (firebaseUser != null) {
+          String safePhone =
+              (firebaseUser.phoneNumber ?? "").replaceAll("+", "");
+          if (safePhone.isEmpty) safePhone = firebaseUser.uid.substring(0, 10);
+
+          final response = await _apiClient.post(ApiConstants.syncUser, data: {
+            'id': firebaseUser.uid,
+            'email': firebaseUser.email ?? "$safePhone@dailybachat.com",
+            'password': "firebase_sync_placeholder",
+            'phone_number': firebaseUser.phoneNumber,
+            'name': firebaseUser.displayName ?? "User",
+            'device_info': deviceInfo,
+            'fcm_token': fcmToken,
+          });
+
+          if (response.data != null && response.data['user'] != null) {
+            userData = response.data['user'];
+            accessToken = response.data['access_token'];
+          }
+        }
+      }
+
+      if (userData != null) {
+        if (accessToken != null) {
+          await _secureStorage.saveToken(accessToken);
+        }
+
+        MyUser myUser = MyUser(
+          userId: userData['id'] ?? '',
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          phoneNumber: userData['phone_number'] ?? '',
+          lastLogin: Timestamp.now(),
+          isPremium: userData['is_premium'] ?? false,
+        );
+
+        box.write("isLoggedIn", true);
+        box.write("userId", myUser.userId);
+        box.write("name", myUser.name);
+        box.write("email", myUser.email);
+        box.write("phoneNumber", myUser.phoneNumber);
+        box.write("isPremium", myUser.isPremium);
+        box.write("deviceInfo", deviceInfo);
+        box.write("fcmToken", fcmToken);
+        box.write("hasSeenOnboarding", true);
+
+        print("Background silent login successful: ${myUser.userId}");
+      } else {
+        print("Background silent login failed: No credentials or user found.");
+      }
+    } catch (e) {
+      print("Warning: Background silent login failed: $e");
+    }
+  }
+
   Future<void> logout() async {
     _timer?.cancel();
     await auth.signOut();

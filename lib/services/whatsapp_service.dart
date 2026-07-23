@@ -87,4 +87,35 @@ class WhatsAppService {
       // Best-effort
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Group Split notifications
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Send a WhatsApp notification when a group split reminder is triggered.
+  static Future<bool> sendGroupSplitReminder({
+    required String phone,
+    required String recipientName,
+    required double amount,
+    required String title,
+    required String creatorName,
+    String? dueDate,
+  }) async {
+    try {
+      final response = await ApiService.post(
+        '/whatsapp/group-split',
+        body: {
+          'phone': phone,
+          'recipient_name': recipientName,
+          'amount': amount,
+          'title': title,
+          'creator_name': creatorName,
+          'due_date': dueDate,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
 }

@@ -31,6 +31,10 @@ import 'package:spendly/screens/premium/premium_screen.dart';
 import 'package:spendly/screens/premium/benefit_onboarding_screen.dart';
 import 'package:spendly/screens/splash_screen.dart';
 import 'package:spendly/screens/auth/otp_verification_screen.dart';
+import 'package:spendly/controllers/group_split_controller.dart';
+import 'package:spendly/screens/group_split/group_split_list_screen.dart';
+import 'package:spendly/screens/group_split/add_group_split_screen.dart';
+import 'package:spendly/screens/group_split/group_split_detail_screen.dart';
 
 /// Shared transition config — fadeIn at 200ms is the snappiest-feeling
 /// transition because it has zero layout work per frame (unlike slide).
@@ -288,6 +292,26 @@ class AppRoutes {
         GetPage(
             name: RoutesName.benefitOnboarding,
             page: () => const BenefitOnboardingScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.groupSplitList,
+            page: () => const GroupSplitListScreen(),
+            binding: BindingsBuilder(() {
+              Get.lazyPut(() => GroupSplitController());
+            }),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.addGroupSplit,
+            page: () => const AddGroupSplitScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.groupSplitDetail,
+            page: () => GroupSplitDetailScreen(
+                  split: Get.arguments,
+                ),
             transitionDuration: _kFast,
             transition: _kTransition),
       ];

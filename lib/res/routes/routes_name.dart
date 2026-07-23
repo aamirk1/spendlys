@@ -53,4 +53,9 @@ class RoutesName {
   static const String editProduct = '/edit_product';
   static const String premiumView = '/premium_view';
   static const String benefitOnboarding = '/benefit_onboarding';
+
+  // Group split routes
+  static const String groupSplitList = '/group_split_list';
+  static const String addGroupSplit = '/add_group_split';
+  static const String groupSplitDetail = '/group_split_detail';
 }

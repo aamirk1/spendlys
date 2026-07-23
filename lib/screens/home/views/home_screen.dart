@@ -8,6 +8,7 @@ import 'package:spendly/res/routes/routes_name.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spendly/controllers/payment_controller.dart';
+import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:get_storage/get_storage.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -50,6 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!benefitOnboardingShown) {
         Get.toNamed(RoutesName.benefitOnboarding);
       }
+
+      // Trigger background silent login and sync asynchronously
+      final signInController = Get.find<SignInController>();
+      signInController.performBackgroundSilentLogin();
     });
 
     screens = [
@@ -201,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _actionButton(
                     context: context,
@@ -211,6 +216,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Get.back();
                       Get.toNamed(RoutesName.addLoanScreen, arguments: myUser);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _actionButton(
+                    context: context,
+                    icon: CupertinoIcons.person_3_fill,
+                    label: 'Group Splits',
+                    color: Colors.indigo,
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(RoutesName.groupSplitList);
                     },
                   ),
                 ),

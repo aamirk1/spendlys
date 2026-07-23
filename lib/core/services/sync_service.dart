@@ -11,7 +11,7 @@ import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/screens/business/quotation_list.dart';
 import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
 import 'package:spendly/screens/business/customers_list.dart';
-
+import 'package:spendly/controllers/group_split_controller.dart';
 import 'dart:async';
 
 class SyncService extends GetxService {
@@ -96,6 +96,9 @@ class SyncService extends GetxService {
     }
     if (Get.isRegistered<CustomersController>()) {
       Get.find<CustomersController>().fetchCustomers();
+    }
+    if (Get.isRegistered<GroupSplitController>()) {
+      Get.find<GroupSplitController>().fetchGroupSplits();
     }
   }
 }

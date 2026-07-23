@@ -57,7 +57,7 @@ class LoanController extends GetxController {
 
   void _parseAndSetLoans(List<dynamic> data) {
     final fetchedLoans = (data).map((item) {
-      final map = item as Map<String, dynamic>;
+      final map = Map<String, dynamic>.from(item as Map);
       final id = map['id']?.toString() ?? '';
       return Loan.fromMap(map, id);
     }).toList();

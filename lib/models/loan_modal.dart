@@ -105,7 +105,7 @@ class Loan {
                 map['paymentHistory'] as List<dynamic>? ??
                 [])
             .map((e) {
-          final entry = e as Map<String, dynamic>;
+          final entry = Map<String, dynamic>.from(e as Map);
           return {
             'amount': (entry['amount'] as num?)?.toDouble() ?? 0.0,
             'timestamp': parseDate(entry['timestamp']),

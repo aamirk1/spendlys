@@ -46,7 +46,7 @@ class CategoryController extends GetxController {
     final cachedData = LocalCacheService.getCache(cacheKey);
     if (cachedData != null && cachedData is List) {
       categories.value =
-          cachedData.map((item) => item as Map<String, dynamic>).toList();
+          cachedData.map((item) => Map<String, dynamic>.from(item as Map)).toList();
     } else {
       isLoading.value = true;
     }
@@ -57,7 +57,7 @@ class CategoryController extends GetxController {
         if (response.statusCode == 200) {
           List<dynamic> data = jsonDecode(response.body);
           categories.value =
-              data.map((item) => item as Map<String, dynamic>).toList();
+              data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
         }
       } else {
         Utils.showSnackbar(
