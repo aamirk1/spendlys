@@ -26,9 +26,7 @@ class ApiService {
     };
   }
 
-  /// صرف اس وقت NoInternetScreen دکھائیں جب API call ہو اور internet نہ ہو
   static void _showNoInternetScreen() {
-    // اگر پہلے سے NoInternetScreen open ہے تو دوبارہ نہ کھولیں
     if (Get.currentRoute == '/no-internet') return;
     Get.to(
       () => const NoInternetScreen(),
@@ -47,11 +45,9 @@ class ApiService {
       if (useCache) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) {
-          // Cache ملا — silently serve کریں، screen نہ دکھائیں
           return http.Response(jsonEncode(cachedData), 200);
         }
       }
-      // Cache نہیں، internet نہیں — NoInternetScreen دکھائیں
       _showNoInternetScreen();
       return http.Response(
           '{"error": "Offline", "message": "Check your internet connection"}',

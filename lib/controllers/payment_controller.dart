@@ -9,7 +9,7 @@ import 'package:spendly/models/premium_feature.dart';
 import 'package:spendly/utils/utils.dart';
 
 class PaymentController extends GetxController {
-  late Razorpay _razorpay;
+  Razorpay? _razorpay;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   var isLoading = false.obs;
   var premiumAmount = 99.obs; // Default
@@ -26,13 +26,22 @@ class PaymentController extends GetxController {
     if (box.read("premiumExpiry") != null) {
       premiumExpiry.value = DateTime.parse(box.read("premiumExpiry"));
     }
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     fetchPremiumAmount();
     fetchPremiumFeatures();
     checkPremiumStatus();
+  }
+
+  void _initRazorpay() {
+    if (_razorpay == null) {
+      try {
+        _razorpay = Razorpay();
+        _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+        _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+        _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+      } catch (e) {
+        debugPrint('Error initializing Razorpay: $e');
+      }
+    }
   }
 
   Future<void> checkPremiumStatus() async {
@@ -137,6 +146,7 @@ class PaymentController extends GetxController {
   }
 
   void _openCheckout(Map<String, dynamic> orderData) {
+    _initRazorpay();
     var options = {
       'key': orderData['key'],
       'amount': orderData['amount'],
@@ -153,7 +163,12 @@ class PaymentController extends GetxController {
     };
 
     try {
-      _razorpay.open(options);
+      if (_razorpay != null) {
+        _razorpay!.open(options);
+      } else {
+        Utils.showSnackbar(
+            'Error', 'Payment gateway could not be initialized.');
+      }
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -214,7 +229,7 @@ class PaymentController extends GetxController {
 
   @override
   void onClose() {
-    _razorpay.clear();
+    _razorpay?.clear();
     super.onClose();
   }
 }

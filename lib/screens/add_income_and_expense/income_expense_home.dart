@@ -22,7 +22,14 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
 
   @override
   void initState() {
-    tabController = TabController(initialIndex: 0, length: 2, vsync: this);
+    int initialIdx = 0;
+    final args = Get.arguments;
+    if (args is Map && args['initialIndex'] != null) {
+      initialIdx = args['initialIndex'];
+    } else if (args is int) {
+      initialIdx = args;
+    }
+    tabController = TabController(initialIndex: initialIdx, length: 2, vsync: this);
     super.initState();
   }
 
