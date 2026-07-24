@@ -59,104 +59,153 @@ class BusinessHomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(BusinessHomeController());
+    final Color primaryColor = const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
+    final Color accentColor = const Color(0xFFF3EFFF); // Light Purple
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: Text("business_center_title".tr,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "business_center_title".tr,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              "Manage sales, billing & stocks",
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+          ],
+        ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         actions: [
           IconButton(
             onPressed: () => controller.fetchSummary(),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded, color: primaryColor),
           )
         ],
       ),
       body: SafeArea(
-          child: RefreshIndicator(
-        onRefresh: () => controller.fetchSummary(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context),
-              const SizedBox(height: 25),
-              _buildQuickActions(context),
-              const SizedBox(height: 30),
-              _buildAnalyticsSummary(context, controller),
-              const SizedBox(height: 30),
-              Text("management".tr,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodySmall?.color)),
-              const SizedBox(height: 15),
-              _buildModuleList(context),
-            ],
+        child: RefreshIndicator(
+          onRefresh: () => controller.fetchSummary(),
+          color: primaryColor,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Business Header Profile
+                _buildHeader(context, primaryColor),
+                const SizedBox(height: 20),
+
+                // 2. Quick Actions
+                Text(
+                  "Quick Operations",
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey.shade800),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickActions(context, primaryColor),
+                const SizedBox(height: 24),
+
+                // 3. Analytics Summary (Sales, Paid, Unpaid)
+                _buildAnalyticsSummary(context, controller, primaryColor),
+                const SizedBox(height: 24),
+
+                // 4. Management Dashboard Grid (Replacing boring list tiles)
+                Text(
+                  "management".tr,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey.shade800),
+                ),
+                const SizedBox(height: 10),
+                _buildModuleGrid(context, primaryColor),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, Color primaryColor) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [
-          Theme.of(context).primaryColor,
-          Theme.of(context).primaryColor.withOpacity(0.8),
-        ]),
-        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [primaryColor, primaryColor.withOpacity(0.85)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-              color: Theme.of(context).primaryColor.withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8))
+            color: primaryColor.withOpacity(0.2),
+            blurRadius: 15,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
+          )
         ],
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white24,
-            child: Icon(Icons.business_rounded, color: Colors.white, size: 30),
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 28),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("business_header_title".tr,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 5),
-                Text("business_header_subtitle".tr,
-                    style:
-                        const TextStyle(color: Colors.white70, fontSize: 13)),
+                Text(
+                  "business_header_title".tr,
+                  style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "business_header_subtitle".tr,
+                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+                ),
               ],
             ),
           ),
+          Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withOpacity(0.7), size: 14),
         ],
       ),
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, Color primaryColor) {
     return Row(
       children: [
-        _actionButton(context, Icons.receipt_long_rounded, "create_invoice".tr,
-            Colors.orange, () => _safeNavigate(RoutesName.createInvoice)),
-        const SizedBox(width: 15),
-        _actionButton(context, Icons.request_quote_rounded, "quotation".tr,
-            Colors.teal, () => _safeNavigate(RoutesName.createQuotation)),
+        _actionButton(
+          context,
+          icon: Icons.receipt_long_rounded,
+          label: "create_invoice".tr,
+          subtitle: "Create digital bills",
+          color: Colors.orange,
+          onTap: () => _safeNavigate(RoutesName.createInvoice),
+        ),
+        const SizedBox(width: 14),
+        _actionButton(
+          context,
+          icon: Icons.request_quote_rounded,
+          label: "quotation".tr,
+          subtitle: "Create estimate quotes",
+          color: Colors.teal,
+          onTap: () => _safeNavigate(RoutesName.createQuotation),
+        ),
       ],
     );
   }
@@ -177,36 +226,45 @@ class BusinessHomeView extends StatelessWidget {
     }
   }
 
-  Widget _actionButton(BuildContext context, IconData icon, String label,
-      Color color, VoidCallback onTap) {
+  Widget _actionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
             boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4))
+              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
             ],
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: color, size: 28),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 12),
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color)),
+              Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 14),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+              ),
             ],
           ),
         ),
@@ -214,8 +272,7 @@ class BusinessHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAnalyticsSummary(
-      BuildContext context, BusinessHomeController controller) {
+  Widget _buildAnalyticsSummary(BuildContext context, BusinessHomeController controller, Color primaryColor) {
     return Obx(() {
       final String monthYear = DateFormat('MMMM yyyy').format(DateTime.now());
 
@@ -223,13 +280,10 @@ class BusinessHomeView extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4))
+            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 5))
           ],
         ),
         child: Column(
@@ -238,42 +292,55 @@ class BusinessHomeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("monthly_revenue".tr,
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.titleLarge?.color)),
-                Text(monthYear,
-                    style: TextStyle(
-                        fontSize: 12, color: Theme.of(context).disabledColor)),
+                Text(
+                  "monthly_revenue".tr,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: primaryColor.withOpacity(0.06), borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    monthYear,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: primaryColor),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
             if (controller.isLoading.value)
-              const Center(
-                  child: Padding(
-                padding: EdgeInsets.all(10.0),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ))
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
+                ),
+              )
             else
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              Column(
                 children: [
-                  _statItem(
-                      "paid_label".tr,
-                      "₹${controller.paidAmount.value.toStringAsFixed(2)}",
-                      Colors.green,
-                      context),
-                  Container(
-                    width: 1,
-                    height: 30,
-                    color: Theme.of(context).dividerColor.withOpacity(0.2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Total Revenue", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      Text(
+                        "₹${controller.totalRevenue.value.toStringAsFixed(0)}",
+                        style: TextStyle(color: primaryColor, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  _statItem(
-                      "pending".tr,
-                      "₹${controller.pendingAmount.value.toStringAsFixed(2)}",
-                      Colors.redAccent,
-                      context),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _statItem("paid_label".tr, "₹${controller.paidAmount.value.toStringAsFixed(0)}", Colors.green),
+                      ),
+                      Container(width: 1, height: 36, color: Colors.grey.shade200),
+                      Expanded(
+                        child: _statItem("pending".tr, "₹${controller.pendingAmount.value.toStringAsFixed(0)}", Colors.redAccent),
+                      ),
+                    ],
+                  ),
                 ],
               ),
           ],
@@ -282,98 +349,120 @@ class BusinessHomeView extends StatelessWidget {
     });
   }
 
-  Widget _statItem(
-      String label, String value, Color color, BuildContext context) {
+  Widget _statItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value,
-            style: TextStyle(
-                color: color, fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(label,
-            style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-                fontSize: 12)),
-      ],
-    );
-  }
-
-  Widget _buildModuleList(BuildContext context) {
-    return Column(
-      children: [
-        _luxuryListTile(
-            context,
-            Icons.group_rounded,
-            "customers".tr,
-            "clients_ledgers".tr,
-            Colors.indigo,
-            () => _safeNavigate(RoutesName.customersList)),
-        _luxuryListTile(
-            context,
-            Icons.history_rounded,
-            "invoice_history".tr,
-            "past_transactions".tr,
-            Colors.deepPurple,
-            () => _safeNavigate(RoutesName.invoiceList)),
-        _luxuryListTile(
-            context,
-            Icons.request_quote_outlined,
-            "quotation_history".tr,
-            "view_past_quotes".tr,
-            Colors.teal,
-            () => _safeNavigate(RoutesName.quotationList)),
-        _luxuryListTile(
-            context,
-            Icons.settings_suggest_rounded,
-            "business_profile".tr,
-            "account_settings".tr,
-            Colors.blueGrey,
-            () => Get.toNamed(RoutesName.businessProfile)),
-        _luxuryListTile(
-            context,
-            Icons.inventory_2_rounded,
-            "Inventory Management",
-            "Products & Stock",
-            Colors.teal,
-            () => _safeNavigate(RoutesName.inventoryList)),
-      ],
-    );
-  }
-
-  Widget _luxuryListTile(BuildContext context, IconData icon, String title,
-      String subtitle, Color color, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 5,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 24),
+        Text(
+          value,
+          style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        title: Text(title,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyLarge?.color)),
-        subtitle: Text(subtitle,
-            style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-                fontSize: 12)),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded,
-            size: 16, color: Colors.grey),
-        onTap: onTap,
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModuleGrid(BuildContext context, Color primaryColor) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
+      childAspectRatio: 1.25,
+      children: [
+        _gridTile(
+          context,
+          icon: Icons.people_outline_rounded,
+          title: "customers".tr,
+          subtitle: "clients_ledgers".tr,
+          color: Colors.indigo,
+          onTap: () => _safeNavigate(RoutesName.customersList),
+        ),
+        _gridTile(
+          context,
+          icon: Icons.history_rounded,
+          title: "invoice_history".tr,
+          subtitle: "past_transactions".tr,
+          color: Colors.deepPurple,
+          onTap: () => _safeNavigate(RoutesName.invoiceList),
+        ),
+        _gridTile(
+          context,
+          icon: Icons.request_quote_outlined,
+          title: "quotation_history".tr,
+          subtitle: "view_past_quotes".tr,
+          color: Colors.teal,
+          onTap: () => _safeNavigate(RoutesName.quotationList),
+        ),
+        _gridTile(
+          context,
+          icon: Icons.inventory_2_outlined,
+          title: "Inventory",
+          subtitle: "Products & Stock",
+          color: Colors.blue,
+          onTap: () => _safeNavigate(RoutesName.inventoryList),
+        ),
+        _gridTile(
+          context,
+          icon: Icons.settings_suggest_rounded,
+          title: "business_profile".tr,
+          subtitle: "Profile settings",
+          color: Colors.blueGrey,
+          onTap: () => Get.toNamed(RoutesName.businessProfile),
+        ),
+      ],
+    );
+  }
+
+  Widget _gridTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10, offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 13),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+            ),
+          ],
+        ),
       ),
     );
   }

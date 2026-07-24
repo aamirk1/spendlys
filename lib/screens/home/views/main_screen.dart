@@ -228,33 +228,116 @@ class MainScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).textTheme.titleLarge?.color)),
         const SizedBox(height: 15),
-        Row(
-          children: [
-            _overviewCard(
-              context,
-              title: "business_center".tr,
-              subtitle: "invoices_subtitle".tr,
-              icon: Icons.storefront_rounded,
-              color: Colors.blue.shade600,
-              valueObx: () =>
-                  "₹${businessController.totalRevenue.value.toStringAsFixed(0)} / ₹${businessController.pendingAmount.value.toStringAsFixed(0)}",
-              onTap: () => Get.toNamed(RoutesName.businessHome),
-            ),
-            const SizedBox(width: 15),
-            _overviewCard(
-              context,
-              title: "loans".tr,
-              subtitle: "lent_borrowed".tr,
-              icon: Icons.menu_book_rounded,
-              color: Colors.orange.shade600,
-              valueObx: () =>
-                  "₹${loanController.totalLent.toStringAsFixed(0)} / ₹${loanController.totalBorrowed.toStringAsFixed(0)}",
-              onTap: () => Get.toNamed(RoutesName.addLendBorrowView,
-                  arguments: {'index': 0}),
-            ),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 175,
+                child: _overviewCard(
+                  context,
+                  title: "business_center".tr,
+                  subtitle: "invoices_subtitle".tr,
+                  icon: Icons.storefront_rounded,
+                  color: Colors.blue.shade600,
+                  valueObx: () =>
+                      "₹${businessController.totalRevenue.value.toStringAsFixed(0)} / ₹${businessController.pendingAmount.value.toStringAsFixed(0)}",
+                  onTap: () => Get.toNamed(RoutesName.businessHome),
+                ),
+              ),
+              const SizedBox(width: 15),
+              SizedBox(
+                width: 175,
+                child: _overviewCard(
+                  context,
+                  title: "loans".tr,
+                  subtitle: "lent_borrowed".tr,
+                  icon: Icons.menu_book_rounded,
+                  color: Colors.orange.shade600,
+                  valueObx: () =>
+                      "₹${loanController.totalLent.toStringAsFixed(0)} / ₹${loanController.totalBorrowed.toStringAsFixed(0)}",
+                  onTap: () => Get.toNamed(RoutesName.addLendBorrowView,
+                      arguments: {'index': 0}),
+                ),
+              ),
+              const SizedBox(width: 15),
+              SizedBox(
+                width: 175,
+                child: _overviewCardSimple(
+                  context,
+                  title: "Group Splits",
+                  subtitle: "Split bills & expenses",
+                  icon: CupertinoIcons.person_3_fill,
+                  color: Colors.purple.shade600,
+                  valueText: "Split Group Bills",
+                  onTap: () => Get.toNamed(RoutesName.groupSplitList),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _overviewCardSimple(BuildContext context,
+      {required String title,
+      required String subtitle,
+      required IconData icon,
+      required Color color,
+      required String valueText,
+      required VoidCallback onTap}) {
+    return RepaintBoundary(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x0A000000), // black ~4% opacity
+                  blurRadius: 10,
+                  offset: Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: color, size: 26),
+              ),
+              const SizedBox(height: 12),
+              Text(title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
+              const SizedBox(height: 4),
+              Text(subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+              const SizedBox(height: 8),
+              Text(valueText,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: color)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

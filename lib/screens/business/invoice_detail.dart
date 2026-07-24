@@ -41,100 +41,210 @@ class InvoiceDetailView extends StatelessWidget {
 
     final String dateFormatted = formatDate(inv['date']);
     final String dueDateFormatted = formatDate(inv['due_date']);
+    final Color primaryColor = const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: Text(inv['invoice_number'] ?? "Invoice Detail"),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              inv['invoice_number'] ?? "Invoice Detail",
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              "Invoice summary and details",
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+          ],
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () =>
-                Get.toNamed(RoutesName.editInvoice, arguments: inv),
+            icon: const Icon(Icons.edit_outlined, color: Colors.black87, size: 22),
+            onPressed: () => Get.toNamed(RoutesName.editInvoice, arguments: inv),
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.black87, size: 22),
             tooltip: "Print PDF",
             onPressed: () => _downloadPdf(inv),
           ),
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: const Icon(Icons.share_outlined, color: Colors.black87, size: 22),
             tooltip: "Share PDF",
             onPressed: () => _sharePdf(inv),
           ),
         ],
       ),
       body: SafeArea(
-          child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStatusHeader(inv),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Customer Info"),
-            _buildInfoCard([
-              _buildInfoRow(
-                  "Customer",
-                  inv['customer_name'] ??
-                      inv['customer']?['name'] ??
-                      inv['customer']?['full_name'] ??
-                      "N/A"),
-            ]),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Invoice Info"),
-            _buildInfoCard([
-              _buildInfoRow("Number", inv['invoice_number'] ?? "N/A"),
-              _buildInfoRow("Date", dateFormatted),
-              _buildInfoRow("Due Date", dueDateFormatted),
-              if (inv['payment_mode'] != null &&
-                  inv['payment_mode'].toString().isNotEmpty)
-                _buildInfoRow("Payment Mode", inv['payment_mode'].toString()),
-            ]),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Items"),
-            ...items.map((item) => _buildItemCard(item)),
-            const SizedBox(height: 20),
-            _buildSummaryCard(inv),
-            const SizedBox(height: 30),
-            if (inv['status'] != 'paid')
-              Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showPartialPaymentDialog(context, inv),
-                      icon: const Icon(Icons.add_card_rounded),
-                      label: const Text("RECORD PARTIAL PAYMENT"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                      ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // 1. Status Indicator Header
+              _buildStatusHeader(inv),
+              const SizedBox(height: 16),
+
+              // 2. Physical Document Sheet
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 8))
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Invoice Document Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("INVOICE", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black87, letterSpacing: 1.5)),
+                            const SizedBox(height: 4),
+                            Text(inv['invoice_number'] ?? "N/A", style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text("Date: $dateFormatted", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            const SizedBox(height: 2),
+                            Text("Due: $dueDateFormatted", style: TextStyle(color: Colors.red.shade400, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _markAsPaid(inv['id']),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text("MARK AS FULLY PAID"),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.green, width: 2),
-                        foregroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                      ),
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Bill To Details
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("BILL TO", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                              const SizedBox(height: 6),
+                              Text(
+                                inv['customer_name'] ??
+                                    inv['customer']?['name'] ??
+                                    inv['customer']?['full_name'] ??
+                                    "N/A",
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                              ),
+                              if (inv['customer']?['phone'] != null) ...[
+                                const SizedBox(height: 4),
+                                Text(inv['customer']?['phone'].toString() ?? "", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                              ],
+                            ],
+                          ),
+                        ),
+                        if (inv['payment_mode'] != null && inv['payment_mode'].toString().isNotEmpty)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text("PAYMENT MODE", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                const SizedBox(height: 6),
+                                Text(
+                                  inv['payment_mode'].toString().toUpperCase(),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+
+                    // Table items header
+                    Row(
+                      children: [
+                        Expanded(flex: 5, child: Text("ITEM DESCRIPTION", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 2, child: Text("QTY", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                        Expanded(flex: 2, child: Text("RATE", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 3, child: Text("AMOUNT", style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 8),
+
+                    // Table items body
+                    ...items.map((item) => _buildItemTableRow(item)),
+                    
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Summary details
+                    _buildSummaryCard(inv, primaryColor),
+                  ],
+                ),
               ),
-          ],
+              const SizedBox(height: 24),
+
+              // 3. Invoice Payment Actions
+              if (inv['status'] != 'paid')
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showPartialPaymentDialog(context, inv),
+                        icon: const Icon(Icons.add_card_rounded, color: Colors.white, size: 18),
+                        label: const Text("RECORD PARTIAL PAYMENT", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 2,
+                          shadowColor: primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _markAsPaid(inv['id']),
+                        icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 18),
+                        label: const Text("MARK AS FULLY PAID", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.green, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 
@@ -147,97 +257,127 @@ class InvoiceDetailView extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.15)),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: color),
-          const SizedBox(width: 12),
+          Icon(Icons.info_outline_rounded, color: color, size: 20),
+          const SizedBox(width: 10),
           Text(
             "Status: ${status.toUpperCase().replaceAll('_', ' ')}",
-            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildItemTableRow(Map<String, dynamic> item) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, left: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(List<Widget> children) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(children: children),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Expanded(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item['description'] ?? "No Description",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              item['quantity']?.toString() ?? "0",
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "₹${_formatPrice(item['unit_price'])}",
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              "₹${_formatPrice(item['amount'])}",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+              textAlign: TextAlign.right,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildItemCard(Map<String, dynamic> item) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(item['description'] ?? "No Description"),
-        subtitle: Text(
-            "Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
-        trailing: Text(
-          "\u20b9${_formatPrice(item['amount'])}",
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+  Widget _buildSummaryCard(Map<String, dynamic> inv, Color primaryColor) {
+    final double balance = (inv['total'] ?? 0.0).toDouble() - (inv['paid_amount'] ?? 0.0).toDouble();
+
+    return Column(
+      children: [
+        _buildSummaryRow("Subtotal", "₹${_formatPrice(inv['subtotal'])}"),
+        const SizedBox(height: 6),
+        _buildSummaryRow(
+            "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)",
+            "₹${_formatPrice(inv['tax'])}"),
+        const SizedBox(height: 6),
+        _buildSummaryRow("Paid Amount", "₹${_formatPrice(inv['paid_amount'])}"),
+        const SizedBox(height: 10),
+        const Divider(),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Grand Total",
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.black87),
+            ),
+            Text(
+              "₹${_formatPrice(inv['total'])}",
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: primaryColor),
+            ),
+          ],
         ),
-      ),
+        if (balance > 0) ...[
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Balance Due",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.redAccent),
+              ),
+              Text(
+                "₹${_formatPrice(balance)}",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.redAccent),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildSummaryCard(Map<String, dynamic> inv) {
-    return Card(
-      color: Colors.blueGrey.shade50,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildInfoRow("Subtotal", "\u20b9${_formatPrice(inv['subtotal'])}"),
-            _buildInfoRow(
-                "Tax (${inv['tax_percent']?.toInt() ?? ((inv['tax'] ?? 0.0) / (inv['subtotal'] ?? 1.0) * 100).toInt()}%)",
-                "\u20b9${_formatPrice(inv['tax'])}"),
-            _buildInfoRow(
-                "Paid Amount", "\u20b9${_formatPrice(inv['paid_amount'])}"),
-            const Divider(),
-            _buildInfoRow("Grand Total", "\u20b9${_formatPrice(inv['total'])}"),
-          ],
-        ),
-      ),
+  Widget _buildSummaryRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.black87)),
+      ],
     );
   }
 

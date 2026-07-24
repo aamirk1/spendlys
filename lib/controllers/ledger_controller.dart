@@ -15,7 +15,8 @@ class LedgerController extends GetxController {
   // Search and Filter
   final searchQuery = ''.obs;
   final dateRange = Rxn<DateTimeRange>();
-  final selectedQuickFilter = 'all'.obs; // 'all', '1m', '3m', '6m', '1y', 'custom'
+  final selectedQuickFilter =
+      'all'.obs; // 'all', '1m', '3m', '6m', '1y', 'custom'
 
   void applyQuickFilter(String filter) {
     selectedQuickFilter.value = filter;
@@ -65,17 +66,20 @@ class LedgerController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Ensure Business controllers are registered for reactivity
-    if (!Get.isRegistered<InvoiceListController>())
-      Get.put(InvoiceListController());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Ensure Business controllers are registered for reactivity
+      if (!Get.isRegistered<InvoiceListController>()) {
+        Get.put(InvoiceListController());
+      }
 
-    // Listen to changes in source lists to update the resolved business list in real-time
-    ever(Get.find<InvoiceListController>().invoices,
-        (_) => _updateBusinessInvoices());
-    ever(customers, (_) => _updateBusinessInvoices());
+      // Listen to changes in source lists to update the resolved business list in real-time
+      ever(Get.find<InvoiceListController>().invoices,
+          (_) => _updateBusinessInvoices());
+      ever(customers, (_) => _updateBusinessInvoices());
 
-    // Default fetch for loans since it's initial selected type
-    fetchData();
+      // Default fetch for loans since it's initial selected type
+      fetchData();
+    });
   }
 
   void _updateBusinessInvoices() {

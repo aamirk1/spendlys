@@ -11,6 +11,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/controllers/payment_controller.dart';
 import 'package:spendly/utils/business_export_helper.dart';
 import 'package:spendly/widgets/premium_dialogs.dart';
+import 'package:spendly/screens/business/inventory/add_product_screen.dart';
 
 class InventoryController extends GetxController {
   final products = [].obs;
@@ -23,6 +24,14 @@ class InventoryController extends GetxController {
   final priceController = TextEditingController();
   final qtyController = TextEditingController(text: "0");
   final unitController = TextEditingController(text: "pcs");
+  
+  // Custom mockup fields
+  final skuController = TextEditingController();
+  final barcodeController = TextEditingController();
+  final categoryController = TextEditingController();
+  final purchasePriceController = TextEditingController();
+  final taxController = TextEditingController();
+  final minStockController = TextEditingController();
 
   // Search and Filter
   final searchQuery = ''.obs;
@@ -99,12 +108,22 @@ class InventoryController extends GetxController {
     String? userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    Get.back(); // Close bottom sheet
+    Get.back(); // Close screen/sheet
     isLoading.value = true;
     try {
+      final extraData = {
+        "description": descController.text.trim(),
+        "sku": skuController.text.trim(),
+        "barcode": barcodeController.text.trim(),
+        "category": categoryController.text.trim(),
+        "purchase_price": double.tryParse(purchasePriceController.text.trim()) ?? 0.0,
+        "tax": taxController.text.trim(),
+        "min_stock": double.tryParse(minStockController.text.trim()) ?? 0.0,
+      };
+
       final payload = {
         "name": nameController.text.trim(),
-        "description": descController.text.trim(),
+        "description": jsonEncode(extraData),
         "price": double.tryParse(priceController.text.trim()) ?? 0.0,
         "stock_quantity": double.tryParse(qtyController.text.trim()) ?? 0.0,
         "unit": unitController.text.trim(),
@@ -194,14 +213,39 @@ class InventoryController extends GetxController {
     priceController.clear();
     qtyController.text = "0";
     unitController.text = "pcs";
+    skuController.clear();
+    barcodeController.clear();
+    categoryController.clear();
+    purchasePriceController.clear();
+    taxController.clear();
+    minStockController.clear();
   }
 
   void setForEdit(dynamic product) {
     nameController.text = product['name'] ?? "";
-    descController.text = product['description'] ?? "";
     priceController.text = (product['price'] ?? 0).toString();
     qtyController.text = (product['stock_quantity'] ?? 0).toString();
     unitController.text = product['unit'] ?? "pcs";
+
+    final rawDesc = product['description'] ?? "";
+    try {
+      final decoded = jsonDecode(rawDesc);
+      descController.text = decoded['description'] ?? "";
+      skuController.text = decoded['sku'] ?? "";
+      barcodeController.text = decoded['barcode'] ?? "";
+      categoryController.text = decoded['category'] ?? "";
+      purchasePriceController.text = (decoded['purchase_price'] ?? "").toString();
+      taxController.text = decoded['tax'] ?? "";
+      minStockController.text = (decoded['min_stock'] ?? "").toString();
+    } catch (_) {
+      descController.text = rawDesc;
+      skuController.clear();
+      barcodeController.clear();
+      categoryController.clear();
+      purchasePriceController.clear();
+      taxController.clear();
+      minStockController.clear();
+    }
   }
 }
 
@@ -244,7 +288,7 @@ class InventoryListView extends StatelessWidget {
       extendBodyBehindAppBar: true,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => _showProductSheet(context, controller),
+        onPressed: () => Get.to(() => const AddProductScreen()),
         backgroundColor: Colors.teal,
         icon: const Icon(Icons.add_shopping_cart_rounded, color: Colors.white),
         label: const Text("Add Product",
@@ -484,6 +528,17 @@ class InventoryListView extends StatelessWidget {
     );
   }
 
+  String _getProductDescription(dynamic prod) {
+    final String raw = prod['description'] ?? '';
+    if (raw.trim().startsWith('{') && raw.trim().endsWith('}')) {
+      try {
+        final decoded = jsonDecode(raw);
+        return decoded['description'] ?? '';
+      } catch (_) {}
+    }
+    return raw.isNotEmpty ? raw : 'No description';
+  }
+
   Widget _buildProductCard(
       BuildContext context, dynamic prod, InventoryController controller) {
     return Container(
@@ -525,7 +580,7 @@ class InventoryListView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  prod['description'] ?? 'No description',
+                  _getProductDescription(prod),
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -572,7 +627,7 @@ class InventoryListView extends StatelessWidget {
             onSelected: (val) {
               if (val == 'edit') {
                 controller.setForEdit(prod);
-                _showProductSheet(context, controller, productId: prod['id']);
+                Get.to(() => AddProductScreen(productId: prod['id']));
               } else if (val == 'delete') {
                 _confirmDelete(context, prod, controller);
               }
@@ -601,128 +656,4 @@ class InventoryListView extends StatelessWidget {
     ));
   }
 
-  void _showProductSheet(BuildContext context, InventoryController controller,
-      {String? productId}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: Form(
-            key: controller.formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(productId == null ? "Add New Product" : "Edit Product",
-                      style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal)),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: controller.nameController,
-                    validator: (v) =>
-                        Validators.requiredField(v, "Product Name"),
-                    decoration:
-                        _inputDeco("Product Name", Icons.shopping_bag_rounded),
-                  ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: controller.descController,
-                    maxLines: 2,
-                    decoration: _inputDeco(
-                        "Description (Optional)", Icons.description_rounded),
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: controller.priceController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+\.?\d*'))
-                          ],
-                          validator: (v) =>
-                              Validators.requiredField(v, "Price"),
-                          decoration: _inputDeco(
-                              "Sell Price (₹)", Icons.currency_rupee_rounded),
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: TextFormField(
-                          controller: controller.qtyController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+\.?\d*'))
-                          ],
-                          decoration: _inputDeco(
-                              "Initial Stock", Icons.inventory_rounded),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: controller.unitController,
-                    decoration: _inputDeco(
-                        "Unit (e.g. pcs, kg, box)", Icons.straighten_rounded),
-                  ),
-                  const SizedBox(height: 25),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          controller.saveProduct(productId: productId),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                      ),
-                      child: Text(
-                          productId == null ? "SAVE PRODUCT" : "UPDATE PRODUCT",
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16)),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDeco(String hint, IconData icon) {
-    return InputDecoration(
-      labelText: hint,
-      prefixIcon: Icon(icon, color: Colors.teal),
-      filled: true,
-      fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.teal, width: 2)),
-    );
-  }
 }
