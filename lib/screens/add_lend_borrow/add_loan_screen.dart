@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/utils.dart';
 import 'package:spendly/models/myuser.dart';
-import 'package:spendly/res/components/customAppBar.dart';
 import 'package:spendly/res/components/custom_button.dart';
 import '../../models/loan_modal.dart';
 import '../../controllers/loan_controller.dart';
@@ -41,6 +40,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   late DateTime date;
 
   bool get isEditMode => widget.loan != null;
+
+  static const Color themePrimary = Color(0xFF5F33E1);
 
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
@@ -95,6 +96,25 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     super.dispose();
   }
 
+  Widget _buildSectionCard({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.015),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100, width: 1),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: child,
+    );
+  }
+
   Widget _buildSleekInputField(
     TextEditingController controller,
     String label,
@@ -105,68 +125,66 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
     int maxLines = 1,
     Widget? suffixIcon,
   }) {
-    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       maxLines: maxLines,
-      style: TextStyle(
-        fontSize: 16,
-        color: theme.textTheme.bodyLarge?.color,
+      style: const TextStyle(
+        fontSize: 15,
+        color: Colors.black87,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: theme.textTheme.bodyLarge?.color?.withOpacity(0.6),
-          fontSize: 14,
+          color: Colors.grey.shade500,
+          fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
         hintText: hint,
         hintStyle: TextStyle(
-          color: theme.disabledColor.withOpacity(0.4),
-          fontSize: 15,
+          color: Colors.grey.shade400,
+          fontSize: 14,
         ),
-        prefixIcon: Icon(prefixIcon, color: AppColors.primary, size: 20),
+        prefixIcon: Icon(prefixIcon, color: themePrimary, size: 18),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: theme.scaffoldBackgroundColor.withOpacity(0.5),
+        fillColor: const Color(0xFFF8F9FD),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: theme.dividerColor.withOpacity(0.08)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: theme.dividerColor.withOpacity(0.08)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: themePrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
-        errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 12),
+        errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
       ),
     );
   }
 
   Widget buildSleekTypeSelector() {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.04)),
+        color: const Color(0xFFF8F9FD),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
@@ -175,13 +193,13 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               onTap: () => setState(() => type = 'borrowed'),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: type == 'borrowed'
-                      ? AppColors.orange.withOpacity(0.15)
+                      ? AppColors.orange.withOpacity(0.12)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -190,8 +208,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       Icons.arrow_downward_rounded,
                       color: type == 'borrowed'
                           ? AppColors.orange
-                          : theme.disabledColor,
-                      size: 18,
+                          : Colors.grey.shade400,
+                      size: 16,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -199,9 +217,9 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       style: TextStyle(
                         color: type == 'borrowed'
                             ? AppColors.orange
-                            : theme.disabledColor,
+                            : Colors.grey.shade600,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -214,13 +232,13 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               onTap: () => setState(() => type = 'lent'),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: type == 'lent'
-                      ? AppColors.green.withOpacity(0.15)
+                      ? AppColors.green.withOpacity(0.12)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -229,8 +247,8 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       Icons.arrow_upward_rounded,
                       color: type == 'lent'
                           ? AppColors.green
-                          : theme.disabledColor,
-                      size: 18,
+                          : Colors.grey.shade400,
+                      size: 16,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -238,9 +256,9 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       style: TextStyle(
                         color: type == 'lent'
                             ? AppColors.green
-                            : theme.disabledColor,
+                            : Colors.grey.shade600,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -256,13 +274,11 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   Widget buildPaymentModeSelector() {
     final List<Map<String, dynamic>> paymentModes = [
       {'name': 'Cash', 'icon': Icons.money_rounded},
+      {'name': 'UPI', 'icon': Icons.qr_code_scanner_rounded},
       {'name': 'Bank Transfer', 'icon': Icons.account_balance_rounded},
       {'name': 'Credit Card', 'icon': Icons.credit_card_rounded},
-      {'name': 'UPI', 'icon': Icons.qr_code_scanner_rounded},
       {'name': 'Other', 'icon': Icons.payment_rounded},
     ];
-
-    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,14 +288,14 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
           child: Text(
             "Payment Mode",
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+              color: Colors.grey.shade800,
             ),
           ),
         ),
         SizedBox(
-          height: 44,
+          height: 38,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: paymentModes.length,
@@ -287,42 +303,38 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               final mode = paymentModes[index];
               final isSelected = paymentMode == mode['name'];
               return Padding(
-                padding: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
                   label: Row(
                     children: [
                       Icon(
                         mode['icon'],
-                        color: isSelected ? Colors.white : AppColors.primary,
-                        size: 16,
+                        color: isSelected ? Colors.white : themePrimary,
+                        size: 15,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         mode['name'],
                         style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : theme.textTheme.bodyMedium?.color,
+                          color:
+                              isSelected ? Colors.white : Colors.grey.shade800,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                   selected: isSelected,
-                  selectedColor: AppColors.primary,
-                  backgroundColor:
-                      theme.scaffoldBackgroundColor.withOpacity(0.5),
+                  selectedColor: themePrimary,
+                  backgroundColor: const Color(0xFFF8F9FD),
                   shadowColor: Colors.transparent,
                   checkmarkColor: Colors.transparent,
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                      color: isSelected
-                          ? AppColors.primary
-                          : theme.dividerColor.withOpacity(0.08),
+                      color: isSelected ? themePrimary : Colors.grey.shade200,
                     ),
                   ),
                   onSelected: (selected) {
@@ -346,8 +358,6 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         ? DateFormat('dd MMM yyyy').format(expectedReturnDate!)
         : 'select_due_date'.tr;
 
-    final theme = Theme.of(context);
-
     DateTime getTargetDate(int days) {
       return DateTime.now().add(Duration(days: days));
     }
@@ -366,9 +376,9 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
           child: Text(
             "expected_return_date".tr,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+              color: Colors.grey.shade800,
             ),
           ),
         ),
@@ -377,27 +387,26 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
             Expanded(
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
                 decoration: BoxDecoration(
-                  color: theme.scaffoldBackgroundColor.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16),
-                  border:
-                      Border.all(color: theme.dividerColor.withOpacity(0.08)),
+                  color: const Color(0xFFF8F9FD),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.calendar_today_rounded,
-                        size: 18, color: AppColors.primary),
-                    const SizedBox(width: 12),
+                        size: 16, color: themePrimary),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         formattedDate,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: expectedReturnDate != null
-                              ? theme.textTheme.bodyLarge?.color
-                              : theme.disabledColor,
+                              ? Colors.black87
+                              : Colors.grey.shade400,
                         ),
                       ),
                     ),
@@ -405,23 +414,23 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             InkWell(
               onTap: () => selectCustomDate(context),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: themePrimary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.edit_calendar_rounded,
-                    color: AppColors.primary, size: 20),
+                    color: themePrimary, size: 18),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: quickDates.map((qd) {
             final targetDate = getTargetDate(qd['days'] as int);
@@ -431,31 +440,27 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 expectedReturnDate!.day == targetDate.day;
 
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: ChoiceChip(
                 label: Text(
                   qd['label'] as String,
                   style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : theme.textTheme.bodyMedium?.color,
+                    color: isSelected ? Colors.white : Colors.grey.shade800,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13,
+                    fontSize: 12,
                   ),
                 ),
                 selected: isSelected,
-                selectedColor: AppColors.primary,
-                backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.5),
+                selectedColor: themePrimary,
+                backgroundColor: const Color(0xFFF8F9FD),
                 shadowColor: Colors.transparent,
                 checkmarkColor: Colors.transparent,
                 showCheckmark: false,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   side: BorderSide(
-                    color: isSelected
-                        ? AppColors.primary
-                        : theme.dividerColor.withOpacity(0.08),
+                    color: isSelected ? themePrimary : Colors.grey.shade200,
                   ),
                 ),
                 onSelected: (selected) {
@@ -484,7 +489,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
+              primary: themePrimary,
               onPrimary: Colors.white,
               onSurface: Colors.black87,
             ),
@@ -500,13 +505,22 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppBar(
-        title: isEditMode ? 'edit_transaction'.tr : 'new_transaction'.tr,
-        backgroundColor: AppColors.primary,
+      backgroundColor: const Color(0xFFF8F9FD),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          isEditMode ? 'edit_transaction'.tr : 'new_transaction'.tr,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+        ),
+        centerTitle: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -517,258 +531,224 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Card 1: Amount & Type Selector (Clean Header Card)
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.04),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                    color: theme.cardColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          Text(
-                            "enter_transaction_amount".tr.toUpperCase(),
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.5),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
+                  // Card 1: Amount & Type Selector
+                  _buildSectionCard(
+                    child: Column(
+                      children: [
+                        Text(
+                          "enter_transaction_amount".tr.toUpperCase(),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "₹",
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "₹",
-                                style: TextStyle(
-                                  fontSize: 32,
+                            const SizedBox(width: 8),
+                            IntrinsicWidth(
+                              stepWidth: 10,
+                              child: TextFormField(
+                                controller: amountController,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                style: const TextStyle(
+                                  fontSize: 48,
                                   fontWeight: FontWeight.bold,
-                                  color: theme.textTheme.bodyLarge?.color,
+                                  color: Colors.black87,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              IntrinsicWidth(
-                                stepWidth: 10,
-                                child: TextFormField(
-                                  controller: amountController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                          decimal: true),
-                                  style: TextStyle(
-                                    fontSize: 44,
+                                cursorColor: themePrimary,
+                                decoration: InputDecoration(
+                                  hintText: "0",
+                                  hintStyle: TextStyle(
+                                    fontSize: 48,
                                     fontWeight: FontWeight.bold,
-                                    color: theme.textTheme.bodyLarge?.color,
+                                    color: Colors.grey.shade300,
                                   ),
-                                  cursorColor: AppColors.primary,
-                                  decoration: InputDecoration(
-                                    hintText: "0",
-                                    hintStyle: TextStyle(
-                                      fontSize: 44,
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          theme.disabledColor.withOpacity(0.3),
-                                    ),
-                                    border: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'amount_required'.tr;
-                                    }
-                                    if (double.tryParse(value) == null) {
-                                      return 'invalid_amount'.tr;
-                                    }
-                                    return null;
-                                  },
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'amount_required'.tr;
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'invalid_amount'.tr;
+                                  }
+                                  return null;
+                                },
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          buildSleekTypeSelector(),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        buildSleekTypeSelector(),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
                   // Card 2: Partner Details
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.04),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                    color: theme.cardColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.person_pin_rounded,
-                                    color: AppColors.primary, size: 20),
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: themePrimary.withOpacity(0.08),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Partner Details",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.textTheme.titleMedium?.color,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          _buildSleekInputField(
-                            personController,
-                            'contact_name'.tr,
-                            'deal_with_hint'.tr,
-                            Icons.person_rounded,
-                            TextInputType.text,
-                            (value) => (value == null || value.isEmpty)
-                                ? 'name_required'.tr
-                                : null,
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.contacts_rounded,
-                                  color: AppColors.primary),
-                              onPressed: _pickContact,
+                              child: const Icon(Icons.person_pin_rounded,
+                                  color: themePrimary, size: 16),
                             ),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Partner Details",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildSleekInputField(
+                          personController,
+                          'contact_name'.tr,
+                          'deal_with_hint'.tr,
+                          Icons.person_rounded,
+                          TextInputType.text,
+                          (value) => (value == null || value.isEmpty)
+                              ? 'name_required'.tr
+                              : null,
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.contacts_rounded,
+                                color: themePrimary),
+                            onPressed: _pickContact,
                           ),
-                          const SizedBox(height: 16),
-                          _buildSleekInputField(
-                            phoneController,
-                            'phone'.tr,
-                            'person_phone_hint'.tr,
-                            Icons.phone_iphone_rounded,
-                            TextInputType.phone,
-                            (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'amount_required'.tr;
-                              }
-                              if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-                                return 'Enter a valid 10-digit phone number';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSleekInputField(
+                          phoneController,
+                          'phone'.tr,
+                          'person_phone_hint'.tr,
+                          Icons.phone_iphone_rounded,
+                          TextInputType.phone,
+                          (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'amount_required'.tr;
+                            }
+                            if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                              return 'Enter a valid 10-digit phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
                   // Card 3: Transaction Details
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.04),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                    color: theme.cardColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.payment_rounded,
-                                    color: AppColors.primary, size: 20),
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: themePrimary.withOpacity(0.08),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Transaction Details",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.textTheme.titleMedium?.color,
-                                ),
+                              child: const Icon(Icons.payment_rounded,
+                                  color: themePrimary, size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Transaction Details",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          buildPaymentModeSelector(),
-                          const SizedBox(height: 20),
-                          const Divider(height: 1),
-                          const SizedBox(height: 20),
-                          buildDatePickerCard(context),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        buildPaymentModeSelector(),
+                        const SizedBox(height: 20),
+                        const Divider(height: 1),
+                        const SizedBox(height: 20),
+                        buildDatePickerCard(context),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
                   // Card 4: Notes / Reason
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.04),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                    color: theme.cardColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.description_rounded,
-                                    color: AppColors.primary, size: 20),
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: themePrimary.withOpacity(0.08),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Note / Memo",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.textTheme.titleMedium?.color,
-                                ),
+                              child: const Icon(Icons.description_rounded,
+                                  color: themePrimary, size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Note / Memo",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          _buildSleekInputField(
-                            reasonController,
-                            'note_memo'.tr,
-                            'reason_hint'.tr,
-                            Icons.edit_note_rounded,
-                            TextInputType.multiline,
-                            (value) {
-                              if (value != null && value.length > 100) {
-                                return 'Note is too long (max 100 chars)';
-                              }
-                              return null;
-                            },
-                            maxLines: 2,
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildSleekInputField(
+                          reasonController,
+                          'note_memo'.tr,
+                          'reason_hint'.tr,
+                          Icons.edit_note_rounded,
+                          TextInputType.multiline,
+                          (value) {
+                            if (value != null && value.length > 100) {
+                              return 'Note is too long (max 100 chars)';
+                            }
+                            return null;
+                          },
+                          maxLines: 2,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 28),
@@ -778,10 +758,10 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                         text:
                             isEditMode ? 'update_record'.tr : 'save_record'.tr,
                         isLoading: widget.controller.isLoading.value,
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
-                            AppColors.primary,
-                            AppColors.secondary,
+                            themePrimary,
+                            Color(0xFF8C66FF),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -824,9 +804,9 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                             }
                           }
                         },
-                        borderRadius: 18,
+                        borderRadius: 14,
                       )),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // Recent Entries Section
                   buildRecentEntries(),
@@ -841,8 +821,6 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
   }
 
   Widget buildRecentEntries() {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -851,10 +829,10 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
           children: [
             Text(
               'recent_transactions'.tr,
-              style: TextStyle(
-                fontSize: 18,
+              style: const TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.titleLarge?.color,
+                color: Colors.black87,
               ),
             ),
             Obx(() => widget.controller.loans.length > 5
@@ -864,11 +842,11 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                       'myUser': widget.myUser,
                       'index': type == 'lent' ? 0 : 1,
                     }),
-                    child: Text(
-                      'view_all'.tr,
+                    child: const Text(
+                      'view_all',
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.indigo.shade600,
+                        fontSize: 12,
+                        color: themePrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -876,7 +854,7 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 : const SizedBox.shrink()),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Obx(() {
           final recentLoans = widget.controller.loans.take(5).toList();
 
@@ -887,12 +865,12 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 child: Column(
                   children: [
                     Icon(Icons.receipt_long_rounded,
-                        size: 50, color: theme.disabledColor.withOpacity(0.2)),
+                        size: 44, color: Colors.grey.shade300),
                     const SizedBox(height: 12),
                     Text(
                       "no_loan_records".tr,
                       style:
-                          TextStyle(color: theme.disabledColor, fontSize: 14),
+                          TextStyle(color: Colors.grey.shade400, fontSize: 13),
                     ),
                   ],
                 ),
@@ -907,15 +885,16 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
               final icon = isLent ? Icons.arrow_upward : Icons.arrow_downward;
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade100),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
+                      color: Colors.black.withOpacity(0.01),
+                      blurRadius: 8,
                       offset: const Offset(0, 4),
                     )
                   ],
@@ -923,49 +902,49 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
+                        color: color.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(icon, color: color, size: 20),
+                      child: Icon(icon, color: color, size: 16),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             loan.personName,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: theme.textTheme.bodyLarge?.color,
+                              fontSize: 14,
+                              color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Row(
                             children: [
                               Text(
                                 DateFormat('dd MMM yyyy').format(loan.date),
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w500,
-                                  color: theme.textTheme.bodySmall?.color,
+                                  color: Colors.grey.shade500,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: color.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
+                                  color: color.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   isLent ? "Lent" : "Borrowed",
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                     color: color,
                                   ),
@@ -983,16 +962,16 @@ class _AddLoanScreenState extends State<AddLoanScreen> {
                           "₹${loan.amount.toStringAsFixed(0)}",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 16,
                             color: color,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           loan.paymentMode ?? 'N/A',
                           style: TextStyle(
-                            fontSize: 10,
-                            color: theme.disabledColor,
+                            fontSize: 9,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                       ],

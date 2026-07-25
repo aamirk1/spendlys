@@ -26,9 +26,11 @@ class PaymentController extends GetxController {
     if (box.read("premiumExpiry") != null) {
       premiumExpiry.value = DateTime.parse(box.read("premiumExpiry"));
     }
-    fetchPremiumAmount();
-    fetchPremiumFeatures();
-    checkPremiumStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchPremiumAmount();
+      fetchPremiumFeatures();
+      checkPremiumStatus();
+    });
   }
 
   void _initRazorpay() {

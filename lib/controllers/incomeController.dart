@@ -165,6 +165,7 @@ class IncomeController extends GetxController {
         'amount': amount,
         'date': date,
         'status': item['status'] ?? 'synced',
+        'payment_mode': item['payment_mode'] ?? 'Cash',
       });
     }
 

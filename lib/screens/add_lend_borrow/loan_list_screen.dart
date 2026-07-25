@@ -39,7 +39,8 @@ class _LoansScreenState extends State<LoansScreen>
       initialIndex = Get.arguments['index'];
     }
     // We map: 0 -> All, 1 -> You Lent, 2 -> You Borrowed
-    _tabController = TabController(length: 3, vsync: this, initialIndex: initialIndex.clamp(0, 2));
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: initialIndex.clamp(0, 2));
   }
 
   @override
@@ -57,7 +58,8 @@ class _LoansScreenState extends State<LoansScreen>
     final filtered = allSubList.where((loan) {
       if (query.isEmpty) return true;
       final nameMatch = loan.personName.toLowerCase().contains(query);
-      final phoneMatch = loan.personPhone?.toLowerCase().contains(query) ?? false;
+      final phoneMatch =
+          loan.personPhone?.toLowerCase().contains(query) ?? false;
       return nameMatch || phoneMatch;
     }).toList();
 
@@ -72,7 +74,8 @@ class _LoansScreenState extends State<LoansScreen>
       filtered.sort((a, b) => a.amount.compareTo(b.amount));
     } else if (sortBy.value == "Due Date") {
       filtered.sort((a, b) {
-        if (a.expectedReturnDate == null && b.expectedReturnDate == null) return 0;
+        if (a.expectedReturnDate == null && b.expectedReturnDate == null)
+          return 0;
         if (a.expectedReturnDate == null) return 1;
         if (b.expectedReturnDate == null) return -1;
         return a.expectedReturnDate!.compareTo(b.expectedReturnDate!);
@@ -90,7 +93,8 @@ class _LoansScreenState extends State<LoansScreen>
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Get.back();
@@ -104,7 +108,10 @@ class _LoansScreenState extends State<LoansScreen>
           children: [
             const Text(
               "Lent / Borrowed",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
             ),
             const SizedBox(height: 2),
             Text(
@@ -117,7 +124,8 @@ class _LoansScreenState extends State<LoansScreen>
         actions: [
           IconButton(
             onPressed: () => controller.fetchLoans(forceRefresh: true),
-            icon: const Icon(Icons.refresh_rounded, color: Colors.black87, size: 20),
+            icon: const Icon(Icons.refresh_rounded,
+                color: Colors.black87, size: 20),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -128,7 +136,8 @@ class _LoansScreenState extends State<LoansScreen>
                       controller: controller,
                     )),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF5F33E1),
                     borderRadius: BorderRadius.circular(20),
@@ -188,16 +197,54 @@ class _LoansScreenState extends State<LoansScreen>
         final today = DateTime(now.year, now.month, now.day);
 
         // Unique people counts
-        final lentPeople = controller.lent.map((e) => e.personName.trim().toLowerCase()).toSet().length;
-        final borrowedPeople = controller.borrowed.map((e) => e.personName.trim().toLowerCase()).toSet().length;
+        final lentPeople = controller.lent
+            .map((e) => e.personName.trim().toLowerCase())
+            .toSet()
+            .length;
+        final borrowedPeople = controller.borrowed
+            .map((e) => e.personName.trim().toLowerCase())
+            .toSet()
+            .length;
 
         // Lent Overdue / Due Today
-        final lentOverdue = controller.lent.where((loan) => loan.status.value != 'paid' && loan.expectedReturnDate != null && loan.expectedReturnDate!.isBefore(today)).fold(0.0, (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
-        final lentDueToday = controller.lent.where((loan) => loan.status.value != 'paid' && loan.expectedReturnDate != null && DateTime(loan.expectedReturnDate!.year, loan.expectedReturnDate!.month, loan.expectedReturnDate!.day).isAtSameMomentAs(today)).fold(0.0, (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
+        final lentOverdue = controller.lent
+            .where((loan) =>
+                loan.status.value != 'paid' &&
+                loan.expectedReturnDate != null &&
+                loan.expectedReturnDate!.isBefore(today))
+            .fold(0.0,
+                (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
+        final lentDueToday = controller.lent
+            .where((loan) =>
+                loan.status.value != 'paid' &&
+                loan.expectedReturnDate != null &&
+                DateTime(
+                        loan.expectedReturnDate!.year,
+                        loan.expectedReturnDate!.month,
+                        loan.expectedReturnDate!.day)
+                    .isAtSameMomentAs(today))
+            .fold(0.0,
+                (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
 
         // Borrowed Overdue / Due Today
-        final borrowedOverdue = controller.borrowed.where((loan) => loan.status.value != 'paid' && loan.expectedReturnDate != null && loan.expectedReturnDate!.isBefore(today)).fold(0.0, (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
-        final borrowedDueToday = controller.borrowed.where((loan) => loan.status.value != 'paid' && loan.expectedReturnDate != null && DateTime(loan.expectedReturnDate!.year, loan.expectedReturnDate!.month, loan.expectedReturnDate!.day).isAtSameMomentAs(today)).fold(0.0, (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
+        final borrowedOverdue = controller.borrowed
+            .where((loan) =>
+                loan.status.value != 'paid' &&
+                loan.expectedReturnDate != null &&
+                loan.expectedReturnDate!.isBefore(today))
+            .fold(0.0,
+                (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
+        final borrowedDueToday = controller.borrowed
+            .where((loan) =>
+                loan.status.value != 'paid' &&
+                loan.expectedReturnDate != null &&
+                DateTime(
+                        loan.expectedReturnDate!.year,
+                        loan.expectedReturnDate!.month,
+                        loan.expectedReturnDate!.day)
+                    .isAtSameMomentAs(today))
+            .fold(0.0,
+                (sum, loan) => sum + (loan.amount - loan.paidAmount.value));
 
         return Row(
           children: [
@@ -316,7 +363,8 @@ class _LoansScreenState extends State<LoansScreen>
                   children: [
                     Text(
                       "Overdue",
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 9),
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 9),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -336,7 +384,8 @@ class _LoansScreenState extends State<LoansScreen>
                   children: [
                     Text(
                       "Due Today",
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 9),
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 9),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -383,8 +432,10 @@ class _LoansScreenState extends State<LoansScreen>
           ),
           labelColor: primaryColor,
           unselectedLabelColor: Colors.grey.shade500,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+          labelStyle:
+              const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          unselectedLabelStyle:
+              const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           dividerColor: Colors.transparent,
           indicatorSize: TabBarIndicatorSize.tab,
           tabs: const [
@@ -423,8 +474,10 @@ class _LoansScreenState extends State<LoansScreen>
                 style: const TextStyle(fontSize: 13),
                 decoration: InputDecoration(
                   hintText: "Search by name or phone",
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 18),
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Colors.grey.shade400, size: 18),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
@@ -451,7 +504,8 @@ class _LoansScreenState extends State<LoansScreen>
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: sortBy.value,
-                  icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.indigo.shade400, size: 18),
+                  icon: Icon(Icons.keyboard_arrow_down_rounded,
+                      color: Colors.indigo.shade400, size: 18),
                   alignment: Alignment.centerRight,
                   style: TextStyle(
                     color: Colors.indigo.shade700,
@@ -564,7 +618,8 @@ class _LoansScreenState extends State<LoansScreen>
     });
   }
 
-  Widget _buildSectionHeader({required String title, required VoidCallback onViewAll}) {
+  Widget _buildSectionHeader(
+      {required String title, required VoidCallback onViewAll}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -607,7 +662,8 @@ class _LoansScreenState extends State<LoansScreen>
   }
 
   Widget _buildSeeAllBanner({required bool isLent, required int count}) {
-    final Color themeColor = isLent ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
+    final Color themeColor =
+        isLent ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
     return PressableScale(
       onTap: () {
         _tabController.animateTo(isLent ? 1 : 2);
@@ -626,13 +682,17 @@ class _LoansScreenState extends State<LoansScreen>
             Row(
               children: [
                 Icon(
-                  isLent ? Icons.savings_outlined : Icons.account_balance_wallet_outlined,
+                  isLent
+                      ? Icons.savings_outlined
+                      : Icons.account_balance_wallet_outlined,
                   color: themeColor,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  isLent ? "See all lent ($count)" : "See all borrowed ($count)",
+                  isLent
+                      ? "See all lent ($count)"
+                      : "See all borrowed ($count)",
                   style: TextStyle(
                     color: themeColor,
                     fontWeight: FontWeight.bold,
@@ -653,13 +713,15 @@ class _LoansScreenState extends State<LoansScreen>
   }
 
   Widget _buildLoanCard(Loan loan) {
-    final themeColor = loan.type == 'lent' ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
+    final themeColor =
+        loan.type == 'lent' ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
 
     return Obx(() {
       final name = loan.personName;
 
       return PressableScale(
-        onTap: () => Get.to(() => LoanDetailScreen(loan: loan, controller: controller)),
+        onTap: () =>
+            Get.to(() => LoanDetailScreen(loan: loan, controller: controller)),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
@@ -746,7 +808,8 @@ class _LoansScreenState extends State<LoansScreen>
   Widget _buildCardSubtitle(Loan loan) {
     final isPaid = loan.status.value == 'paid';
     final remaining = loan.amount - loan.paidAmount.value;
-    final themeColor = loan.type == 'lent' ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
+    final themeColor =
+        loan.type == 'lent' ? const Color(0xFF2E7D32) : const Color(0xFF5F33E1);
 
     String dueText = "";
     Color dueColor = Colors.grey.shade500;
@@ -757,11 +820,13 @@ class _LoansScreenState extends State<LoansScreen>
     } else if (loan.expectedReturnDate != null) {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final returnDate = DateTime(loan.expectedReturnDate!.year, loan.expectedReturnDate!.month, loan.expectedReturnDate!.day);
+      final returnDate = DateTime(loan.expectedReturnDate!.year,
+          loan.expectedReturnDate!.month, loan.expectedReturnDate!.day);
       final difference = returnDate.difference(today).inDays;
 
       if (difference < 0) {
-        dueText = "Overdue by ${difference.abs()} ${difference.abs() == 1 ? 'day' : 'days'}";
+        dueText =
+            "Overdue by ${difference.abs()} ${difference.abs() == 1 ? 'day' : 'days'}";
         dueColor = Colors.red;
       } else if (difference == 0) {
         dueText = "Due today";
@@ -880,7 +945,9 @@ class _LoansScreenState extends State<LoansScreen>
   void _showWhatsAppRemindersBottomSheet() {
     final Map<String, Loan> receivableContacts = {};
     for (var loan in controller.lent) {
-      if (loan.status.value != 'paid' && loan.personPhone != null && loan.personPhone!.isNotEmpty) {
+      if (loan.status.value != 'paid' &&
+          loan.personPhone != null &&
+          loan.personPhone!.isNotEmpty) {
         final key = loan.personName.trim().toLowerCase();
         if (!receivableContacts.containsKey(key)) {
           receivableContacts[key] = loan;
@@ -931,12 +998,14 @@ class _LoansScreenState extends State<LoansScreen>
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.people_outline_rounded, size: 48, color: Colors.grey.shade300),
+                      Icon(Icons.people_outline_rounded,
+                          size: 48, color: Colors.grey.shade300),
                       const SizedBox(height: 8),
                       Text(
                         "No contacts with pending lent loans and phone numbers found.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12),
                       ),
                     ],
                   ),
@@ -945,6 +1014,8 @@ class _LoansScreenState extends State<LoansScreen>
             else
               Flexible(
                 child: Obx(() {
+                  // Access selectedLoans.length to register the RxList dependency with Obx
+                  final _ = selectedLoans.length;
                   return ListView.builder(
                     shrinkWrap: true,
                     itemCount: contactsList.length,
@@ -964,11 +1035,13 @@ class _LoansScreenState extends State<LoansScreen>
                         },
                         title: Text(
                           loan.personName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         subtitle: Text(
                           "Pending: ₹${NumberFormat('#,##,###').format(remaining)} • ${loan.personPhone}",
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                          style: TextStyle(
+                              color: Colors.grey.shade500, fontSize: 11),
                         ),
                         activeColor: const Color(0xFF5F33E1),
                         checkboxShape: RoundedRectangleBorder(
@@ -985,46 +1058,54 @@ class _LoansScreenState extends State<LoansScreen>
               return SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: isEnabled ? () async {
-                    Get.back(); // Close bottom sheet
+                  onPressed: isEnabled
+                      ? () async {
+                          Get.back(); // Close bottom sheet
 
-                    // Show a loading dialog
-                    Get.dialog(
-                      const Center(child: CupertinoActivityIndicator(radius: 16)),
-                      barrierDismissible: false,
-                    );
+                          // Show a loading dialog
+                          Get.dialog(
+                            const Center(
+                                child: CupertinoActivityIndicator(radius: 16)),
+                            barrierDismissible: false,
+                          );
 
-                    int successCount = 0;
-                    for (var target in selectedLoans) {
-                      final remaining = target.amount - target.paidAmount.value;
-                      final dueDateStr = target.expectedReturnDate != null
-                          ? DateFormat('dd-MM-yyyy').format(target.expectedReturnDate!)
-                          : 'N/A';
+                          int successCount = 0;
+                          for (var target in selectedLoans) {
+                            final remaining =
+                                target.amount - target.paidAmount.value;
+                            final dueDateStr = target.expectedReturnDate != null
+                                ? DateFormat('dd-MM-yyyy')
+                                    .format(target.expectedReturnDate!)
+                                : 'N/A';
 
-                      try {
-                        await WhatsAppService.sendLoanNotification(
-                          phone: target.personPhone!,
-                          lenderName: widget.myUser.name.isNotEmpty ? widget.myUser.name : 'Spendly User',
-                          borrowerName: target.personName,
-                          amount: remaining,
-                          dueDate: dueDateStr,
-                          type: 'lent',
-                        );
-                        successCount++;
-                      } catch (_) {}
-                    }
+                            try {
+                              await WhatsAppService.sendLoanNotification(
+                                phone: target.personPhone!,
+                                lenderName: widget.myUser.name.isNotEmpty
+                                    ? widget.myUser.name
+                                    : 'Spendly User',
+                                borrowerName: target.personName,
+                                amount: remaining,
+                                dueDate: dueDateStr,
+                                type: 'lent',
+                              );
+                              successCount++;
+                            } catch (_) {}
+                          }
 
-                    Get.back(); // Close loading dialog
+                          Get.back(); // Close loading dialog
 
-                    Get.snackbar(
-                      "Reminders Sent",
-                      "Successfully sent reminders to $successCount contact(s) via WhatsApp.",
-                      backgroundColor: Colors.green.shade50,
-                      colorText: Colors.green.shade800,
-                      icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.green),
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  } : null,
+                          Get.snackbar(
+                            "Reminders Sent",
+                            "Successfully sent reminders to $successCount contact(s) via WhatsApp.",
+                            backgroundColor: Colors.green.shade50,
+                            colorText: Colors.green.shade800,
+                            icon: const Icon(Icons.check_circle_outline_rounded,
+                                color: Colors.green),
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5F33E1),
                     disabledBackgroundColor: Colors.grey.shade300,

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:spendly/controllers/payment_controller.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:spendly/screens/home/widgets/radial_menu.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,124 +158,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showActionSheet(BuildContext context) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).dividerColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Text(
-              'choose_action'.tr,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: _actionButton(
-                    context: context,
-                    icon: CupertinoIcons.arrow_up_down_circle_fill,
-                    label: 'income_expense'.tr,
-                    color: Colors.indigo,
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed(RoutesName.incomeExpenseHome,
-                          arguments: myUser);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _actionButton(
-                    context: context,
-                    icon: Icons.currency_rupee,
-                    label: 'lent_borrowed'.tr,
-                    color: Colors.indigo,
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed(RoutesName.addLoanScreen, arguments: myUser);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _actionButton(
-                    context: context,
-                    icon: CupertinoIcons.person_3_fill,
-                    label: 'Group Splits',
-                    color: Colors.indigo,
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed(RoutesName.groupSplitList);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
-      elevation: 0,
-    );
-  }
-
-  Widget _actionButton({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Dismiss",
+      barrierColor: Colors.transparent, // Handled by overlay blur animation
+      transitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (context, anim1, anim2) {
+        return RadialMenuOverlay(myUser: myUser);
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return FadeTransition(
+          opacity: anim1,
+          child: child,
+        );
+      },
     );
   }
 }

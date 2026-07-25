@@ -10,6 +10,9 @@ import 'package:spendly/controllers/group_split_controller.dart';
 import 'package:spendly/models/group_split_model.dart';
 import 'package:spendly/services/whatsapp_service.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/screens/group_split/widgets/detail_header_card.dart';
+import 'package:spendly/screens/group_split/widgets/detail_stats_card.dart';
+import 'package:spendly/screens/group_split/widgets/member_contribution_tile.dart';
 
 class GroupSplitDetailScreen extends StatefulWidget {
   final GroupSplit split;
@@ -255,25 +258,44 @@ class _GroupSplitDetailScreenState extends State<GroupSplitDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeaderCard(theme, formattedDate),
+                      DetailHeaderCard(
+                        title: widget.split.title,
+                        formattedDate: formattedDate,
+                        splitType: widget.split.splitType,
+                      ),
                       const SizedBox(height: 16),
-                      _buildStatsCard(theme, collected, remaining, progress,
-                          isCompleted, paidCount),
+                      DetailStatsCard(
+                        totalAmount: widget.split.totalAmount,
+                        collected: collected,
+                        remaining: remaining,
+                        progress: progress,
+                        isCompleted: isCompleted,
+                        paidCount: paidCount,
+                        totalMembers: widget.split.members.length,
+                      ),
                       const SizedBox(height: 20),
-                      Text(
-                        'Contributions list',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Text(
+                          'Contributions list',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.textTheme.titleMedium?.color ?? AppColors.textPrimary,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: widget.split.members.length,
                         itemBuilder: (context, index) {
                           final member = widget.split.members[index];
-                          return _buildMemberTile(theme, member);
+                          return MemberContributionTile(
+                            member: member,
+                            onTogglePaid: () => _togglePaid(member),
+                            onNotify: () => _showNotificationOptions(member),
+                          );
                         },
                       ),
                     ],
@@ -285,243 +307,5 @@ class _GroupSplitDetailScreenState extends State<GroupSplitDetailScreen> {
         }),
       ),
     );
-  }
-
-  Widget _buildHeaderCard(ThemeData theme, String formattedDate) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child:
-                  Icon(Icons.receipt_long, color: AppColors.primary, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.split.title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Bill Date: $formattedDate',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.disabledColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Split Type: ${widget.split.splitType.capitalizeFirst}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.disabledColor,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(
-    ThemeData theme,
-    double collected,
-    double remaining,
-    double progress,
-    bool isCompleted,
-    int paidCount,
-  ) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildStatColumn(
-                  theme,
-                  'Total bill',
-                  '₹${widget.split.totalAmount.toStringAsFixed(0)}',
-                  Colors.black87,
-                ),
-                _buildStatColumn(
-                  theme,
-                  'Collected',
-                  '₹${collected.toStringAsFixed(0)}',
-                  isCompleted ? Colors.green : Colors.blue,
-                ),
-                _buildStatColumn(
-                  theme,
-                  'Remaining',
-                  '₹${remaining.toStringAsFixed(0)}',
-                  isCompleted ? Colors.green : Colors.orange,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-                backgroundColor: theme.dividerColor.withOpacity(0.1),
-                color: isCompleted ? Colors.green : AppColors.primary,
-                minHeight: 8,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${(progress * 100).toStringAsFixed(0)}% Collected',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                Text(
-                  '$paidCount of ${widget.split.members.length} paid',
-                  style: TextStyle(
-                    color: theme.disabledColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatColumn(
-      ThemeData theme, String label, String value, Color valueColor) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.disabledColor,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: valueColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMemberTile(ThemeData theme, Member member) {
-    return Obx(() {
-      final isPaid = member.isPaid.value;
-
-      return Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Checkbox(
-                value: isPaid,
-                activeColor: Colors.green,
-                onChanged: (_) => _togglePaid(member),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      member.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        decoration: isPaid ? TextDecoration.lineThrough : null,
-                        color: isPaid ? theme.disabledColor : null,
-                      ),
-                    ),
-                    if (member.phone != null && member.phone!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        member.phone!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.disabledColor,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '₹${member.shareAmount.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      decoration: isPaid ? TextDecoration.lineThrough : null,
-                      color: isPaid ? theme.disabledColor : null,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: isPaid
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      isPaid ? 'Paid' : 'Unpaid',
-                      style: TextStyle(
-                        color: isPaid ? Colors.green : Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (!isPaid) ...[
-                const SizedBox(width: 12),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(Icons.notifications_active_outlined,
-                      color: Colors.orangeAccent),
-                  onPressed: () => _showNotificationOptions(member),
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
-    });
   }
 }

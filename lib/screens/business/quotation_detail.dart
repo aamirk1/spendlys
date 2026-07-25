@@ -42,203 +42,415 @@ class QuotationDetailView extends StatelessWidget {
     }
 
     final String dateFormatted = formatDate(quot['date']);
+    final String expiryFormatted = formatDate(quot['expiry_date']);
+    const Color primaryColor = Color(0xFF5F33E1);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: Text(quot['quotation_number'] ?? "Quotation Detail"),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              quot['quotation_number'] ?? "Quotation Detail",
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              "Quotation summary and details",
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+          ],
+        ),
+        centerTitle: true,
         actions: [
           if (quot['status'] != 'converted')
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit_outlined,
+                  color: Colors.black87, size: 22),
               tooltip: "Edit",
               onPressed: () =>
                   Get.toNamed(RoutesName.editQuotation, arguments: quot),
             ),
           if (quot['status'] != 'converted')
             IconButton(
-              icon: const Icon(Icons.transform_rounded),
+              icon: const Icon(Icons.swap_horiz_rounded,
+                  color: Colors.black87, size: 22),
               tooltip: "Convert to Invoice",
               onPressed: () => _showConvertDialog(context, quot),
             ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf_outlined,
+                color: Colors.black87, size: 22),
             tooltip: "Download PDF",
             onPressed: () => _downloadPdf(quot),
           ),
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: const Icon(Icons.share_outlined,
+                color: Colors.black87, size: 22),
             tooltip: "Share PDF",
             onPressed: () => _sharePdf(quot),
           ),
         ],
       ),
       body: SafeArea(
-          child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStatusHeader(quot),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Customer Info"),
-            _buildInfoCard([
-              _buildInfoRow(
-                  "Customer",
-                  quot['customer_name'] ??
-                      quot['customer']?['name'] ??
-                      quot['customer']?['full_name'] ??
-                      "Loading..."),
-            ]),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Quotation Info"),
-            _buildInfoCard([
-              _buildInfoRow("Number", quot['quotation_number'] ?? "N/A"),
-              _buildInfoRow("Date", dateFormatted),
-              _buildInfoRow(
-                "Expiry",
-                formatDate(quot['expiry_date']),
-              ),
-              if (quot['payment_mode'] != null &&
-                  quot['payment_mode'].toString().isNotEmpty)
-                _buildInfoRow("Payment Mode", quot['payment_mode'].toString()),
-            ]),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Items"),
-            ...items.map((item) => _buildItemCard(item)),
-            const SizedBox(height: 20),
-            _buildSummaryCard(quot),
-            const SizedBox(height: 30),
-            if (quot['status'] != 'converted')
-              SizedBox(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusHeader(quot),
+              const SizedBox(height: 16),
+
+              // Physical Document Sheet
+              Container(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _showConvertDialog(context, quot),
-                  icon: const Icon(Icons.receipt_long),
-                  label: const Text("Convert to Invoice"),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    backgroundColor: Colors.cyan,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8))
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Doc Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("QUOTATION",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                    letterSpacing: 1.5)),
+                            const SizedBox(height: 4),
+                            Text(quot['quotation_number'] ?? "N/A",
+                                style: const TextStyle(
+                                    color: primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text("Date: $dateFormatted",
+                                style: TextStyle(
+                                    color: Colors.grey.shade600, fontSize: 12)),
+                            const SizedBox(height: 2),
+                            Text("Valid: $expiryFormatted",
+                                style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Bill To Details
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("BILL TO",
+                                  style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5)),
+                              const SizedBox(height: 6),
+                              Text(
+                                quot['customer_name'] ??
+                                    quot['customer']?['name'] ??
+                                    quot['customer']?['full_name'] ??
+                                    "Unknown Customer",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black87),
+                              ),
+                              if (quot['customer']?['phone'] != null &&
+                                  quot['customer']!['phone']
+                                      .toString()
+                                      .isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                    quot['customer']?['phone'].toString() ?? '',
+                                    style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12)),
+                              ]
+                            ],
+                          ),
+                        ),
+                        if (quot['payment_mode'] != null &&
+                            quot['payment_mode'].toString().isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("PAYMENT MODE",
+                                  style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5)),
+                              const SizedBox(height: 6),
+                              Text(
+                                quot['payment_mode'].toString().toUpperCase(),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.black87),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Items Headers
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 3,
+                            child: Text("ITEMS",
+                                style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5))),
+                        Expanded(
+                            child: Text("QTY",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5))),
+                        Expanded(
+                            child: Text("PRICE",
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5))),
+                        Expanded(
+                            child: Text("AMOUNT",
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5))),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...items.map((item) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                      item['description'] ?? "No Description",
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w600))),
+                              Expanded(
+                                  child: Text("${item['quantity']}",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade700))),
+                              Expanded(
+                                  child: Text(
+                                      "₹${_formatPrice(item['unit_price'])}",
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade700))),
+                              Expanded(
+                                  child: Text(
+                                      "₹${_formatPrice(item['amount'])}",
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87))),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Summary
+                    _buildSummaryRow(
+                        "Subtotal", "₹${_formatPrice(quot['subtotal'])}"),
+                    const SizedBox(height: 8),
+                    _buildSummaryRow(
+                      "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)",
+                      "₹${_formatPrice(quot['tax'])}",
+                    ),
+                    if ((quot['advance_amount'] ?? 0.0) > 0) ...[
+                      const SizedBox(height: 8),
+                      _buildSummaryRow("Advance Paid",
+                          "₹${_formatPrice(quot['advance_amount'])}"),
+                    ],
+                    const SizedBox(height: 12),
+                    const Divider(thickness: 1.2),
+                    const SizedBox(height: 12),
+                    _buildSummaryRow(
+                        "Grand Total", "₹${_formatPrice(quot['total'])}",
+                        isTotal: true),
+                    if ((quot['advance_amount'] ?? 0.0) > 0) ...[
+                      const SizedBox(height: 8),
+                      _buildSummaryRow(
+                        "Remaining Balance",
+                        "₹${_formatPrice((quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0))}",
+                        isTotal: true,
+                        totalColor: primaryColor,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              if (quot['status'] != 'converted')
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showConvertDialog(context, quot),
+                    icon: const Icon(Icons.receipt_long_rounded,
+                        color: Colors.white, size: 20),
+                    label: const Text("Convert to Invoice",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 14)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 
   Widget _buildStatusHeader(Map<String, dynamic> quot) {
+    final status = (quot['status'] ?? 'draft').toString().toLowerCase();
+    Color color = Colors.orange;
+    Color bgColor = const Color(0xFFFFF3E0);
+    IconData icon = Icons.info_outline_rounded;
+    String label = "PENDING";
+
+    if (status == 'converted' || status == 'accepted') {
+      color = const Color(0xFF4CAF50);
+      bgColor = const Color(0xFFE8F5E9);
+      icon = Icons.check_circle_outline_rounded;
+      label = "ACCEPTED / CONVERTED";
+    } else if (status == 'expired' || status == 'rejected') {
+      color = const Color(0xFFF44336);
+      bgColor = const Color(0xFFFFEBEE);
+      icon = Icons.cancel_outlined;
+      label = "EXPIRED / REJECTED";
+    } else if (status == 'draft') {
+      color = const Color(0xFF5F33E1);
+      bgColor = const Color(0xFFF3EFFF);
+      icon = Icons.edit_note_rounded;
+      label = "DRAFT";
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.cyan.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.15)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: Colors.cyan),
+          Icon(icon, color: color, size: 22),
           const SizedBox(width: 12),
           Text(
-            "Status: ${quot['status']?.toUpperCase() ?? 'DRAFT'}",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.cyan,
-            ),
+            "Status: $label",
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
+                fontSize: 13,
+                letterSpacing: 0.5),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, left: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.blueGrey,
+  Widget _buildSummaryRow(String label, String value,
+      {bool isTotal = false, Color? totalColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isTotal ? Colors.black87 : Colors.grey.shade500,
+            fontSize: isTotal ? 14 : 12,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(List<Widget> children) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(children: children),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemCard(Map<String, dynamic> item) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(item['description'] ?? "No Description"),
-        subtitle: Text(
-            "Qty: ${item['quantity']} \u00d7 \u20b9${_formatPrice(item['unit_price'])}"),
-        trailing: Text(
-          "\u20b9${_formatPrice(item['amount'])}",
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        Text(
+          value,
+          style: TextStyle(
+            color:
+                totalColor ?? (isTotal ? Colors.black87 : Colors.grey.shade800),
+            fontSize: isTotal ? 15 : 12,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(Map<String, dynamic> quot) {
-    return Card(
-      color: Colors.blueGrey.shade50,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildInfoRow(
-                "Subtotal", "\u20b9${_formatPrice(quot['subtotal'])}"),
-            _buildInfoRow(
-                "Tax (${quot['tax_percent']?.toInt() ?? ((quot['tax'] ?? 0.0) / (quot['subtotal'] ?? 1.0) * 100).toInt()}%)",
-                "\u20b9${_formatPrice(quot['tax'])}"),
-            _buildInfoRow(
-              "Advance Paid",
-              "\u20b9${_formatPrice(quot['advance_amount'])}",
-            ),
-            const Divider(),
-            _buildInfoRow("Total", "\u20b9${_formatPrice(quot['total'])}"),
-            if ((quot['advance_amount'] ?? 0.0) > 0)
-              _buildInfoRow(
-                "Remaining Balance",
-                "\u20b9${_formatPrice((quot['total'] ?? 0.0) - (quot['advance_amount'] ?? 0.0))}",
-              ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -254,14 +466,19 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   void _showConvertDialog(BuildContext context, Map<String, dynamic> quot) {
+    const Color primaryColor = Color(0xFF5F33E1);
     Get.defaultDialog(
       title: "Convert to Invoice",
+      titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       middleText:
           "Are you sure you want to convert this quotation to an invoice? This will create a new invoice with the same items.",
+      middleTextStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
       textConfirm: "Convert",
       textCancel: "Cancel",
       confirmTextColor: Colors.white,
-      buttonColor: Colors.cyan,
+      cancelTextColor: Colors.grey,
+      buttonColor: primaryColor,
+      radius: 16,
       onConfirm: () async {
         Get.back(); // close dialog
         _convertToInvoice(quot);
@@ -274,7 +491,7 @@ class QuotationDetailView extends StatelessWidget {
     if (userId == null) return;
 
     Get.dialog(
-      const Center(child: CircularProgressIndicator()),
+      const Center(child: CircularProgressIndicator(color: Color(0xFF5F33E1))),
       barrierDismissible: false,
     );
     try {
@@ -285,12 +502,8 @@ class QuotationDetailView extends StatelessWidget {
 
       Get.back(); // hide loading
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Utils.showSnackbar(
-          "Success",
-          "Converted to invoice successfully!",
-          isError: false,
-        );
-        // Refresh quotation list if possible or just go back
+        Utils.showSnackbar("Success", "Converted to invoice successfully!",
+            isError: false);
         if (Get.isRegistered<QuotationListController>()) {
           Get.find<QuotationListController>().fetchQuotations();
         }
@@ -305,7 +518,6 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   Future<void> _downloadPdf(Map<String, dynamic> quot) async {
-    // Premium Check
     final paymentController = Get.put(PaymentController());
     if (!paymentController.isPremium.value) {
       PremiumDialogs.showPremiumRequiredDialog();
@@ -315,10 +527,11 @@ class QuotationDetailView extends StatelessWidget {
     final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    Get.dialog(const Center(child: CircularProgressIndicator()),
+    Get.dialog(
+        const Center(
+            child: CircularProgressIndicator(color: Color(0xFF5F33E1))),
         barrierDismissible: false);
     try {
-      // 1. Fetch Business Profile
       final busResp = await ApiService.get('/business/profile',
           headers: {'x-user-id': userId});
       if (busResp.statusCode != 200) {
@@ -329,7 +542,6 @@ class QuotationDetailView extends StatelessWidget {
       }
       final businessProfile = jsonDecode(busResp.body);
 
-      // 2. Extract Customer Info
       dynamic rawCust = quot['customer'];
       Map<String, dynamic> customer = {};
       if (rawCust is String) {
@@ -351,8 +563,6 @@ class QuotationDetailView extends StatelessWidget {
       }
 
       Get.back(); // hide loading
-
-      // 3. Generate and Print
       await BusinessPdfHelper.generateAndPrintPdf(
         title: "QUOTATION",
         businessProfile: businessProfile,
@@ -368,7 +578,6 @@ class QuotationDetailView extends StatelessWidget {
   }
 
   Future<void> _sharePdf(Map<String, dynamic> quot) async {
-    // Premium Check
     final paymentController = Get.put(PaymentController());
     if (!paymentController.isPremium.value) {
       PremiumDialogs.showPremiumRequiredDialog();
@@ -378,10 +587,11 @@ class QuotationDetailView extends StatelessWidget {
     final userId = Get.find<AuthService>().currentUserId;
     if (userId == null) return;
 
-    Get.dialog(const Center(child: CircularProgressIndicator()),
+    Get.dialog(
+        const Center(
+            child: CircularProgressIndicator(color: Color(0xFF5F33E1))),
         barrierDismissible: false);
     try {
-      // 1. Fetch Business Profile
       final busResp = await ApiService.get('/business/profile',
           headers: {'x-user-id': userId});
       if (busResp.statusCode != 200) {
@@ -392,7 +602,6 @@ class QuotationDetailView extends StatelessWidget {
       }
       final businessProfile = jsonDecode(busResp.body);
 
-      // 2. Extract Customer Info
       dynamic rawCust = quot['customer'];
       Map<String, dynamic> customer = {};
       if (rawCust is String) {
@@ -414,8 +623,6 @@ class QuotationDetailView extends StatelessWidget {
       }
 
       Get.back(); // hide loading
-
-      // 3. Generate and Share
       await BusinessPdfHelper.generateAndSharePdf(
         title: "QUOTATION",
         businessProfile: businessProfile,

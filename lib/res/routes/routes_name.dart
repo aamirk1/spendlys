@@ -40,6 +40,8 @@ class RoutesName {
   static const String businessHome = '/business_home';
   static const String businessProfile = '/business_profile';
   static const String customersList = '/customers_list';
+  static const String addCustomer = '/add_customer';
+  static const String customerDetail = '/customer_detail';
   static const String invoiceList = '/invoice_list';
   static const String createInvoice = '/create_invoice';
   static const String viewInvoice = '/view_invoice';

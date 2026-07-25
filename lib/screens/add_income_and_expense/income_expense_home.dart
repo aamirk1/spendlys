@@ -64,154 +64,61 @@ class _IncomeExpenseHomeState extends State<IncomeExpenseHome>
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () => Get.back(),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Color(0xFF1E293B), size: 18),
-                    ),
-                  ),
-                  const Text(
-                    "Balance Overview",
-                    style: TextStyle(
-                      color: Color(0xFF1E293B),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Obx(() {
-                final totalIncome = incomeController.incomeList.fold<double>(
-                    0, (sum, item) => sum + (item['amount'] as double));
-                final totalExpense = expenseController.expensesList
-                    .fold<double>(
-                        0, (sum, item) => sum + (item['amount'] as double));
-                final balance = totalIncome - totalExpense;
-
-                return Container(
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        "current_balance".tr,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "₹${NumberFormat('#,##,###.##').format(balance)}",
-                        style: const TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          _buildSummaryItem(
-                            "income".tr,
-                            totalIncome,
-                            const Color(0xFF22C55E), // Emerald Green
-                            Icons.trending_up_rounded,
-                          ),
-                          Container(
-                              width: 1,
-                              height: 40,
-                              color: Colors.grey.withOpacity(0.15)),
-                          _buildSummaryItem(
-                            "expense".tr,
-                            totalExpense,
-                            const Color(0xFFF97316), // Orange
-                            Icons.trending_down_rounded,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(
-      String label, double amount, Color color, IconData icon) {
-    return Expanded(
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  shape: BoxShape.circle,
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
-                child: Icon(icon, size: 10, color: color),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          FittedBox(
-            child: Text(
-              "₹${NumberFormat('#,###').format(amount)}",
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              ],
+            ),
+            child: IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Color(0xFF1E293B), size: 16),
             ),
           ),
+          const Text(
+            "Add Transaction",
+            style: TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Obx(() {
+            final totalIncome = incomeController.incomeList.fold<double>(
+                0, (sum, item) => sum + (item['amount'] as double));
+            final totalExpense = expenseController.expensesList
+                .fold<double>(
+                    0, (sum, item) => sum + (item['amount'] as double));
+            final balance = totalIncome - totalExpense;
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                "Bal: ₹${NumberFormat('#,###').format(balance)}",
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );

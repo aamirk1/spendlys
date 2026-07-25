@@ -164,14 +164,10 @@ class CreateQuotationController extends GetxController {
       final payload = {
         "customer_id": selectedCustomerId.value,
         "quotation_number": quotationNumberController.text.trim(),
-        "date": DateTime.now().toIso8601String(),
-        "expiry_date":
-            DateTime.now().add(const Duration(days: 30)).toIso8601String(),
         "subtotal": subtotal,
         "tax": calculatedTax,
         "tax_percent": taxPercent.value,
         "total": total,
-        "status": "draft",
         "payment_mode": paymentMode.value,
         "advance_amount": double.tryParse(advanceAmountController.text) ?? 0.0,
         "creator_name": creatorName,
@@ -186,12 +182,13 @@ class CreateQuotationController extends GetxController {
         final isOffline = response.statusCode == 202;
         Utils.showSnackbar(
             isOffline ? "Offline" : "Success",
-            isOffline ? "Quotation queued offline. Will sync when online." : "Quotation Generated Successfully!",
+            isOffline
+                ? "Quotation scheduled offline. Will sync when online."
+                : "Quotation Generated!",
             isError: false);
-        Get.offNamed(RoutesName.quotationList);
+        Get.back();
       } else {
-        Utils.showSnackbar(
-            "Error", "Failed to generate quotation: ${response.body}");
+        Utils.showSnackbar("Error", "Failed to generate quotation: ${response.body}");
       }
     } catch (e) {
       Utils.showSnackbar("Error", "Exception generating quotation: $e");
@@ -225,353 +222,291 @@ class CreateQuotationView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CreateQuotationController());
+    const Color primaryColor = Color(0xFF5F33E1);
+    const Color accentColor = Color(0xFFF3EFFF);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: const Text("New Quotation",
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black87,
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          "New Quotation",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+        ),
         centerTitle: true,
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        height: double.infinity,
-        decoration: const BoxDecoration(
-            gradient: LinearGradient(
-          colors: [Color(0xFFE0F7FA), Color(0xFFB2EBF2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )),
-        child: SafeArea(
-          child: Obx(() => Stack(
-                children: [
-                  Form(
-                    key: controller.formKey,
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10)
-                          .copyWith(bottom: 100),
-                      child: AnimationLimiter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: AnimationConfiguration.toStaggeredList(
-                            duration: const Duration(milliseconds: 600),
-                            childAnimationBuilder: (widget) => SlideAnimation(
-                              verticalOffset: 60.0,
-                              child: FadeInAnimation(child: widget),
-                            ),
-                            children: [
-                              _buildSectionTitle("Quotation Info"),
-                              _buildCard(children: [
-                                TextFormField(
-                                  controller:
-                                      controller.quotationNumberController,
-                                  validator: (v) =>
-                                      Validators.requiredField(v, "Quote #"),
-                                  decoration: _inputDeco("Quotation Number",
-                                      Icons.request_quote_rounded),
-                                ),
-                                const SizedBox(height: 15),
-                                InkWell(
-                                  onTap: () =>
-                                      _showCustomerPicker(context, controller),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 15),
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(15),
-                                        border: Border.all(
-                                            color: Colors.teal.shade100)),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.person_rounded,
-                                            color: Colors.teal.shade600),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            controller.customers.firstWhere(
-                                                    (c) =>
-                                                        c['id'].toString() ==
-                                                        controller
-                                                            .selectedCustomerId
-                                                            .value,
-                                                    orElse: () => {
-                                                          'name':
-                                                              'Select Customer'
-                                                        })['name'] ??
-                                                'Select Customer',
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                color: controller
-                                                            .selectedCustomerId
-                                                            .value ==
-                                                        null
-                                                    ? Colors.black54
-                                                    : Colors.black87),
-                                          ),
-                                        ),
-                                        const Icon(Icons.arrow_drop_down,
-                                            color: Colors.black54),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 15),
-                                TextFormField(
-                                  controller:
-                                      controller.advanceAmountController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'^\d+\.?\d*'))
-                                  ],
-                                  decoration: _inputDeco("Advance Amount (₹)",
-                                      Icons.payments_outlined),
-                                ),
-                                const SizedBox(height: 15),
-                                Obx(() => Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(15),
-                                        border: Border.all(
-                                            color: Colors.teal.shade100),
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: controller.paymentMode.value,
-                                          isExpanded: true,
-                                          icon: const Icon(
-                                              Icons.keyboard_arrow_down_rounded,
-                                              color: Colors.black54),
-                                          items: controller.paymentModes
-                                              .map((String mode) {
-                                            return DropdownMenuItem<String>(
-                                              value: mode,
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    mode == 'Cash'
-                                                        ? Icons.money
-                                                        : mode ==
-                                                                'Bank Transfer'
-                                                            ? Icons
-                                                                .account_balance
-                                                            : mode ==
-                                                                    'Credit Card'
-                                                                ? Icons
-                                                                    .credit_card
-                                                                : mode == 'UPI'
-                                                                    ? Icons
-                                                                        .qr_code
-                                                                    : Icons
-                                                                        .payment,
-                                                    color: Colors.teal.shade600,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Text(mode,
-                                                      style: const TextStyle(
-                                                          fontSize: 15,
-                                                          color:
-                                                              Colors.black87)),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
-                                          onChanged: (String? newValue) {
-                                            if (newValue != null) {
-                                              controller.paymentMode.value =
-                                                  newValue;
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    )),
-                              ]),
-                              const SizedBox(height: 25),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildSectionTitle("Quotation Items"),
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        _showAddItemSheet(context, controller),
-                                    icon: const Icon(Icons.add_circle_outline,
-                                        color: Colors.teal),
-                                    label: const Text("Add Item",
-                                        style: TextStyle(
-                                            color: Colors.teal,
-                                            fontWeight: FontWeight.bold)),
-                                  )
-                                ],
+      body: SafeArea(
+        child: Obx(() => Stack(
+              children: [
+                Form(
+                  key: controller.formKey,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.all(16).copyWith(bottom: 100),
+                    child: AnimationLimiter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: AnimationConfiguration.toStaggeredList(
+                          duration: const Duration(milliseconds: 600),
+                          childAnimationBuilder: (widget) => SlideAnimation(
+                            verticalOffset: 40.0,
+                            child: FadeInAnimation(child: widget),
+                          ),
+                          children: [
+                            _buildSectionTitle("Quotation Details"),
+                            _buildCard(children: [
+                              TextFormField(
+                                controller: controller.quotationNumberController,
+                                validator: (v) => Validators.requiredField(v, "Quote #"),
+                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                decoration: _inputDeco("Quotation Number", Icons.request_quote_rounded),
                               ),
-                              if (controller.items.isEmpty)
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(30),
+                              const SizedBox(height: 16),
+                              InkWell(
+                                onTap: () => _showCustomerPicker(context, controller),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                        color: Colors.teal.withOpacity(0.3),
-                                        width: 1,
-                                        style: BorderStyle.none),
-                                  ),
-                                  child: Column(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: Colors.grey.shade200)),
+                                  child: Row(
                                     children: [
-                                      Icon(Icons.category_outlined,
-                                          size: 50,
-                                          color: Colors.teal.shade300),
-                                      const SizedBox(height: 10),
-                                      const Text("No items added.",
-                                          style:
-                                              TextStyle(color: Colors.black54)),
+                                      const Icon(Icons.person_rounded, color: primaryColor, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          controller.customers.firstWhere(
+                                              (c) => c['id'].toString() == controller.selectedCustomerId.value,
+                                              orElse: () => {'name': 'Select Customer'})['name'] ??
+                                              'Select Customer',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: controller.selectedCustomerId.value == null
+                                                  ? Colors.black54
+                                                  : Colors.black87),
+                                        ),
+                                      ),
+                                      const Icon(Icons.arrow_drop_down, color: Colors.black54),
                                     ],
                                   ),
-                                )
-                              else
-                                ...controller.items
-                                    .asMap()
-                                    .entries
-                                    .map((entry) {
-                                  int idx = entry.key;
-                                  QuotationItem item = entry.value;
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(15),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: controller.advanceAmountController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))
+                                ],
+                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                decoration: _inputDeco("Advance Amount (₹)", Icons.payments_outlined),
+                              ),
+                              const SizedBox(height: 16),
+                              Obx(() => Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.04),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4))
-                                      ],
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: Colors.grey.shade200),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(item.description,
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16)),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                  "${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}",
-                                                  style: const TextStyle(
-                                                      color: Colors.grey,
-                                                      fontSize: 13)),
-                                            ],
-                                          ),
-                                        ),
-                                        Text(
-                                            "₹${item.amount.toStringAsFixed(2)}",
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.teal)),
-                                        IconButton(
-                                          icon: const Icon(
-                                              Icons.remove_circle_outline,
-                                              color: Colors.redAccent,
-                                              size: 20),
-                                          onPressed: () =>
-                                              controller.removeItem(idx),
-                                        )
-                                      ],
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        value: controller.paymentMode.value,
+                                        isExpanded: true,
+                                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
+                                        items: controller.paymentModes.map((String mode) {
+                                          return DropdownMenuItem<String>(
+                                            value: mode,
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  mode == 'Cash'
+                                                      ? Icons.money_rounded
+                                                      : mode == 'Bank Transfer'
+                                                          ? Icons.account_balance_rounded
+                                                          : mode == 'Credit Card'
+                                                              ? Icons.credit_card_rounded
+                                                              : mode == 'UPI'
+                                                                  ? Icons.qr_code_rounded
+                                                                  : Icons.payment_rounded,
+                                                  color: primaryColor,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(mode,
+                                                    style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500)),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? newValue) {
+                                          if (newValue != null) {
+                                            controller.paymentMode.value = newValue;
+                                          }
+                                        },
+                                      ),
                                     ),
-                                  );
-                                }),
-                              const SizedBox(height: 30),
-                              _buildSectionTitle("Summary"),
-                              _buildCard(
-                                children: [
-                                  _summaryRow("Subtotal", controller.subtotal),
-                                  const SizedBox(height: 10),
-                                  Row(
+                                  )),
+                            ]),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildSectionTitle("Items list"),
+                                TextButton.icon(
+                                  onPressed: () => _showAddItemSheet(context, controller),
+                                  icon: const Icon(Icons.add_circle_outline, color: primaryColor, size: 18),
+                                  label: const Text("Add Item",
+                                      style: TextStyle(
+                                          color: primaryColor,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)),
+                                )
+                              ],
+                            ),
+                            if (controller.items.isEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.grey.shade100),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade300),
+                                    const SizedBox(height: 10),
+                                    Text("No items added yet.",
+                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              )
+                            else
+                              ...controller.items.asMap().entries.map((entry) {
+                                int idx = entry.key;
+                                QuotationItem item = entry.value;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.grey.shade100),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Colors.black.withOpacity(0.01),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4))
+                                    ],
+                                  ),
+                                  child: Row(
                                     children: [
-                                      Text(
-                                          "Tax (${controller.taxPercent.value.toInt()}%) ",
-                                          style: const TextStyle(
-                                              color: Colors.black54,
-                                              fontSize: 14)),
                                       Expanded(
-                                        child: Slider(
-                                          value: controller.taxPercent.value,
-                                          min: 0,
-                                          max: 28,
-                                          divisions: 28,
-                                          activeColor: Colors.teal,
-                                          label:
-                                              "${controller.taxPercent.value.toInt()}%",
-                                          onChanged: (v) =>
-                                              controller.taxPercent.value = v,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(item.description,
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Colors.black87)),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                                "${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)}",
+                                                style: TextStyle(
+                                                    color: Colors.grey.shade500,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 12)),
+                                          ],
                                         ),
                                       ),
                                       Text(
-                                          "₹${controller.calculatedTax.toStringAsFixed(2)}",
+                                          "₹${item.amount.toStringAsFixed(2)}",
                                           style: const TextStyle(
-                                              fontWeight: FontWeight.bold)),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: primaryColor)),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
+                                        onPressed: () => controller.removeItem(idx),
+                                      )
                                     ],
                                   ),
-                                  const Divider(height: 30),
-                                  _summaryRow(
-                                      "Estimated Total", controller.total,
-                                      isTotal: true),
-                                ],
-                              ),
-                              const SizedBox(height: 40),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 55,
-                                child: ElevatedButton(
-                                  onPressed: controller.isLoading.value
-                                      ? null
-                                      : controller.createQuotation,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal.shade500,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
-                                    elevation: 8,
-                                    shadowColor: Colors.teal.withOpacity(0.4),
-                                  ),
-                                  child: const Text("GENERATE QUOTATION",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2)),
+                                );
+                              }),
+                            const SizedBox(height: 24),
+                            _buildSectionTitle("Summary"),
+                            _buildCard(
+                              children: [
+                                _summaryRow("Subtotal", controller.subtotal),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Text(
+                                        "Tax (${controller.taxPercent.value.toInt()}%) ",
+                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
+                                    Expanded(
+                                      child: Slider(
+                                        value: controller.taxPercent.value,
+                                        min: 0,
+                                        max: 28,
+                                        divisions: 28,
+                                        activeColor: primaryColor,
+                                        inactiveColor: accentColor,
+                                        label: "${controller.taxPercent.value.toInt()}%",
+                                        onChanged: (v) => controller.taxPercent.value = v,
+                                      ),
+                                    ),
+                                    Text(
+                                        "₹${controller.calculatedTax.toStringAsFixed(2)}",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                                  ],
                                 ),
+                                const Divider(height: 24),
+                                _summaryRow("Estimated Total", controller.total, isTotal: true),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed: controller.isLoading.value ? null : controller.createQuotation,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  elevation: 0,
+                                ),
+                                child: const Text("GENERATE QUOTATION",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5)),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  if (controller.isLoading.value)
-                    const Center(
-                        child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.teal))),
-                ],
-              )),
-        ),
+                ),
+                if (controller.isLoading.value)
+                  const Center(
+                      child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(primaryColor))),
+              ],
+            )),
       ),
     );
   }
@@ -582,14 +517,14 @@ class CreateQuotationView extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: isTotal ? 18 : 14,
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-                color: isTotal ? Colors.black87 : Colors.black54)),
+                fontSize: isTotal ? 16 : 13,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+                color: isTotal ? Colors.black87 : Colors.grey.shade600)),
         Text("₹${amount.toStringAsFixed(2)}",
             style: TextStyle(
-                fontSize: isTotal ? 20 : 16,
+                fontSize: isTotal ? 16 : 13,
                 fontWeight: FontWeight.bold,
-                color: isTotal ? Colors.teal.shade700 : Colors.black87)),
+                color: isTotal ? const Color(0xFF5F33E1) : Colors.black87)),
       ],
     );
   }
@@ -599,11 +534,10 @@ class CreateQuotationView extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12.0, left: 4.0),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Colors.teal.shade800,
-          letterSpacing: 0.5,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
         ),
       ),
     );
@@ -611,43 +545,46 @@ class CreateQuotationView extends StatelessWidget {
 
   Widget _buildCard({required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-              color: Colors.teal.withOpacity(0.08),
-              blurRadius: 20,
-              spreadRadius: 2,
-              offset: const Offset(0, 8))
+              color: Colors.black.withOpacity(0.01),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
         ],
       ),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, children: children),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
   }
 
   InputDecoration _inputDeco(String hint, IconData icon) {
     return InputDecoration(
       labelText: hint,
-      prefixIcon: Icon(icon, color: Colors.teal.shade600),
+      labelStyle: const TextStyle(color: Colors.black54, fontSize: 13),
+      prefixIcon: Icon(icon, color: const Color(0xFF5F33E1), size: 20),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Colors.teal.shade600, width: 2)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5)),
     );
   }
 
-  void _showAddItemSheet(
-      BuildContext context, CreateQuotationController controller) {
+  void _showAddItemSheet(BuildContext context, CreateQuotationController controller) {
     final tDesc = TextEditingController();
     final tQty = TextEditingController(text: "1");
     final tPrice = TextEditingController();
     final k = GlobalKey<FormState>();
+    const Color primaryColor = Color(0xFF5F33E1);
 
     showModalBottomSheet(
         context: context,
@@ -656,13 +593,12 @@ class CreateQuotationView extends StatelessWidget {
         builder: (ctx) => Container(
               padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom,
-                  left: 25,
-                  right: 25,
-                  top: 25),
+                  left: 20,
+                  right: 20,
+                  top: 20),
               decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(25))),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
               child: SingleChildScrollView(
                 child: Form(
                   key: k,
@@ -672,26 +608,18 @@ class CreateQuotationView extends StatelessWidget {
                     children: [
                       const Text("Add Item",
                           style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.teal)),
-                      const SizedBox(height: 20),
+                              color: Colors.black87)),
+                      const SizedBox(height: 16),
                       if (controller.products.isNotEmpty) ...[
-                        const Text("Select from Inventory",
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54)),
-                        const SizedBox(height: 10),
                         TextFormField(
-                          decoration:
-                              _inputDeco("Search Items...", Icons.search),
-                          onChanged: (v) =>
-                              controller.productSearchQuery.value = v,
+                          decoration: _inputDeco("Search Items...", Icons.search),
+                          onChanged: (v) => controller.productSearchQuery.value = v,
                         ),
                         const SizedBox(height: 10),
                         SizedBox(
-                          height: 60,
+                          height: 48,
                           child: Obx(() {
                             final filtered = controller.filteredProducts;
                             return ListView.builder(
@@ -702,32 +630,31 @@ class CreateQuotationView extends StatelessWidget {
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: ActionChip(
-                                    label: Text(p['name']),
+                                    label: Text(p['name'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
                                     onPressed: () {
                                       tDesc.text = p['name'];
                                       tPrice.text = p['price'].toString();
                                     },
-                                    avatar: const Icon(
-                                        Icons.inventory_2_outlined,
-                                        size: 16),
-                                    backgroundColor: Colors.teal.shade50,
+                                    avatar: const Icon(Icons.inventory_2_outlined, size: 14, color: primaryColor),
+                                    backgroundColor: const Color(0xFFF3EFFF),
+                                    side: BorderSide.none,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
                                 );
                               },
                             );
                           }),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 12),
                         const Divider(),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 12),
                       ],
                       TextFormField(
                         controller: tDesc,
-                        validator: (v) =>
-                            Validators.requiredField(v, "Description"),
-                        decoration: _inputDeco("Item Description", Icons.edit),
+                        validator: (v) => Validators.requiredField(v, "Description"),
+                        decoration: _inputDeco("Item Description", Icons.edit_rounded),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
@@ -735,45 +662,40 @@ class CreateQuotationView extends StatelessWidget {
                               controller: tQty,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d+\.?\d*'))
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))
                               ],
-                              validator: (v) =>
-                                  Validators.requiredField(v, "Qty"),
-                              decoration: _inputDeco("Qty", Icons.numbers),
+                              validator: (v) => Validators.requiredField(v, "Qty"),
+                              decoration: _inputDeco("Qty", Icons.numbers_rounded),
                             ),
                           ),
-                          const SizedBox(width: 15),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: tPrice,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d+\.?\d*'))
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))
                               ],
-                              validator: (v) =>
-                                  Validators.requiredField(v, "Price"),
-                              decoration: _inputDeco(
-                                  "Unit Price (₹)", Icons.currency_rupee),
+                              validator: (v) => Validators.requiredField(v, "Price"),
+                              decoration: _inputDeco("Unit Price (₹)", Icons.currency_rupee_rounded),
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 10),
                       Obx(() => CheckboxListTile(
                             contentPadding: EdgeInsets.zero,
                             title: const Text("Save to Inventory",
-                                style: TextStyle(fontSize: 14)),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87)),
                             value: controller.saveToInventory.value,
-                            activeColor: Colors.teal,
-                            onChanged: (v) =>
-                                controller.saveToInventory.value = v ?? false,
+                            activeColor: primaryColor,
+                            onChanged: (v) => controller.saveToInventory.value = v ?? false,
                             controlAffinity: ListTileControlAffinity.leading,
                           )),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        height: 55,
+                        height: 50,
                         child: ElevatedButton(
                           onPressed: () {
                             if (k.currentState!.validate()) {
@@ -786,14 +708,11 @@ class CreateQuotationView extends StatelessWidget {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade500,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
+                            backgroundColor: primaryColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                           child: const Text("ADD TO QUOTATION",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)),
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -804,50 +723,43 @@ class CreateQuotationView extends StatelessWidget {
             ));
   }
 
-  void _showCustomerPicker(
-      BuildContext context, CreateQuotationController controller) {
+  void _showCustomerPicker(BuildContext context, CreateQuotationController controller) {
     controller.customerSearchQuery.value = '';
     final searchCtrl = TextEditingController();
+    const Color primaryColor = Color(0xFF5F33E1);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
+        height: MediaQuery.of(context).size.height * 0.7,
         decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
         child: Column(
           children: [
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(5)),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text("Select Customer",
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal)),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                   IconButton(
-                      onPressed: () =>
-                          _showAddCustomerForm(context, controller),
-                      icon: const Icon(Icons.person_add_alt_1_rounded,
-                          color: Colors.teal)),
+                      onPressed: () => _showAddCustomerForm(context, controller),
+                      icon: const Icon(Icons.person_add_alt_1_rounded, color: primaryColor)),
                 ],
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: TextFormField(
@@ -856,7 +768,7 @@ class CreateQuotationView extends StatelessWidget {
                 decoration: _inputDeco("Search Customers...", Icons.search),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Expanded(
               child: Obx(() {
                 final filtered = controller.filteredCustomers;
@@ -865,11 +777,11 @@ class CreateQuotationView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("No customers found."),
+                        Text("No customers found", style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                        const SizedBox(height: 8),
                         TextButton(
-                            onPressed: () =>
-                                _showAddCustomerForm(context, controller),
-                            child: const Text("Add New Customer")),
+                            onPressed: () => _showAddCustomerForm(context, controller),
+                            child: const Text("Add New Customer", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor))),
                       ],
                     ),
                   );
@@ -881,16 +793,15 @@ class CreateQuotationView extends StatelessWidget {
                     final cust = filtered[i];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.teal.shade50,
-                        child: Text(cust['name'][0].toUpperCase(),
-                            style: const TextStyle(color: Colors.teal)),
+                        backgroundColor: const Color(0xFFF3EFFF),
+                        child: Text((cust['name'] ?? 'U')[0].toUpperCase(),
+                            style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                       ),
                       title: Text(cust['name'] ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(cust['phone'] ?? ''),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      subtitle: Text(cust['phone'] ?? '', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                       onTap: () {
-                        controller.selectedCustomerId.value =
-                            cust['id'].toString();
+                        controller.selectedCustomerId.value = cust['id'].toString();
                         Get.back();
                       },
                     );
@@ -904,45 +815,43 @@ class CreateQuotationView extends StatelessWidget {
     );
   }
 
-  void _showAddCustomerForm(
-      BuildContext context, CreateQuotationController controller) {
+  void _showAddCustomerForm(BuildContext context, CreateQuotationController controller) {
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              title: const Text("Add New Customer"),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Add New Customer", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
                     controller: nameCtrl,
-                    decoration: _inputDeco("Customer Name", Icons.person),
+                    decoration: _inputDeco("Customer Name", Icons.person_rounded),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    decoration: _inputDeco("Phone Number", Icons.phone),
+                    decoration: _inputDeco("Phone Number", Icons.phone_rounded),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text("Cancel")),
+                    child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
                     onPressed: () {
                       if (nameCtrl.text.isNotEmpty) {
-                        controller.quickAddCustomer(
-                            nameCtrl.text.trim(), phoneCtrl.text.trim());
+                        controller.quickAddCustomer(nameCtrl.text.trim(), phoneCtrl.text.trim());
                         Navigator.pop(ctx);
                         Navigator.pop(context); // Close picker
                       }
                     },
-                    child: const Text("Add")),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5F33E1)),
+                    child: const Text("Add", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
               ],
             ));
   }

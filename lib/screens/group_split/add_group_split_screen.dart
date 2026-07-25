@@ -8,6 +8,9 @@ import 'package:spendly/controllers/group_split_controller.dart';
 import 'package:spendly/models/group_split_model.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/utils/utils.dart';
+import 'package:spendly/screens/group_split/widgets/bill_details_card.dart';
+import 'package:spendly/screens/group_split/widgets/split_type_selector.dart';
+import 'package:spendly/screens/group_split/widgets/member_form_card.dart';
 
 class AddGroupSplitScreen extends StatefulWidget {
   const AddGroupSplitScreen({super.key});
@@ -241,7 +244,6 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formattedDate = DateFormat('dd MMMM yyyy').format(_selectedDate);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -267,25 +269,43 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildBillDetailsCard(theme, formattedDate),
-                      const SizedBox(height: 16),
-                      _buildSplitTypeSelector(theme),
+                      BillDetailsCard(
+                        titleController: _titleController,
+                        amountController: _amountController,
+                        selectedDate: _selectedDate,
+                        onTapDate: () => _selectDate(context),
+                      ),
                       const SizedBox(height: 20),
+                      SplitTypeSelector(
+                        currentSplitType: _splitType,
+                        onSplitTypeChanged: (type) {
+                          setState(() {
+                            _splitType = type;
+                          });
+                          _recalculateShares();
+                        },
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Members & Shares',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Text(
+                              'Members & Shares',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.textTheme.titleMedium?.color ?? AppColors.textPrimary,
+                              ),
                             ),
                           ),
                           TextButton.icon(
                             onPressed: () => _addMemberItem(),
-                            icon: const Icon(Icons.add, size: 18),
+                            icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
                             label: const Text('Add Member'),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.primary,
+                              textStyle: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -296,7 +316,18 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: _memberItems.length,
                         itemBuilder: (context, index) {
-                          return _buildMemberFormCard(theme, index);
+                          final item = _memberItems[index];
+                          return MemberFormCard(
+                            index: index,
+                            nameController: item.nameController,
+                            phoneController: item.phoneController,
+                            valueController: item.valueController,
+                            isCreator: item.isCreator,
+                            splitType: _splitType,
+                            calculatedShare: item.calculatedShare,
+                            onRemove: () => _removeMemberItem(index),
+                            onValueChanged: _recalculateShares,
+                          );
                         },
                       ),
                     ],
@@ -310,6 +341,13 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                   border: Border(
                     top: BorderSide(color: theme.dividerColor.withOpacity(0.1)),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -322,6 +360,7 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 2,
                         ),
                         child: const Text(
                           'Save Split Group',
@@ -338,287 +377,6 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBillDetailsCard(ThemeData theme, String formattedDate) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Bill details',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Activity / Title',
-                hintText: 'e.g. Goa Trip, Dinner, Movie',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: const Icon(Icons.title),
-              ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: 'Total Bill Amount',
-                hintText: '0.00',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: const Icon(Icons.currency_rupee),
-              ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) {
-                  return 'Please enter total amount';
-                }
-                if (double.tryParse(val) == null || double.parse(val) <= 0) {
-                  return 'Please enter a valid positive amount';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () => _selectDate(context),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.hintColor.withOpacity(0.5)),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: theme.hintColor),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Bill Date',
-                          style: TextStyle(color: theme.hintColor),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      formattedDate,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSplitTypeSelector(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Split type',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            _buildTypeBtn('equal', 'Equally', Icons.pie_chart),
-            const SizedBox(width: 8),
-            _buildTypeBtn('unequal', 'Custom', Icons.dashboard_customize),
-            const SizedBox(width: 8),
-            _buildTypeBtn('percentage', 'Percentage', Icons.percent),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTypeBtn(String type, String label, IconData icon) {
-    final isSelected = _splitType == type;
-    final theme = Theme.of(context);
-
-    return Expanded(
-      child: OutlinedButton(
-        onPressed: () {
-          setState(() {
-            _splitType = type;
-          });
-          _recalculateShares();
-        },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? AppColors.primary : Colors.transparent,
-          side: BorderSide(
-            color: isSelected ? AppColors.primary : theme.dividerColor,
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : theme.iconTheme.color,
-              size: 20,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMemberFormCard(ThemeData theme, int index) {
-    final item = _memberItems[index];
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: item.nameController,
-                          enabled: !item.isCreator, // Can't rename Yourself
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            hintText: 'Name',
-                            prefixIcon: Icon(Icons.person, size: 18),
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty) {
-                              return 'Name required';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextFormField(
-                          controller: item.phoneController,
-                          enabled: !item.isCreator,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            hintText: 'Phone (optional)',
-                            prefixIcon: Icon(Icons.phone, size: 18),
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_splitType != 'equal') ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: item.valueController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              hintText: _splitType == 'percentage'
-                                  ? 'Percentage %'
-                                  : 'Amount Share ₹',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                            ),
-                            onChanged: (_) => _recalculateShares(),
-                          ),
-                        ),
-                        if (_splitType == 'percentage') ...[
-                          const SizedBox(width: 12),
-                          Text(
-                            'Calculated: ₹${item.calculatedShare.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(Icons.arrow_right_alt,
-                            size: 16, color: theme.disabledColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Share: ₹${item.calculatedShare.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: theme.disabledColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (!item.isCreator) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () => _removeMemberItem(index),
-                icon: const Icon(Icons.delete, color: Colors.redAccent),
-              ),
-            ],
-          ],
         ),
       ),
     );

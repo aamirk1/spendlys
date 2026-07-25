@@ -19,7 +19,7 @@ class SplashController extends GetxController {
     updateService.checkForUpdate();
 
     // 2. Wait for the splash screen entrance and progress bar animations to complete (1.2s)
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     // 3. Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;
