@@ -35,174 +35,196 @@ class ProfileStats extends StatelessWidget {
         }
 
         double balance = totalMonthlyIncome - totalMonthlyExpense;
+        bool isLoading = incomeController.isLoading.value || expenseController.isLoading.value;
 
-        return Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    title: 'income'.tr,
-                    amount: totalMonthlyIncome,
-                    color: AppColors.green,
-                    icon: Icons.arrow_upward_rounded,
-                    isLoading: incomeController.isLoading.value,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    title: 'expense'.tr,
-                    amount: totalMonthlyExpense,
-                    color: AppColors.red,
-                    icon: Icons.arrow_downward_rounded,
-                    isLoading: expenseController.isLoading.value,
-                  ),
-                ),
-              ],
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.05),
             ),
-            const SizedBox(height: 12),
-            _buildBalanceCard(
-                context,
-                balance,
-                incomeController.isLoading.value ||
-                    expenseController.isLoading.value),
-          ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header & Balance display
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'net_balance'.tr.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.color
+                                ?.withOpacity(0.5),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        if (isLoading)
+                          const SizedBox(
+                            height: 28,
+                            width: 28,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        else
+                          Text(
+                            '₹${balance.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: balance >= 0
+                                  ? (Get.isDarkMode ? Colors.green.shade400 : AppColors.green)
+                                  : (Get.isDarkMode ? Colors.red.shade400 : AppColors.red),
+                            ),
+                          ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: (balance >= 0 ? Colors.green : Colors.red).withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        balance >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                        color: balance >= 0 ? AppColors.green : AppColors.red,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Thin visual divider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(
+                  height: 1,
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                ),
+              ),
+
+              // Income / Expense row
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Income
+                    Expanded(
+                      child: _buildSubStat(
+                        context,
+                        title: 'income'.tr,
+                        amount: totalMonthlyIncome,
+                        color: AppColors.green,
+                        icon: Icons.arrow_downward_rounded,
+                        isLoading: isLoading,
+                      ),
+                    ),
+
+                    // Vertical Divider
+                    Container(
+                      height: 40,
+                      width: 1,
+                      color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    ),
+
+                    // Expense
+                    Expanded(
+                      child: _buildSubStat(
+                        context,
+                        title: 'expense'.tr,
+                        amount: totalMonthlyExpense,
+                        color: AppColors.red,
+                        icon: Icons.arrow_upward_rounded,
+                        isLoading: isLoading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         );
       }),
     );
   }
 
-  Widget _buildBalanceCard(
-      BuildContext context, double balance, bool isLoading) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: balance >= 0
-              ? [Colors.blue.shade400, Colors.blue.shade600]
-              : [Colors.orange.shade400, Colors.orange.shade600],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color:
-                (balance >= 0 ? Colors.blue : Colors.orange).withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.account_balance_wallet_outlined,
-                  color: Colors.white, size: 28),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'net_balance'.tr,
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.9), fontSize: 13),
-                  ),
-                  const SizedBox(height: 2),
-                  if (isLoading)
-                    const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
-                  else
-                    Text(
-                      '₹${balance.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                    ),
-                ],
-              ),
-            ],
-          ),
-          Icon(
-            balance >= 0
-                ? Icons.trending_up_rounded
-                : Icons.trending_down_rounded,
-            color: Colors.white.withOpacity(0.5),
-            size: 40,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
+  Widget _buildSubStat(
     BuildContext context, {
     required String title,
     required double amount,
     required Color color,
     required IconData icon,
-    bool isLoading = false,
+    required bool isLoading,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 16),
           ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.color
-                  ?.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.6),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                if (isLoading)
+                  const SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(strokeWidth: 1.5),
+                  )
+                else
+                  Text(
+                    '₹${amount.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          if (isLoading)
-            const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            Text(
-              '₹${amount.toStringAsFixed(0)}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
         ],
       ),
     );

@@ -37,6 +37,27 @@ class Member {
   }
 }
 
+class GroupSplitExpense {
+  String name;
+  double amount;
+
+  GroupSplitExpense({required this.name, required this.amount});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'amount': amount,
+    };
+  }
+
+  factory GroupSplitExpense.fromMap(Map<String, dynamic> map) {
+    return GroupSplitExpense(
+      name: map['name']?.toString() ?? '',
+      amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
 class GroupSplit {
   String id;
   String userId;
@@ -45,6 +66,7 @@ class GroupSplit {
   String splitType; // equal, unequal, percentage
   DateTime date;
   RxList<Member> members;
+  RxList<GroupSplitExpense> expenses;
   DateTime createdAt;
 
   GroupSplit({
@@ -55,8 +77,10 @@ class GroupSplit {
     required this.splitType,
     required this.date,
     required RxList<Member> members,
+    required RxList<GroupSplitExpense> expenses,
     required this.createdAt,
-  }) : members = members;
+  })  : members = members,
+        expenses = expenses;
 
   Map<String, dynamic> toMap() {
     return {
@@ -67,6 +91,7 @@ class GroupSplit {
       'split_type': splitType,
       'date': date.toIso8601String(),
       'members': members.map((e) => e.toMap()).toList(),
+      'expenses': expenses.map((e) => e.toMap()).toList(),
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -89,6 +114,11 @@ class GroupSplit {
         .map((e) => Member.fromMap(Map<String, dynamic>.from(e)))
         .toList();
 
+    final rawExpenses = map['expenses'] as List<dynamic>? ?? [];
+    final parsedExpenses = rawExpenses
+        .map((e) => GroupSplitExpense.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
+
     return GroupSplit(
       id: id,
       userId: map['user_id']?.toString() ?? '',
@@ -97,6 +127,7 @@ class GroupSplit {
       splitType: map['split_type']?.toString() ?? 'equal',
       date: parseDate(map['date']),
       members: RxList<Member>.from(parsedMembers),
+      expenses: RxList<GroupSplitExpense>.from(parsedExpenses),
       createdAt: parseDate(map['created_at']),
     );
   }

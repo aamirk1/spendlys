@@ -17,6 +17,8 @@ import 'package:spendly/screens/home/views/profile_screens/need_help_screen.dart
 import 'package:spendly/screens/business/business_home_view.dart';
 import 'package:spendly/screens/business/business_profile_view.dart';
 import 'package:spendly/screens/business/customers_list.dart';
+import 'package:spendly/screens/business/add_customer.dart';
+import 'package:spendly/screens/business/customer_detail.dart';
 import 'package:spendly/screens/business/create_invoice.dart';
 import 'package:spendly/screens/business/invoice_list.dart';
 import 'package:spendly/screens/business/create_quotation.dart';
@@ -66,7 +68,7 @@ class AppRoutes {
             transition: _kTransition),
         GetPage(
             name: RoutesName.signupView,
-            page: () => SignInScreen(),
+            page: () => SignUpScreen(),
             binding: AuthBinding(),
             transitionDuration: _kFast,
             transition: _kTransition),
@@ -232,6 +234,25 @@ class AppRoutes {
         GetPage(
             name: RoutesName.customersList,
             page: () => const CustomersListView(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.addCustomer,
+            page: () => const AddCustomerView(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.customerDetail,
+            page: () {
+              final args = Get.arguments;
+              if (args is Map<String, dynamic>) {
+                return CustomerDetailView(customer: args);
+              } else if (args is Map) {
+                return CustomerDetailView(customer: Map<String, dynamic>.from(args));
+              }
+              return const Scaffold(
+                  body: Center(child: Text("Invalid Customer Arguments")));
+            },
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(

@@ -8,6 +8,9 @@ class MyUser {
   final DateTime lastLogin;
   final String? image;
   final bool isPremium;
+  final String? referralCode;
+  final String? referredById;
+  final int referralCount;
 
   MyUser({
     required this.userId,
@@ -17,6 +20,9 @@ class MyUser {
     required this.lastLogin,
     this.image,
     required this.isPremium,
+    this.referralCode,
+    this.referredById,
+    this.referralCount = 0,
   });
 
   static final empty = MyUser(
@@ -27,6 +33,9 @@ class MyUser {
     lastLogin: DateTime.now(),
     image: null,
     isPremium: false,
+    referralCode: null,
+    referredById: null,
+    referralCount: 0,
   );
 
   MyUser copyWith({
@@ -37,6 +46,9 @@ class MyUser {
     DateTime? lastLogin,
     String? image,
     bool? isPremium,
+    String? referralCode,
+    String? referredById,
+    int? referralCount,
   }) {
     return MyUser(
       userId: userId ?? this.userId,
@@ -46,20 +58,26 @@ class MyUser {
       lastLogin: lastLogin ?? this.lastLogin,
       image: image ?? this.image,
       isPremium: isPremium ?? this.isPremium,
+      referralCode: referralCode ?? this.referralCode,
+      referredById: referredById ?? this.referredById,
+      referralCount: referralCount ?? this.referralCount,
     );
   }
 
   factory MyUser.fromMap(Map<String, dynamic> map) {
     return MyUser(
-      userId: map['userId'] ?? '',
+      userId: map['userId'] ?? map['id'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? map['phone_number'] ?? '',
       lastLogin: map['lastLogin'] != null
           ? DateTime.parse(map['lastLogin'].toString())
           : DateTime.now(),
       image: map['image'],
-      isPremium: map['isPremium'] ?? false,
+      isPremium: map['isPremium'] ?? map['is_premium'] ?? false,
+      referralCode: map['referralCode'] ?? map['referral_code'],
+      referredById: map['referredById'] ?? map['referred_by_id'],
+      referralCount: map['referralCount'] ?? map['referral_count'] ?? 0,
     );
   }
 
@@ -72,6 +90,9 @@ class MyUser {
       'lastLogin': lastLogin.toIso8601String(),
       'image': image,
       'isPremium': isPremium,
+      'referralCode': referralCode,
+      'referredById': referredById,
+      'referralCount': referralCount,
     };
   }
 
@@ -84,6 +105,9 @@ class MyUser {
       phoneNumber: box.read("phoneNumber") ?? '',
       lastLogin: DateTime.now(),
       isPremium: box.read("isPremium") ?? false,
+      referralCode: box.read("referralCode"),
+      referredById: box.read("referredById"),
+      referralCount: box.read("referralCount") ?? 0,
     );
   }
 }

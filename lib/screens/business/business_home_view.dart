@@ -438,19 +438,19 @@ class BusinessHomeView extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // 5. Quick Actions Section
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    "Quick Actions",
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildQuickActions(context, controller, primaryColor),
-                const SizedBox(height: 24),
+                // const Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: 16.0),
+                //   child: Text(
+                //     "Quick Actions",
+                //     style: TextStyle(
+                //         fontSize: 15,
+                //         fontWeight: FontWeight.bold,
+                //         color: Colors.black87),
+                //   ),
+                // ),
+                // const SizedBox(height: 12),
+                // _buildQuickActions(context, controller, primaryColor),
+                // const SizedBox(height: 24),
 
                 // 6. Recent Activity log
                 _buildRecentActivity(controller, primaryColor),

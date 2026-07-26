@@ -1,8 +1,10 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
+import 'package:spendly/screens/business/inventory/barcode_scanner_screen.dart';
 import 'package:spendly/utils/validators.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -21,9 +23,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.initState();
     // If not editing, clear controllers
     if (widget.productId == null) {
-      // Clear controllers using a post frame callback to avoid build issues
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // We call clear manually since clearControllers is private or we can access it
         controller.nameController.clear();
         controller.descController.clear();
         controller.priceController.clear();
@@ -35,6 +35,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         controller.purchasePriceController.clear();
         controller.taxController.clear();
         controller.minStockController.clear();
+        controller.hsnController.clear();
+        controller.imagePath.value = "";
       });
     }
   }
@@ -43,7 +45,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     final Color primaryColor = const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
     final Color accentColor = const Color(0xFFF3EFFF); // Light Purple background
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
@@ -95,30 +96,66 @@ class _AddProductScreenState extends State<AddProductScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Product Image Section
-                _buildSectionHeader("Product Image", textTheme),
+                _buildSectionHeader("Product Image"),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       flex: 4,
-                      child: Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: accentColor,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: primaryColor.withOpacity(0.15)),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.camera_alt_outlined, color: primaryColor, size: 32),
-                            const SizedBox(height: 8),
-                            Text("Upload Image", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 14)),
-                            const SizedBox(height: 4),
-                            Text("JPG, PNG (Max 2MB)", style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
-                          ],
-                        ),
-                      ),
+                      child: Obx(() {
+                        final String imgPath = controller.imagePath.value;
+                        final bool hasImage = imgPath.isNotEmpty && File(imgPath).existsSync();
+
+                        return GestureDetector(
+                          onTap: () => _showImagePickerSourceSheet(context, controller),
+                          child: Container(
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: hasImage ? Colors.white : accentColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: primaryColor.withOpacity(0.15)),
+                              image: hasImage
+                                  ? DecorationImage(
+                                      image: FileImage(File(imgPath)),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: hasImage
+                                ? Stack(
+                                    children: [
+                                      Positioned(
+                                        right: 8,
+                                        top: 8,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            controller.imagePath.value = "";
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.camera_alt_outlined, color: primaryColor, size: 28),
+                                      const SizedBox(height: 8),
+                                      Text("Upload Image", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 13)),
+                                      const SizedBox(height: 4),
+                                      Text("JPG, PNG (Max 2MB)", style: TextStyle(color: Colors.grey.shade500, fontSize: 9)),
+                                    ],
+                                  ),
+                          ),
+                        );
+                      }),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -130,7 +167,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                            BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10, offset: const Offset(0, 4))
                           ],
                         ),
                         child: Column(
@@ -139,9 +176,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.lightbulb_outline_rounded, color: primaryColor, size: 18),
+                                Icon(Icons.lightbulb_outline_rounded, color: primaryColor, size: 16),
                                 const SizedBox(width: 6),
-                                Text("Tip", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800, fontSize: 13)),
+                                Text("Tip", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800, fontSize: 12)),
                               ],
                             ),
                             const SizedBox(height: 6),
@@ -158,88 +195,110 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 const SizedBox(height: 24),
 
                 // 2. Product Details Section
-                _buildSectionHeader("Product Details", textTheme),
+                _buildSectionHeader("Product Details"),
                 const SizedBox(height: 10),
                 _buildCard([
-                  _buildTextField(
-                    controller: controller.nameController,
+                  _buildLabeledField(
                     label: "Product Name",
-                    icon: CupertinoIcons.tag,
                     required: true,
-                    validator: (v) => Validators.requiredField(v, "Product Name"),
+                    child: _buildTextField(
+                      controller: controller.nameController,
+                      hintText: "Enter product name",
+                      validator: (v) => Validators.requiredField(v, "Product Name"),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: _buildTextField(
-                          controller: controller.skuController,
+                        child: _buildLabeledField(
                           label: "Product Code (SKU)",
-                          icon: Icons.qr_code_rounded,
+                          child: _buildTextField(
+                            controller: controller.skuController,
+                            hintText: "Enter product code",
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildTextField(
-                          controller: controller.barcodeController,
+                        child: _buildLabeledField(
                           label: "Barcode (Optional)",
-                          icon: Icons.barcode_reader,
-                          suffixIcon: Icon(Icons.document_scanner_outlined, color: primaryColor, size: 20),
+                          child: _buildTextField(
+                            controller: controller.barcodeController,
+                            hintText: "Scan or enter barcode",
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.qr_code_scanner_rounded, color: primaryColor, size: 20),
+                              onPressed: () async {
+                                final scanned = await Get.to(() => const BarcodeScannerScreen());
+                                if (scanned != null && scanned is String && scanned.isNotEmpty) {
+                                  controller.barcodeController.text = scanned;
+                                }
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdownField(
-                    controller: controller.categoryController,
+                  _buildLabeledField(
                     label: "Category",
-                    icon: Icons.category_outlined,
-                    items: ["Electronics", "Clothing", "Food", "Groceries", "Services", "Utilities", "Other"],
                     required: true,
+                    child: _buildDropdownField(
+                      controller: controller.categoryController,
+                      items: ["Electronics", "Clothing", "Food", "Groceries", "Services", "Utilities", "Other"],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdownField(
-                    controller: controller.unitController,
+                  _buildLabeledField(
                     label: "Unit",
-                    icon: Icons.straighten_rounded,
-                    items: ["pcs", "kg", "box", "liter", "meter", "pack", "hours"],
                     required: true,
+                    child: _buildDropdownField(
+                      controller: controller.unitController,
+                      items: ["pcs", "kg", "box", "liter", "meter", "pack", "hours"],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: controller.descController,
+                  _buildLabeledField(
                     label: "HSN / SAC (Optional)",
-                    icon: Icons.text_snippet_outlined,
+                    child: _buildTextField(
+                      controller: controller.hsnController,
+                      hintText: "Enter HSN or SAC code",
+                    ),
                   ),
                 ]),
                 const SizedBox(height: 24),
 
                 // 3. Pricing & Stock Section
-                _buildSectionHeader("Pricing & Stock", textTheme),
+                _buildSectionHeader("Pricing & Stock"),
                 const SizedBox(height: 10),
                 _buildCard([
                   Row(
                     children: [
                       Expanded(
-                        child: _buildTextField(
-                          controller: controller.purchasePriceController,
+                        child: _buildLabeledField(
                           label: "Purchase Price (₹)",
-                          icon: Icons.shopping_bag_outlined,
                           required: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
+                          child: _buildTextField(
+                            controller: controller.purchasePriceController,
+                            hintText: "0.00",
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildTextField(
-                          controller: controller.priceController,
+                        child: _buildLabeledField(
                           label: "Selling Price (₹)",
-                          icon: Icons.currency_rupee_rounded,
                           required: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                          validator: (v) => Validators.requiredField(v, "Selling Price"),
+                          child: _buildTextField(
+                            controller: controller.priceController,
+                            hintText: "0.00",
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
+                            validator: (v) => Validators.requiredField(v, "Selling Price"),
+                          ),
                         ),
                       ),
                     ],
@@ -248,53 +307,61 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildDropdownField(
-                          controller: controller.taxController,
+                        child: _buildLabeledField(
                           label: "Tax %",
-                          icon: Icons.percent_rounded,
-                          items: ["GST 0%", "GST 5%", "GST 12%", "GST 18%", "GST 28%", "Exempted"],
+                          child: _buildDropdownField(
+                            controller: controller.taxController,
+                            items: ["GST 0%", "GST 5%", "GST 12%", "GST 18%", "GST 28%", "Exempted"],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildTextField(
-                          controller: controller.qtyController,
+                        child: _buildLabeledField(
                           label: "Opening Stock",
-                          icon: Icons.inventory_2_outlined,
                           required: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          child: _buildTextField(
+                            controller: controller.qtyController,
+                            hintText: "0",
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: controller.minStockController,
+                  _buildLabeledField(
                     label: "Minimum Stock Alert",
-                    icon: Icons.warning_amber_rounded,
-                    suffixIcon: Icon(Icons.info_outline_rounded, color: primaryColor, size: 20),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    infoIcon: Icon(Icons.info_outline_rounded, color: primaryColor, size: 16),
+                    child: _buildTextField(
+                      controller: controller.minStockController,
+                      hintText: "Enter minimum stock level",
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
                   ),
                 ]),
                 const SizedBox(height: 24),
 
                 // 4. Additional Information
-                _buildSectionHeader("Additional Information (Optional)", textTheme),
+                _buildSectionHeader("Additional Information (Optional)"),
                 const SizedBox(height: 10),
                 _buildCard([
-                  TextFormField(
-                    controller: controller.descController,
-                    maxLines: 4,
-                    maxLength: 200,
-                    decoration: InputDecoration(
-                      hintText: "Enter product description",
-                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                      filled: true,
-                      fillColor: const Color(0xFFF9FAFC),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(16),
+                  _buildLabeledField(
+                    label: "Description",
+                    child: TextFormField(
+                      controller: controller.descController,
+                      maxLines: 4,
+                      maxLength: 200,
+                      decoration: InputDecoration(
+                        hintText: "Enter product description",
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        filled: true,
+                        fillColor: const Color(0xFFF9FAFC),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.all(16),
+                      ),
                     ),
                   ),
                 ]),
@@ -318,6 +385,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller.purchasePriceController.clear();
                           controller.taxController.clear();
                           controller.minStockController.clear();
+                          controller.hsnController.clear();
+                          controller.imagePath.value = "";
                         },
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: primaryColor.withOpacity(0.5)),
@@ -359,7 +428,57 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, TextTheme textTheme) {
+  void _showImagePickerSourceSheet(BuildContext context, InventoryController controller) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Select Product Image",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF5F33E1)),
+                ),
+                title: const Text("Choose from Gallery"),
+                onTap: () {
+                  Get.back();
+                  controller.pickProductImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF5F33E1)),
+                ),
+                title: const Text("Take a Photo"),
+                onTap: () {
+                  Get.back();
+                  controller.pickProductImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
     return Text(
       title,
       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -374,7 +493,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, spreadRadius: 1, offset: const Offset(0, 5))
+          BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 15, spreadRadius: 1, offset: const Offset(0, 5))
         ],
       ),
       child: Column(
@@ -384,11 +503,45 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
+  Widget _buildLabeledField({
+    required String label,
+    required Widget child,
+    bool required = false,
+    Widget? infoIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            if (required)
+              const Text(
+                " *",
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            if (infoIcon != null) ...[
+              const SizedBox(width: 4),
+              infoIcon,
+            ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool required = false,
+    required String hintText,
     Widget? suffixIcon,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
@@ -400,15 +553,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
       inputFormatters: inputFormatters,
       validator: validator,
       decoration: InputDecoration(
-        labelText: required ? "$label *" : label,
-        labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-        prefixIcon: Icon(icon, color: const Color(0xFF5F33E1).withOpacity(0.7), size: 20),
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: const Color(0xFFF9FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -418,31 +570,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Widget _buildDropdownField({
     required TextEditingController controller,
-    required String label,
-    required IconData icon,
     required List<String> items,
-    bool required = false,
   }) {
     if (controller.text.isEmpty && items.isNotEmpty) {
       controller.text = items.first;
     }
     return DropdownButtonFormField<String>(
       value: controller.text.isNotEmpty && items.contains(controller.text) ? controller.text : items.first,
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 14)))).toList(),
       onChanged: (val) {
         if (val != null) {
           controller.text = val;
         }
       },
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
       decoration: InputDecoration(
-        labelText: required ? "$label *" : label,
-        labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-        prefixIcon: Icon(icon, color: const Color(0xFF5F33E1).withOpacity(0.7), size: 20),
         filled: true,
         fillColor: const Color(0xFFF9FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

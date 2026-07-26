@@ -72,7 +72,20 @@ class CreateQuotationController extends GetxController {
     super.onInit();
     quotationNumberController.text =
         "QT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
-    fetchCustomers();
+    fetchCustomers().then((_) {
+      if (Get.arguments != null) {
+        final arg = Get.arguments;
+        String? custId;
+        if (arg is Map) {
+          custId = arg['id']?.toString() ?? arg['customer_id']?.toString();
+        } else if (arg is String) {
+          custId = arg;
+        }
+        if (custId != null) {
+          selectedCustomerId.value = custId;
+        }
+      }
+    });
     fetchProducts();
   }
 

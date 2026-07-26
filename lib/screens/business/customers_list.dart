@@ -5,11 +5,11 @@ import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/utils/utils.dart';
-import 'package:spendly/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/controllers/payment_controller.dart';
 import 'package:spendly/utils/business_export_helper.dart';
 import 'package:spendly/widgets/premium_dialogs.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class CustomersController extends GetxController {
   final customers = [].obs;
@@ -29,14 +29,21 @@ class CustomersController extends GetxController {
 
   List get filteredCustomers {
     List list = [...customers];
-    
+
     // Apply Tab Filter
     if (selectedTab.value == 'Active') {
-      list = list.where((c) => (c['total_sales'] ?? 0.0) > 0 || (c['pending_amount'] ?? 0.0) > 0).toList();
+      list = list
+          .where((c) =>
+              (c['total_sales'] ?? 0.0) > 0 || (c['pending_amount'] ?? 0.0) > 0)
+          .toList();
     } else if (selectedTab.value == 'Inactive') {
-      list = list.where((c) => (c['total_sales'] ?? 0.0) == 0 && (c['pending_amount'] ?? 0.0) == 0).toList();
+      list = list
+          .where((c) =>
+              (c['total_sales'] ?? 0.0) == 0 &&
+              (c['pending_amount'] ?? 0.0) == 0)
+          .toList();
     }
-    
+
     // Apply Search Filter
     if (searchQuery.value.isNotEmpty) {
       final query = searchQuery.value.toLowerCase();
@@ -44,23 +51,31 @@ class CustomersController extends GetxController {
         final name = (c['name'] ?? '').toString().toLowerCase();
         final phone = (c['phone'] ?? '').toString().toLowerCase();
         final address = (c['address'] ?? '').toString().toLowerCase();
-        return name.contains(query) || phone.contains(query) || address.contains(query);
+        return name.contains(query) ||
+            phone.contains(query) ||
+            address.contains(query);
       }).toList();
     }
-    
+
     // Apply Sorting
     if (selectedSort.value == 'A-Z') {
-      list.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
+      list.sort((a, b) =>
+          (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
     } else if (selectedSort.value == 'Z-A') {
-      list.sort((a, b) => (b['name'] ?? '').toString().compareTo((a['name'] ?? '').toString()));
+      list.sort((a, b) =>
+          (b['name'] ?? '').toString().compareTo((a['name'] ?? '').toString()));
     } else {
       list.sort((a, b) {
-        final aDate = a['created_at'] != null ? DateTime.parse(a['created_at']) : DateTime.fromMillisecondsSinceEpoch(0);
-        final bDate = b['created_at'] != null ? DateTime.parse(b['created_at']) : DateTime.fromMillisecondsSinceEpoch(0);
+        final aDate = a['created_at'] != null
+            ? DateTime.parse(a['created_at'])
+            : DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = b['created_at'] != null
+            ? DateTime.parse(b['created_at'])
+            : DateTime.fromMillisecondsSinceEpoch(0);
         return bDate.compareTo(aDate);
       });
     }
-    
+
     return list;
   }
 
@@ -127,11 +142,15 @@ class CustomersController extends GetxController {
         "address": addressController.text.trim(),
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
         final isOffline = response.statusCode == 202;
         Utils.showSnackbar(
             isOffline ? "Offline" : "Success",
-            isOffline ? "Customer added offline. Will sync when online." : "Customer added successfully",
+            isOffline
+                ? "Customer added offline. Will sync when online."
+                : "Customer added successfully",
             isError: false);
         nameController.clear();
         phoneController.clear();
@@ -140,6 +159,50 @@ class CustomersController extends GetxController {
         fetchCustomers(forceRefresh: true);
       } else {
         Utils.showSnackbar("Error", "Failed to add customer: ${response.body}");
+      }
+    } catch (e) {
+      Utils.showSnackbar("Error", "An error occurred: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateCustomer(String customerId) async {
+    if (!formKey.currentState!.validate()) return;
+
+    String? userId = Get.find<AuthService>().currentUserId;
+    if (userId == null) return;
+
+    Get.back(); // Close screen/sheet
+    isLoading.value = true;
+    try {
+      final response =
+          await ApiService.put('/business/customers/$customerId', headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId
+      }, body: {
+        "name": nameController.text.trim(),
+        "phone": phoneController.text.trim(),
+        "email": emailController.text.trim(),
+        "address": addressController.text.trim(),
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        final isOffline = response.statusCode == 202;
+        Utils.showSnackbar(
+            isOffline ? "Offline" : "Success",
+            isOffline
+                ? "Customer updated offline. Will sync when online."
+                : "Customer updated successfully",
+            isError: false);
+        nameController.clear();
+        phoneController.clear();
+        emailController.clear();
+        addressController.clear();
+        fetchCustomers(forceRefresh: true);
+      } else {
+        Utils.showSnackbar(
+            "Error", "Failed to update customer: ${response.body}");
       }
     } catch (e) {
       Utils.showSnackbar("Error", "An error occurred: $e");
@@ -158,11 +221,15 @@ class CustomersController extends GetxController {
           '/business/customers/$customerId',
           headers: {'x-user-id': userId});
 
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 202) {
         final isOffline = response.statusCode == 202;
         Utils.showSnackbar(
             isOffline ? "Offline" : "Success",
-            isOffline ? "Customer deletion scheduled offline. Will sync when online." : "Customer deleted successfully",
+            isOffline
+                ? "Customer deletion scheduled offline. Will sync when online."
+                : "Customer deleted successfully",
             isError: false);
         fetchCustomers(forceRefresh: true);
       } else {
@@ -183,7 +250,8 @@ class CustomersListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CustomersController());
-    final Color primaryColor = const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
+    final Color primaryColor =
+        const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
@@ -191,7 +259,8 @@ class CustomersListView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Column(
@@ -199,7 +268,10 @@ class CustomersListView extends StatelessWidget {
           children: [
             const Text(
               "Customers",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
             ),
             const SizedBox(height: 2),
             Text(
@@ -211,23 +283,32 @@ class CustomersListView extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.search_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.filter_list_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () {},
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 12.0, top: 10.0, bottom: 10.0),
+            padding:
+                const EdgeInsets.only(right: 12.0, top: 10.0, bottom: 10.0),
             child: ElevatedButton.icon(
-              onPressed: () => _showAddCustomerSheet(context, controller),
-              icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-              label: const Text("Add Customer", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
+              onPressed: () => Get.toNamed(RoutesName.addCustomer),
+              icon:
+                  const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+              label: const Text("Add Customer",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 12)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
@@ -239,11 +320,19 @@ class CustomersListView extends StatelessWidget {
           children: [
             // 1. Statistics Row
             Obx(() {
-              final double dueAmount = controller.customers.fold(0.0, (sum, c) => sum + (c['pending_amount'] ?? 0.0));
-              final double totalSales = controller.customers.fold(0.0, (sum, c) => sum + (c['total_sales'] ?? 0.0));
+              final double dueAmount = controller.customers
+                  .fold(0.0, (sum, c) => sum + (c['pending_amount'] ?? 0.0));
+              final double totalSales = controller.customers
+                  .fold(0.0, (sum, c) => sum + (c['total_sales'] ?? 0.0));
               final int totalCust = controller.customers.length;
-              final int activeCust = controller.customers.where((c) => (c['total_sales'] ?? 0.0) > 0 || (c['pending_amount'] ?? 0.0) > 0).length;
-              final int dueCustCount = controller.customers.where((c) => (c['pending_amount'] ?? 0.0) > 0).length;
+              final int activeCust = controller.customers
+                  .where((c) =>
+                      (c['total_sales'] ?? 0.0) > 0 ||
+                      (c['pending_amount'] ?? 0.0) > 0)
+                  .length;
+              final int dueCustCount = controller.customers
+                  .where((c) => (c['pending_amount'] ?? 0.0) > 0)
+                  .length;
 
               return Container(
                 height: 125,
@@ -300,12 +389,12 @@ class CustomersListView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Obx(() => Row(
-                children: [
-                  _buildTabButton(controller, 'All', "All"),
-                  _buildTabButton(controller, 'Active', "Active"),
-                  _buildTabButton(controller, 'Inactive', "Inactive"),
-                ],
-              )),
+                    children: [
+                      _buildTabButton(controller, 'All', "All"),
+                      _buildTabButton(controller, 'Active', "Active"),
+                      _buildTabButton(controller, 'Inactive', "Inactive"),
+                    ],
+                  )),
             ),
             const SizedBox(height: 14),
 
@@ -320,47 +409,67 @@ class CustomersListView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(15),
+                        border:
+                            Border.all(color: Colors.grey.shade100, width: 1.5),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.015),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4))
                         ],
                       ),
                       child: TextFormField(
                         onChanged: (val) => controller.searchQuery.value = val,
                         decoration: InputDecoration(
                           hintText: "Search by name, phone or city...",
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                          prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                          hintStyle: TextStyle(
+                              color: Colors.grey.shade400, fontSize: 13),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              color: Colors.grey.shade400, size: 20),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Obx(() => Container(
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: controller.selectedSort.value,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
-                        style: TextStyle(fontWeight: FontWeight.w600, color: primaryColor, fontSize: 13),
-                        onChanged: (val) {
-                          if (val != null) {
-                            controller.selectedSort.value = val;
-                          }
-                        },
-                        items: ["Recent", "A-Z", "Z-A"].map((s) => DropdownMenuItem(value: s, child: Text("Sort: $s"))).toList(),
-                      ),
-                    ),
-                  )),
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                              color: Colors.grey.shade100, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.015),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4))
+                          ],
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: controller.selectedSort.value,
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                                color: Colors.grey),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: primaryColor,
+                                fontSize: 13),
+                            onChanged: (val) {
+                              if (val != null) {
+                                controller.selectedSort.value = val;
+                              }
+                            },
+                            items: ["Recent", "A-Z", "Z-A"]
+                                .map((s) => DropdownMenuItem(
+                                    value: s, child: Text("Sort: $s")))
+                                .toList(),
+                          ),
+                        ),
+                      )),
                 ],
               ),
             ),
@@ -369,8 +478,10 @@ class CustomersListView extends StatelessWidget {
             // 4. Customers List
             Expanded(
               child: Obx(() {
-                if (controller.isLoading.value && controller.customers.isEmpty) {
-                  return Center(child: CircularProgressIndicator(color: primaryColor));
+                if (controller.isLoading.value &&
+                    controller.customers.isEmpty) {
+                  return Center(
+                      child: CircularProgressIndicator(color: primaryColor));
                 }
                 final list = controller.filteredCustomers;
                 if (list.isEmpty) {
@@ -378,9 +489,12 @@ class CustomersListView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.group_off_rounded, size: 64, color: primaryColor.withOpacity(0.3)),
+                        Icon(Icons.group_off_rounded,
+                            size: 64, color: primaryColor.withOpacity(0.3)),
                         const SizedBox(height: 16),
-                        Text("No matching customers found.", style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                        Text("No matching customers found.",
+                            style: TextStyle(
+                                color: Colors.grey.shade500, fontSize: 14)),
                       ],
                     ),
                   );
@@ -388,7 +502,8 @@ class CustomersListView extends StatelessWidget {
 
                 return AnimationLimiter(
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16)
+                        .copyWith(bottom: 20),
                     physics: const BouncingScrollPhysics(),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
@@ -399,7 +514,8 @@ class CustomersListView extends StatelessWidget {
                         child: SlideAnimation(
                           verticalOffset: 30.0,
                           child: FadeInAnimation(
-                            child: _buildCustomerCard(context, cust, primaryColor),
+                            child:
+                                _buildCustomerCard(context, cust, primaryColor),
                           ),
                         ),
                       );
@@ -424,14 +540,25 @@ class CustomersListView extends StatelessWidget {
     required String value,
     required String subtitle,
   }) {
+    // Generate HSL-based highlight colors
+    final hslColor = HSLColor.fromColor(color);
+    final bgColor = hslColor.withLightness(0.96).withSaturation(0.85).toColor();
+    final borderColor =
+        hslColor.withLightness(0.90).withSaturation(0.7).toColor();
+
     return Container(
       width: 135,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor.withOpacity(0.4), width: 1.2),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(
+            color: color.withOpacity(0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
       child: Column(
@@ -441,39 +568,56 @@ class CustomersListView extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: color, size: 16),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 18),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              fontSize: 16,
+              letterSpacing: -0.3,
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 9),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 9,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTabButton(CustomersController controller, String val, String label) {
+  Widget _buildTabButton(
+      CustomersController controller, String val, String label) {
     final isSelected = controller.selectedTab.value == val;
     return Expanded(
       child: InkWell(
@@ -487,14 +631,20 @@ class CustomersListView extends StatelessWidget {
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
-                ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))]
+                ? [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2))
+                  ]
                 : [],
           ),
           child: Text(
             label,
             style: TextStyle(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? const Color(0xFF5F33E1) : Colors.grey.shade600,
+              color:
+                  isSelected ? const Color(0xFF5F33E1) : Colors.grey.shade600,
               fontSize: 13,
             ),
           ),
@@ -503,186 +653,172 @@ class CustomersListView extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerCard(BuildContext context, dynamic cust, Color primaryColor) {
+  Widget _buildCustomerCard(
+      BuildContext context, dynamic cust, Color primaryColor) {
     final double sales = (cust['total_sales'] ?? 0.0).toDouble();
     final double pending = (cust['pending_amount'] ?? 0.0).toDouble();
     final bool hasDues = pending > 0;
-    
+
     // Choose dynamic background avatar color based on customer name hash
     final String name = cust['name'] ?? 'Unknown';
     final int hash = name.codeUnits.fold(0, (sum, code) => sum + code);
-    final List<Color> colorsList = [Colors.green, Colors.blue, Colors.orange, Colors.purple, Colors.teal, Colors.red];
+    final List<Color> colorsList = [
+      Colors.green,
+      Colors.blue,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.red
+    ];
     final Color avatarColor = colorsList[hash % colorsList.length];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100, width: 1.5),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 5))
+          BoxShadow(
+              color: Colors.black.withOpacity(0.015),
+              blurRadius: 15,
+              offset: const Offset(0, 5))
         ],
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: avatarColor.withOpacity(0.12),
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : "?",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: avatarColor),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => Get.toNamed(RoutesName.customerDetail, arguments: cust),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: avatarColor.withOpacity(0.12),
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : "?",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: avatarColor),
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  cust['phone'] ?? 'No phone number',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                ),
-                if (cust['address'] != null && cust['address'].toString().trim().isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on_outlined, size: 12, color: Colors.grey.shade400),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          cust['address'],
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
-                        ),
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black87),
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        cust['phone'] ?? 'No phone number',
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12),
+                      ),
+                      if (cust['address'] != null &&
+                          cust['address'].toString().trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_outlined,
+                                size: 12, color: Colors.grey.shade400),
+                            const SizedBox(width: 2),
+                            Expanded(
+                              child: Text(
+                                cust['address'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.grey.shade400, fontSize: 11),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
-                ],
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // 1. Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: (sales > 0 || pending > 0)
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        (sales > 0 || pending > 0) ? "Active" : "Inactive",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          color: (sales > 0 || pending > 0)
+                              ? Colors.green
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // 2. Dues Balance
+                    Text(
+                      "₹${pending.toStringAsFixed(0)}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: hasDues ? Colors.redAccent : Colors.green,
+                      ),
+                    ),
+                    Text(
+                      hasDues ? "Due in 3 days" : "No Due",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: hasDues
+                            ? Colors.redAccent.withOpacity(0.7)
+                            : Colors.green.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    color: Colors.grey, size: 12),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // 1. Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (sales > 0 || pending > 0) ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  (sales > 0 || pending > 0) ? "Active" : "Inactive",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                    color: (sales > 0 || pending > 0) ? Colors.green : Colors.grey.shade600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // 2. Dues Balance
-              Text(
-                "₹${pending.toStringAsFixed(0)}",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: hasDues ? Colors.redAccent : Colors.green,
-                ),
-              ),
-              Text(
-                hasDues ? "Due in 3 days" : "No Due",
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: hasDues ? Colors.redAccent.withOpacity(0.7) : Colors.green.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-            constraints: const BoxConstraints(),
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              // Option to delete or export customer details
-              _showCustomerActions(context, cust);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCustomerActions(BuildContext context, dynamic cust) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            Text("Customer Actions", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade800)),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.share_outlined, color: Colors.indigo),
-              title: const Text("Share details"),
-              onTap: () => Get.back(),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-              title: const Text("Delete Customer", style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Get.back();
-                Get.dialog(
-                  AlertDialog(
-                    title: const Text("Delete Customer"),
-                    content: const Text("Are you sure you want to delete this customer? This action cannot be undone."),
-                    actions: [
-                      TextButton(onPressed: () => Get.back(), child: const Text("CANCEL")),
-                      TextButton(
-                        onPressed: () {
-                          Get.back();
-                          Get.find<CustomersController>().deleteCustomer(cust['id'].toString());
-                        },
-                        child: const Text("DELETE", style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildBottomDashboard(BuildContext context, CustomersController controller, Color primaryColor) {
+  Widget _buildBottomDashboard(BuildContext context,
+      CustomersController controller, Color primaryColor) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -4))
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, -4))
         ],
       ),
       padding: const EdgeInsets.all(16.0),
@@ -701,16 +837,23 @@ class CustomersListView extends StatelessWidget {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: primaryColor.withOpacity(0.12),
-                  child: Icon(Icons.bar_chart_rounded, color: primaryColor, size: 20),
+                  child: Icon(Icons.bar_chart_rounded,
+                      color: primaryColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Customer Insights", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      const Text("Customer Insights",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.black87)),
                       const SizedBox(height: 2),
-                      Text("Track customer dues and sales history in one place", style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
+                      Text("Track customer dues and sales history in one place",
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 10)),
                     ],
                   ),
                 ),
@@ -719,10 +862,16 @@ class CustomersListView extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   ),
-                  child: const Text("View Insights", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Text("View Insights",
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                 ),
               ],
             ),
@@ -732,33 +881,50 @@ class CustomersListView extends StatelessWidget {
           // 2. Quick Actions
           const Align(
             alignment: Alignment.centerLeft,
-            child: Text("Quick Actions", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+            child: Text("Quick Actions",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black87)),
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _quickActionItem(Icons.person_add_alt_1_rounded, "Add Customer", () => _showAddCustomerSheet(context, controller), primaryColor),
-              _quickActionItem(Icons.call_made_rounded, "WhatsApp", () {}, primaryColor),
-              _quickActionItem(Icons.email_outlined, "Email", () {}, primaryColor),
-              _quickActionItem(Icons.notifications_active_outlined, "Reminder", () {}, primaryColor),
+              _quickActionItem(Icons.person_add_alt_1_rounded, "Add Customer",
+                  () => Get.toNamed(RoutesName.addCustomer), primaryColor),
+              _quickActionItem(
+                  Icons.call_made_rounded, "WhatsApp", () {}, primaryColor),
+              _quickActionItem(
+                  Icons.email_outlined, "Email", () {}, primaryColor),
+              _quickActionItem(Icons.notifications_active_outlined, "Reminder",
+                  () {}, primaryColor),
               _quickActionItem(Icons.analytics_outlined, "Report", () {
                 Get.bottomSheet(
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(2))),
+                        Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(2))),
                         const SizedBox(height: 20),
-                        const Text("Export Customer Report", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text("Export Customer Report",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 20),
                         ListTile(
-                          leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.red),
+                          leading: const Icon(Icons.picture_as_pdf_rounded,
+                              color: Colors.red),
                           title: const Text("Export as PDF"),
                           onTap: () {
                             Get.back();
@@ -766,7 +932,8 @@ class CustomersListView extends StatelessWidget {
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.table_view_rounded, color: Colors.green),
+                          leading: const Icon(Icons.table_view_rounded,
+                              color: Colors.green),
                           title: const Text("Export as CSV"),
                           onTap: () {
                             Get.back();
@@ -785,7 +952,8 @@ class CustomersListView extends StatelessWidget {
     );
   }
 
-  Widget _quickActionItem(IconData icon, String label, VoidCallback onTap, Color primaryColor) {
+  Widget _quickActionItem(
+      IconData icon, String label, VoidCallback onTap, Color primaryColor) {
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -799,7 +967,11 @@ class CustomersListView extends StatelessWidget {
             child: Icon(icon, color: primaryColor, size: 20),
           ),
           const SizedBox(height: 6),
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600)),
         ],
       ),
     );
@@ -845,100 +1017,5 @@ class CustomersListView extends StatelessWidget {
       if (Get.isDialogOpen ?? false) Get.back();
       Utils.showSnackbar("Error", "Export failed: $e");
     }
-  }
-
-  void _showAddCustomerSheet(
-      BuildContext context, CustomersController controller) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Add New Customer",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF5F33E1))),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: controller.nameController,
-                  validator: (v) => Validators.requiredField(v, "Name"),
-                  decoration: _inputDeco("Full Name", Icons.person_rounded),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: controller.phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration:
-                      _inputDeco("Phone (Optional)", Icons.phone_rounded),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: controller.emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration:
-                      _inputDeco("Email (Optional)", Icons.email_rounded),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: controller.addressController,
-                  maxLines: 2,
-                  decoration: _inputDeco(
-                      "Address (Optional)", Icons.location_on_rounded),
-                ),
-                const SizedBox(height: 25),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: controller.addCustomer,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5F33E1),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                    child: const Text("SAVE CUSTOMER",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDeco(String hint, IconData icon) {
-    return InputDecoration(
-      labelText: hint,
-      prefixIcon: Icon(icon, color: const Color(0xFF5F33E1)),
-      filled: true,
-      fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 2)),
-    );
   }
 }

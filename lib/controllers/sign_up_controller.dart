@@ -26,6 +26,7 @@ class SignUpController extends GetxController {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final phoneNumberController = TextEditingController();
+  final referredByController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   var obscurePassword = true.obs;
@@ -110,6 +111,7 @@ class SignUpController extends GetxController {
           'password': passwordController.text.trim(),
           'device_info': deviceInfo,
           'fcm_token': fcmToken,
+          'referred_by_code': referredByController.text.trim().isEmpty ? null : referredByController.text.trim(),
         },
       );
 
@@ -139,6 +141,7 @@ class SignUpController extends GetxController {
           'email': emailController.text.trim(),
           'phone_number': phoneNumberController.text.trim(),
           'password': passwordController.text.trim(),
+          'referred_by_code': referredByController.text.trim().isEmpty ? null : referredByController.text.trim(),
         },
       );
 
@@ -432,6 +435,10 @@ class SignUpController extends GetxController {
           email: userData['email'] ?? '',
           phoneNumber: userData['phone_number'] ?? '',
           lastLogin: Timestamp.now(),
+          isPremium: userData['is_premium'] ?? false,
+          referralCode: userData['referral_code'],
+          referredById: userData['referred_by_id'],
+          referralCount: userData['referral_count'] ?? 0,
         );
 
         // Save locally
@@ -442,6 +449,10 @@ class SignUpController extends GetxController {
         box.write("name", myUser.name);
         box.write("phoneNumber", myUser.phoneNumber);
         box.write('hasSeenOnboarding', true);
+        box.write("isPremium", myUser.isPremium);
+        box.write("referralCode", myUser.referralCode);
+        box.write("referredById", myUser.referredById);
+        box.write("referralCount", myUser.referralCount);
 
         Get.back(); // Close dialog
         Utils.showSnackbar('Success', 'Account verified successfully',

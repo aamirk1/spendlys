@@ -29,6 +29,10 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
   // We maintain a list of member controllers
   final List<_MemberFormItem> _memberItems = [];
 
+  // Itemized expenses toggle & list
+  bool _useDetailedExpenses = false;
+  final List<GroupSplitExpense> _expenseItems = [];
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +76,34 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
       _memberItems.removeAt(index);
     });
     _onAmountOrMembersChanged();
+  }
+
+  double _calculateTotalExpense() {
+    double total = 0.0;
+    for (var exp in _expenseItems) {
+      total += exp.amount;
+    }
+    return total;
+  }
+
+  void _addExpenseItem(String name, double amount) {
+    setState(() {
+      _expenseItems.add(GroupSplitExpense(name: name, amount: amount));
+      if (_useDetailedExpenses) {
+        _amountController.text = _calculateTotalExpense().toStringAsFixed(2);
+      }
+    });
+    _recalculateShares();
+  }
+
+  void _removeExpenseItem(int index) {
+    setState(() {
+      _expenseItems.removeAt(index);
+      if (_useDetailedExpenses) {
+        _amountController.text = _calculateTotalExpense().toStringAsFixed(2);
+      }
+    });
+    _recalculateShares();
   }
 
   void _onAmountOrMembersChanged() {
@@ -235,10 +267,120 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
       splitType: _splitType,
       date: _selectedDate,
       members: RxList<Member>.from(membersList),
+      expenses: RxList<GroupSplitExpense>.from(_expenseItems),
       createdAt: DateTime.now(),
     );
 
     Get.find<GroupSplitController>().addGroupSplit(newSplit);
+  }
+
+  void _showAddExpenseDialog() {
+    final nameCtrl = TextEditingController();
+    final amtCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Add Expense Item',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Expense Description',
+                    hintText: 'e.g. Hotel, Dinner, Cab',
+                    filled: true,
+                    fillColor: const Color(0xFFF8F9FD),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                    ),
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty ? 'Please enter description' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: amtCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Amount (₹)',
+                    hintText: '0.00',
+                    filled: true,
+                    fillColor: const Color(0xFFF8F9FD),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter amount';
+                    if (double.tryParse(v) == null || double.parse(v) <= 0) return 'Please enter valid amount';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          _addExpenseItem(
+                            nameCtrl.text.trim(),
+                            double.parse(amtCtrl.text.trim()),
+                          );
+                          Get.back();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      child: const Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -274,7 +416,160 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                         amountController: _amountController,
                         selectedDate: _selectedDate,
                         onTapDate: () => _selectDate(context),
+                        readOnly: _useDetailedExpenses,
                       ),
+                      const SizedBox(height: 16),
+                      // Itemized expenses toggle switch
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                          border: Border.all(color: theme.dividerColor.withOpacity(0.08)),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.list_alt_rounded, color: AppColors.primary, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Itemized Expenses',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                    Text(
+                                      'Add individual expenses for this trip',
+                                      style: TextStyle(fontSize: 11, color: theme.disabledColor),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Switch.adaptive(
+                              value: _useDetailedExpenses,
+                              activeColor: AppColors.primary,
+                              onChanged: (val) {
+                                setState(() {
+                                  _useDetailedExpenses = val;
+                                  if (val) {
+                                    _amountController.text = _calculateTotalExpense().toStringAsFixed(2);
+                                  } else {
+                                    _amountController.clear();
+                                  }
+                                });
+                                _recalculateShares();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Detailed itemized expenses list
+                      if (_useDetailedExpenses) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: theme.dividerColor.withOpacity(0.08)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Expenses list',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: _showAddExpenseDialog,
+                                    icon: const Icon(Icons.add_rounded, size: 16),
+                                    label: const Text('Add Item'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: AppColors.primary,
+                                      padding: EdgeInsets.zero,
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_expenseItems.isEmpty) ...[
+                                const SizedBox(height: 12),
+                                Center(
+                                  child: Text(
+                                    'No items added yet. Tap "Add Item" to add trip expenses.',
+                                    style: TextStyle(fontSize: 12, color: theme.disabledColor),
+                                  ),
+                                ),
+                              ] else ...[
+                                const SizedBox(height: 8),
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _expenseItems.length,
+                                  itemBuilder: (context, index) {
+                                    final exp = _expenseItems[index];
+                                    return ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: CircleAvatar(
+                                        backgroundColor: AppColors.primary.withOpacity(0.08),
+                                        child: Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 16),
+                                      ),
+                                      title: Text(
+                                        exp.name,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '₹${exp.amount.toStringAsFixed(2)}',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                            onPressed: () => _removeExpenseItem(index),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 20),
                       SplitTypeSelector(
                         currentSplitType: _splitType,

@@ -7,12 +7,14 @@ class BillDetailsCard extends StatelessWidget {
   final TextEditingController amountController;
   final DateTime selectedDate;
   final VoidCallback onTapDate;
+  final bool readOnly;
 
   const BillDetailsCard({
     required this.titleController,
     required this.amountController,
     required this.selectedDate,
     required this.onTapDate,
+    this.readOnly = false,
     super.key,
   });
 
@@ -41,8 +43,10 @@ class BillDetailsCard extends StatelessWidget {
         ),
         prefixIcon: prefixIcon,
         filled: true,
-        fillColor: const Color(0xFFF8F9FD),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor:
+            readOnly ? Colors.grey.withOpacity(0.05) : const Color(0xFFF8F9FD),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -53,7 +57,9 @@ class BillDetailsCard extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(
+              color: readOnly ? Colors.grey.shade300 : AppColors.primary,
+              width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -102,7 +108,8 @@ class BillDetailsCard extends StatelessWidget {
                 'Bill details',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: theme.textTheme.titleMedium?.color ?? AppColors.textPrimary,
+                  color: theme.textTheme.titleMedium?.color ??
+                      AppColors.textPrimary,
                 ),
               ),
             ],
@@ -114,7 +121,8 @@ class BillDetailsCard extends StatelessWidget {
             decoration: fieldDecoration(
               label: 'Activity / Title',
               hintText: 'e.g. Goa Trip, Dinner, Movie',
-              prefixIcon: Icon(Icons.title_rounded, color: AppColors.primary, size: 20),
+              prefixIcon:
+                  Icon(Icons.title_rounded, color: AppColors.primary, size: 20),
             ),
             validator: (val) {
               if (val == null || val.trim().isEmpty) {
@@ -126,12 +134,25 @@ class BillDetailsCard extends StatelessWidget {
           const SizedBox(height: 16),
           TextFormField(
             controller: amountController,
+            readOnly: readOnly,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: readOnly ? Colors.grey.shade600 : null,
+            ),
             decoration: fieldDecoration(
-              label: 'Total Bill Amount',
+              label:
+                  readOnly ? 'Total Bill Amount (Auto)' : 'Total Bill Amount',
               hintText: '0.00',
-              prefixIcon: Icon(Icons.currency_rupee_rounded, color: AppColors.primary, size: 20),
+              prefixIcon: Icon(
+                Icons.currency_rupee_rounded,
+                color: readOnly ? Colors.grey.shade500 : AppColors.primary,
+                size: 20,
+              ),
+            ).copyWith(
+              helperText: readOnly ? 'Sum of itemized expenses below' : null,
+              helperStyle: TextStyle(color: Colors.grey.shade500, fontSize: 11),
             ),
             validator: (val) {
               if (val == null || val.trim().isEmpty) {
@@ -160,7 +181,8 @@ class BillDetailsCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 18),
+                      Icon(Icons.calendar_today_rounded,
+                          color: AppColors.primary, size: 18),
                       const SizedBox(width: 12),
                       Text(
                         'Bill Date',

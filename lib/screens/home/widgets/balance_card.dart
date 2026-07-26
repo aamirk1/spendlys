@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:spendly/controllers/expenseController.dart';
 import 'package:spendly/controllers/incomeController.dart';
 import 'package:spendly/controllers/loan_controller.dart';
-import 'package:spendly/res/routes/routes_name.dart';
 import 'pressable_scale.dart';
 
 class BalanceCard extends StatefulWidget {
@@ -245,60 +244,47 @@ class _BalanceCardState extends State<BalanceCard> {
                     );
                   }),
                   const SizedBox(height: 8),
-                  PressableScale(
-                    onTap: () => Get.toNamed(RoutesName.viewAllExpenses),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
+                  Row(
+                    children: [
+                      _balanceStatItem(
+                        icon: Icons.arrow_upward_rounded,
+                        label: "lent_label".tr,
+                        color: Colors.greenAccent.shade400,
+                        amountObx: () {
+                          final filter = selectedFilter.value;
+                          return loanController.lent
+                              .where(
+                                  (item) => _isWithinFilter(item.date, filter))
+                              .fold(
+                                  0.0,
+                                  (sum, item) =>
+                                      sum +
+                                      (item.amount - item.paidAmount.value));
+                        },
                       ),
-                      child: Row(
-                        children: [
-                          _balanceStatItem(
-                            icon: Icons.arrow_upward_rounded,
-                            label: "lent_label".tr,
-                            color: Colors.greenAccent.shade400,
-                            amountObx: () {
-                              final filter = selectedFilter.value;
-                              return loanController.lent
-                                  .where((item) =>
-                                      _isWithinFilter(item.date, filter))
-                                  .fold(
-                                      0.0,
-                                      (sum, item) =>
-                                          sum +
-                                          (item.amount -
-                                              item.paidAmount.value));
-                            },
-                          ),
-                          Container(
-                            width: 1,
-                            height: 30,
-                            color: Colors.white24,
-                            margin: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          _balanceStatItem(
-                            icon: Icons.arrow_downward_rounded,
-                            label: "borrowed_label".tr,
-                            color: Colors.redAccent.shade200,
-                            amountObx: () {
-                              final filter = selectedFilter.value;
-                              return loanController.borrowed
-                                  .where((item) =>
-                                      _isWithinFilter(item.date, filter))
-                                  .fold(
-                                      0.0,
-                                      (sum, item) =>
-                                          sum +
-                                          (item.amount -
-                                              item.paidAmount.value));
-                            },
-                          ),
-                        ],
+                      Container(
+                        width: 1,
+                        height: 30,
+                        color: Colors.white24,
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
                       ),
-                    ),
+                      _balanceStatItem(
+                        icon: Icons.arrow_downward_rounded,
+                        label: "borrowed_label".tr,
+                        color: Colors.redAccent.shade200,
+                        amountObx: () {
+                          final filter = selectedFilter.value;
+                          return loanController.borrowed
+                              .where(
+                                  (item) => _isWithinFilter(item.date, filter))
+                              .fold(
+                                  0.0,
+                                  (sum, item) =>
+                                      sum +
+                                      (item.amount - item.paidAmount.value));
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 15),
                   const Divider(color: Colors.white24, height: 1, thickness: 1),

@@ -28,20 +28,22 @@ class QuickActionsRow extends StatelessWidget {
         children: [
           _quickActionButton(
             icon: Icons.file_download_outlined,
-            label: "Add Income",
+            label: "All Income",
             color: Colors.green,
             bgColor: Colors.green.shade50,
-            onTap: () => Get.toNamed(RoutesName.incomeExpenseHome,
-                arguments: {'initialIndex': 0}),
+            onTap: () => Get.toNamed(
+              RoutesName.viewAllIncome,
+            ),
           ),
           _quickActionDivider(),
           _quickActionButton(
             icon: CupertinoIcons.arrow_right_arrow_left,
-            label: "Add Expense",
+            label: "All Expense",
             color: Colors.redAccent,
             bgColor: Colors.red.shade50,
-            onTap: () => Get.toNamed(RoutesName.incomeExpenseHome,
-                arguments: {'initialIndex': 1}),
+            onTap: () => Get.toNamed(
+              RoutesName.viewAllExpenses,
+            ),
           ),
           _quickActionDivider(),
           _quickActionButton(

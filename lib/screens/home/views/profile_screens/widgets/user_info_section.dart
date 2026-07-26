@@ -1,15 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/controllers/user_info_controller.dart';
 import 'package:spendly/models/myuser.dart';
-import 'dart:io';
+import 'package:spendly/utils/utils.dart';
 
-// ignore: must_be_immutable
 class UserInfoSection extends StatelessWidget {
   UserInfoSection({super.key, required this.myUser});
   final MyUser myUser;
@@ -33,6 +34,9 @@ class UserInfoSection extends StatelessWidget {
         'profilePicture': base64Image,
       });
 
+      // Instantly update the local state in the controller
+      userInfoController.updateProfilePicture(base64Image);
+
       print("Profile Picture uploaded successfully.");
     } catch (e) {
       print("Error uploading profile picture: $e");
@@ -45,70 +49,90 @@ class UserInfoSection extends StatelessWidget {
       final user = userInfoController.myUser.value;
       DateTime lastLoginDateTime = (user.lastLogin).toDate();
       String formattedDate =
-          DateFormat('MMM dd yyyy HH:mm').format(lastLoginDateTime);
+          DateFormat('MMM dd, yyyy HH:mm').format(lastLoginDateTime);
 
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        height: 240,
+        height: 250,
         child: Stack(
           children: [
             // Background Card with Gradient
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.only(top: 40),
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+              margin: const EdgeInsets.only(top: 45),
+              padding: const EdgeInsets.fromLTRB(20, 65, 20, 20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).primaryColor,
-                    Theme.of(context)
-                        .primaryColor
-                        .withBlue(255)
-                        .withOpacity(0.9),
+                    Theme.of(context).primaryColor.withBlue(220).withOpacity(0.95),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: Column(
                 children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  // User name and status badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        user.name,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildTierBadge(user.isPremium),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user.email,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                      letterSpacing: 0.5,
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.85),
+                      letterSpacing: 0.3,
                     ),
                   ),
                   const Spacer(),
+                  // Bottom Info Badges (User ID and Last Active)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildBadge(
-                        '${'user_id'.tr}: ${user.userId.substring(user.userId.length - 5).toUpperCase()}',
-                        Icons.verified_user_rounded,
+                      Expanded(
+                        child: _buildInfoPill(
+                          context,
+                          '${'user_id'.tr}: ${user.userId.substring(user.userId.length - 5).toUpperCase()}',
+                          Icons.vpn_key_outlined,
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: user.userId));
+                            Utils.showSnackbar(
+                              'success'.tr,
+                              'User ID copied to clipboard!',
+                              isError: false,
+                            );
+                          },
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      _buildBadge(
-                        formattedDate,
-                        Icons.access_time_filled_rounded,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildInfoPill(
+                          context,
+                          formattedDate,
+                          Icons.history_toggle_off_rounded,
+                        ),
                       ),
                     ],
                   ),
@@ -116,10 +140,10 @@ class UserInfoSection extends StatelessWidget {
               ),
             ),
 
-            // Floating Avatar
+            // Floating Avatar centered
             Align(
               alignment: Alignment.topCenter,
-              child: _buildModernAvatar(context),
+              child: _buildModernAvatar(context, user.isPremium),
             ),
           ],
         ),
@@ -127,24 +151,43 @@ class UserInfoSection extends StatelessWidget {
     });
   }
 
-  Widget _buildBadge(String text, IconData icon) {
+  Widget _buildTierBadge(bool isPremium) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        gradient: isPremium
+            ? const LinearGradient(
+                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+              )
+            : null,
+        color: isPremium ? null : Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: isPremium
+            ? [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: 6),
+          Icon(
+            isPremium ? Icons.workspace_premium_rounded : Icons.person_outline_rounded,
+            size: 11,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 4),
           Text(
-            text,
+            isPremium ? 'PRO' : 'FREE',
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: Colors.white,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -152,7 +195,43 @@ class UserInfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildModernAvatar(BuildContext context) {
+  Widget _buildInfoPill(BuildContext context, String text, IconData icon, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 13, color: Colors.white.withOpacity(0.9)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.white.withOpacity(0.95),
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.copy_rounded, size: 10, color: Colors.white.withOpacity(0.6)),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernAvatar(BuildContext context, bool isPremium) {
     return Obx(() {
       final user = userInfoController.myUser.value;
       return Container(
@@ -160,48 +239,68 @@ class UserInfoSection extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Stack(
           children: [
             Container(
-              width: 100,
-              height: 100,
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              width: 96,
+              height: 96,
+              padding: const EdgeInsets.all(3.5),
+              decoration: BoxDecoration(
+                gradient: isPremium
+                    ? const LinearGradient(
+                        colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                      )
+                    : LinearGradient(
+                        colors: [Colors.white, Colors.white.withOpacity(0.9)],
+                      ),
                 shape: BoxShape.circle,
               ),
-              child: ClipOval(
-                child: user.image != null && user.image!.isNotEmpty
-                    ? Image.memory(
-                        base64Decode(user.image!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildInitialsAvatar(context),
-                      )
-                    : _buildInitialsAvatar(context),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(2),
+                child: ClipOval(
+                  child: user.image != null && user.image!.isNotEmpty
+                      ? Image.memory(
+                          base64Decode(user.image!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildInitialsAvatar(context),
+                        )
+                      : _buildInitialsAvatar(context),
+                ),
               ),
             ),
             Positioned(
-              bottom: 2,
-              right: 2,
+              bottom: 0,
+              right: 0,
               child: GestureDetector(
                 onTap: () => _showPicker(context),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      )
+                    ],
                   ),
                   child: const Icon(
-                    Icons.edit_rounded,
-                    size: 18,
+                    Icons.camera_alt_rounded,
+                    size: 15,
                     color: Colors.white,
                   ),
                 ),
@@ -220,7 +319,7 @@ class UserInfoSection extends StatelessWidget {
       child: Text(
         user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
         style: TextStyle(
-          fontSize: 40,
+          fontSize: 36,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).primaryColor,
         ),

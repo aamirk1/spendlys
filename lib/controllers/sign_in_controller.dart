@@ -430,6 +430,9 @@ class SignInController extends GetxController {
       phoneNumber: userData['phone_number'] ?? '',
       lastLogin: Timestamp.now(),
       isPremium: userData['is_premium'] ?? false,
+      referralCode: userData['referral_code'],
+      referredById: userData['referred_by_id'],
+      referralCount: userData['referral_count'] ?? 0,
     );
 
     box.write("isLoggedIn", true);
@@ -441,6 +444,9 @@ class SignInController extends GetxController {
     box.write("deviceInfo", deviceInfo);
     box.write("fcmToken", fcmToken);
     box.write("hasSeenOnboarding", true);
+    box.write("referralCode", myUser.referralCode);
+    box.write("referredById", myUser.referredById);
+    box.write("referralCount", myUser.referralCount);
 
     signInRequired.value = false;
 

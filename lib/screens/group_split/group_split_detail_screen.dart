@@ -274,6 +274,65 @@ class _GroupSplitDetailScreenState extends State<GroupSplitDetailScreen> {
                         totalMembers: widget.split.members.length,
                       ),
                       const SizedBox(height: 20),
+                      
+                      // Display individual expenses breakdown if they exist
+                      if (widget.split.expenses.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Text(
+                            'Expenses breakdown',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.textTheme.titleMedium?.color ?? AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: theme.dividerColor.withOpacity(0.08)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: widget.split.expenses.length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 1,
+                              color: theme.dividerColor.withOpacity(0.06),
+                            ),
+                            itemBuilder: (context, index) {
+                              final exp = widget.split.expenses[index];
+                              return ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: CircleAvatar(
+                                  backgroundColor: AppColors.primary.withOpacity(0.08),
+                                  child: Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 16),
+                                ),
+                                title: Text(
+                                  exp.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                trailing: Text(
+                                  '₹${exp.amount.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
                       Padding(
                         padding: const EdgeInsets.only(left: 4),
                         child: Text(
