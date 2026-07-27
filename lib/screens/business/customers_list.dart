@@ -19,6 +19,34 @@ class CustomersController extends GetxController {
   final selectedTab = 'All'.obs; // 'All', 'Active', 'Inactive'
   final searchQuery = ''.obs;
   final selectedSort = 'Recent'.obs; // 'Recent', 'A-Z', 'Z-A'
+  final selectedFilter = 'This Month'.obs;
+
+  bool _isWithinFilter(dynamic dateValue, String filter) {
+    if (dateValue == null) return false;
+    try {
+      final DateTime date = dateValue is DateTime
+          ? dateValue
+          : DateTime.parse(dateValue.toString());
+      final now = DateTime.now();
+      switch (filter) {
+        case 'This Week':
+          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
+          final startOfWeek = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: daysToSubtract));
+          final endOfWeek = startOfWeek.add(const Duration(days: 7));
+          return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+              date.isBefore(endOfWeek);
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        case 'This Year':
+          return date.year == now.year;
+        default:
+          return true;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
 
   // For adding
   final formKey = GlobalKey<FormState>();
@@ -320,12 +348,15 @@ class CustomersListView extends StatelessWidget {
           children: [
             // 1. Statistics Row
             Obx(() {
+              final filteredForStats = controller.customers
+                  .where((c) => controller._isWithinFilter(c['created_at'], controller.selectedFilter.value))
+                  .toList();
               final double dueAmount = controller.customers
                   .fold(0.0, (sum, c) => sum + (c['pending_amount'] ?? 0.0));
-              final double totalSales = controller.customers
+              final double totalSales = filteredForStats
                   .fold(0.0, (sum, c) => sum + (c['total_sales'] ?? 0.0));
               final int totalCust = controller.customers.length;
-              final int activeCust = controller.customers
+              final int activeCust = filteredForStats
                   .where((c) =>
                       (c['total_sales'] ?? 0.0) > 0 ||
                       (c['pending_amount'] ?? 0.0) > 0)
@@ -356,7 +387,50 @@ class CustomersListView extends StatelessWidget {
                         color: Colors.green,
                         title: "Active Customers",
                         value: "$activeCust",
-                        subtitle: "This Month",
+                        subtitle: PopupMenuButton<String>(
+                          initialValue: controller.selectedFilter.value,
+                          onSelected: (String value) {
+                            controller.selectedFilter.value = value;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          itemBuilder: (BuildContext context) {
+                            return ['This Week', 'This Month', 'This Year']
+                                .map((String choice) {
+                              return PopupMenuItem<String>(
+                                value: choice,
+                                child: Text(
+                                  choice,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList();
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                controller.selectedFilter.value,
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 9,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 11,
+                                color: Colors.green,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       _buildStatCard(
@@ -372,7 +446,50 @@ class CustomersListView extends StatelessWidget {
                         color: Colors.blue,
                         title: "Total Sales",
                         value: "₹${totalSales.toStringAsFixed(0)}",
-                        subtitle: "This Month",
+                        subtitle: PopupMenuButton<String>(
+                          initialValue: controller.selectedFilter.value,
+                          onSelected: (String value) {
+                            controller.selectedFilter.value = value;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          itemBuilder: (BuildContext context) {
+                            return ['This Week', 'This Month', 'This Year']
+                                .map((String choice) {
+                              return PopupMenuItem<String>(
+                                value: choice,
+                                child: Text(
+                                  choice,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList();
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                controller.selectedFilter.value,
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 9,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 11,
+                                color: Colors.blue,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -538,7 +655,7 @@ class CustomersListView extends StatelessWidget {
     required Color color,
     required String title,
     required String value,
-    required String subtitle,
+    required dynamic subtitle,
   }) {
     // Generate HSL-based highlight colors
     final hslColor = HSLColor.fromColor(color);
@@ -601,16 +718,18 @@ class CustomersListView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 9,
-            ),
-          ),
+          subtitle is Widget
+              ? subtitle
+              : Text(
+                  subtitle.toString(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 9,
+                  ),
+                ),
         ],
       ),
     );

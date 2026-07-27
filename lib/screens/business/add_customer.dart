@@ -18,8 +18,12 @@ class _AddCustomerViewState extends State<AddCustomerView> {
 
   @override
   void initState() {
+    if (Get.isRegistered<CustomersController>()) {
+      controller = Get.find<CustomersController>();
+    } else {
+      controller = Get.put(CustomersController());
+    }
     super.initState();
-    controller = Get.find<CustomersController>();
     customer = Get.arguments as Map<String, dynamic>?;
     isEdit = customer != null;
 

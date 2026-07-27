@@ -21,37 +21,80 @@ class QuotationListController extends GetxController {
   final selectedTab = 'All'.obs;
   final dateRange = Rxn<DateTimeRange>();
 
-  int get totalCount => quotations.length;
+  final selectedFilter = 'This Month'.obs;
 
-  int get acceptedCount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'converted' || status == 'accepted';
-  }).length;
+  bool _isWithinFilter(dynamic dateValue, String filter) {
+    if (dateValue == null) return false;
+    try {
+      final DateTime date = dateValue is DateTime
+          ? dateValue
+          : DateTime.parse(dateValue.toString());
+      final now = DateTime.now();
+      switch (filter) {
+        case 'This Week':
+          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
+          final startOfWeek = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: daysToSubtract));
+          final endOfWeek = startOfWeek.add(const Duration(days: 7));
+          return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+              date.isBefore(endOfWeek);
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        case 'This Year':
+          return date.year == now.year;
+        default:
+          return true;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
 
-  double get acceptedAmount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'converted' || status == 'accepted';
-  }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
+  int get totalCount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .length;
 
-  int get pendingCount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'sent' || status == 'draft' || status == 'pending';
-  }).length;
+  int get acceptedCount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'converted' || status == 'accepted';
+      }).length;
 
-  double get pendingAmount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'sent' || status == 'draft' || status == 'pending';
-  }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
+  double get acceptedAmount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'converted' || status == 'accepted';
+      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
 
-  int get rejectedCount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'expired' || status == 'rejected';
-  }).length;
+  int get pendingCount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'sent' || status == 'draft' || status == 'pending';
+      }).length;
 
-  double get rejectedAmount => quotations.where((q) {
-    final status = (q['status'] ?? '').toString().toLowerCase();
-    return status == 'expired' || status == 'rejected';
-  }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
+  double get pendingAmount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'sent' || status == 'draft' || status == 'pending';
+      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
+
+  int get rejectedCount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'expired' || status == 'rejected';
+      }).length;
+
+  double get rejectedAmount => quotations
+      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
+      .where((q) {
+        final status = (q['status'] ?? '').toString().toLowerCase();
+        return status == 'expired' || status == 'rejected';
+      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
 
   List get filteredQuotations {
     return quotations.where((q) {
@@ -356,7 +399,50 @@ class QuotationListView extends StatelessWidget {
             iconBgColor: const Color(0xFFF3EFFF),
             title: "Total Quotations",
             value: "${controller.totalCount}",
-            subtitle: "This Month",
+            subtitle: PopupMenuButton<String>(
+              initialValue: controller.selectedFilter.value,
+              onSelected: (String value) {
+                controller.selectedFilter.value = value;
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              itemBuilder: (BuildContext context) {
+                return ['This Week', 'This Month', 'This Year']
+                    .map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(
+                      choice,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }).toList();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.selectedFilter.value,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           _buildStatCard(
@@ -396,7 +482,7 @@ class QuotationListView extends StatelessWidget {
     required Color iconBgColor,
     required String title,
     required String value,
-    required String subtitle,
+    required dynamic subtitle,
   }) {
     return Container(
       width: 125,
@@ -429,7 +515,9 @@ class QuotationListView extends StatelessWidget {
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
           const SizedBox(height: 2),
-          Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
+          subtitle is Widget
+              ? subtitle
+              : Text(subtitle.toString(), style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
         ],
       ),
     );

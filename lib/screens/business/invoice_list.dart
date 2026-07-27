@@ -28,42 +28,75 @@ class InvoiceListController extends GetxController {
   final selectedTab = 'All'.obs;
   final dateRange = Rxn<DateTimeRange>();
 
-  int get totalCount => invoices.length;
+  final selectedFilter = 'This Month'.obs;
 
-  int get paidCount => invoices.where((inv) {
-    final status = (inv['status'] ?? '').toString().toLowerCase();
-    return status == 'paid';
-  }).length;
+  bool _isWithinFilter(dynamic dateValue, String filter) {
+    if (dateValue == null) return false;
+    try {
+      final DateTime date = dateValue is DateTime
+          ? dateValue
+          : DateTime.parse(dateValue.toString());
+      final now = DateTime.now();
+      switch (filter) {
+        case 'This Week':
+          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
+          final startOfWeek = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: daysToSubtract));
+          final endOfWeek = startOfWeek.add(const Duration(days: 7));
+          return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+              date.isBefore(endOfWeek);
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        case 'This Year':
+          return date.year == now.year;
+        default:
+          return true;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
 
-  double get paidAmount => invoices.fold(0.0, (sum, inv) => sum + (double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0));
+  int get totalCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .length;
 
-  int get pendingCount => invoices.where((inv) {
-    final status = (inv['status'] ?? '').toString().toLowerCase();
-    return status == 'pending' || status == 'partially_paid';
-  }).length;
+  int get paidCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'paid')
+      .length;
 
-  double get pendingAmount => invoices.where((inv) {
-    final status = (inv['status'] ?? '').toString().toLowerCase();
-    return status == 'pending' || status == 'partially_paid';
-  }).fold(0.0, (sum, inv) {
-    final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
-    final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
-    return sum + (total - paid);
-  });
+  double get paidAmount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .fold(0.0, (sum, inv) => sum + (double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0));
 
-  int get overdueCount => invoices.where((inv) {
-    final status = (inv['status'] ?? '').toString().toLowerCase();
-    return status == 'overdue';
-  }).length;
+  int get pendingCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'pending' || (inv['status'] ?? '').toString().toLowerCase() == 'partially_paid')
+      .length;
 
-  double get overdueAmount => invoices.where((inv) {
-    final status = (inv['status'] ?? '').toString().toLowerCase();
-    return status == 'overdue';
-  }).fold(0.0, (sum, inv) {
-    final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
-    final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
-    return sum + (total - paid);
-  });
+  double get pendingAmount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'pending' || (inv['status'] ?? '').toString().toLowerCase() == 'partially_paid')
+      .fold(0.0, (sum, inv) {
+        final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
+        final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
+        return sum + (total - paid);
+      });
+
+  int get overdueCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'overdue')
+      .length;
+
+  double get overdueAmount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'overdue')
+      .fold(0.0, (sum, inv) {
+        final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
+        final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
+        return sum + (total - paid);
+      });
 
   @override
   void onInit() {
@@ -418,7 +451,50 @@ class InvoiceListView extends StatelessWidget {
             iconBgColor: const Color(0xFFF3EFFF),
             title: "Total Invoices",
             value: "${controller.totalCount}",
-            subtitle: "This Month",
+            subtitle: PopupMenuButton<String>(
+              initialValue: controller.selectedFilter.value,
+              onSelected: (String value) {
+                controller.selectedFilter.value = value;
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              itemBuilder: (BuildContext context) {
+                return ['This Week', 'This Month', 'This Year']
+                    .map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(
+                      choice,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }).toList();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.selectedFilter.value,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           _buildStatCard(
@@ -458,7 +534,7 @@ class InvoiceListView extends StatelessWidget {
     required Color iconBgColor,
     required String title,
     required String value,
-    required String subtitle,
+    required dynamic subtitle,
   }) {
     return Container(
       width: 125,
@@ -491,7 +567,9 @@ class InvoiceListView extends StatelessWidget {
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
           const SizedBox(height: 2),
-          Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
+          subtitle is Widget
+              ? subtitle
+              : Text(subtitle.toString(), style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
         ],
       ),
     );

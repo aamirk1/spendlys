@@ -21,6 +21,7 @@ class _ViewAllIncomeState extends State<ViewAllIncome>
   final TextEditingController searchController = TextEditingController();
   final RxString searchQuery = "".obs;
   final RxString sortBy = "Recent".obs;
+  final RxString selectedPeriod = "This Month".obs;
   late final TabController _tabController;
 
   @override
@@ -177,6 +178,7 @@ class _ViewAllIncomeState extends State<ViewAllIncome>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Obx(() {
         final incomes = incomeController.incomeList;
+        final now = DateTime.now();
 
         final cashIncomes = incomes.where((e) => (e['payment_mode'] ?? 'Cash') == 'Cash');
         final digitalIncomes = incomes.where((e) => (e['payment_mode'] ?? 'Cash') != 'Cash');
@@ -187,13 +189,30 @@ class _ViewAllIncomeState extends State<ViewAllIncome>
         final cashCount = cashIncomes.length;
         final digitalCount = digitalIncomes.length;
 
+        bool _isWithinFilter(DateTime date, String filter) {
+          switch (filter) {
+            case 'This Week':
+              final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
+              final startOfWeek = DateTime(now.year, now.month, now.day)
+                  .subtract(Duration(days: daysToSubtract));
+              final endOfWeek = startOfWeek.add(const Duration(days: 7));
+              return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+                  date.isBefore(endOfWeek);
+            case 'This Month':
+              return date.year == now.year && date.month == now.month;
+            case 'This Year':
+              return date.year == now.year;
+            default:
+              return true;
+          }
+        }
+
         // Current Month calculation
-        final now = DateTime.now();
         final cashMonth = cashIncomes
-            .where((e) => (e['date'] as DateTime).year == now.year && (e['date'] as DateTime).month == now.month)
+            .where((e) => _isWithinFilter(e['date'] as DateTime, selectedPeriod.value))
             .fold<double>(0, (sum, item) => sum + item['amount']);
         final digitalMonth = digitalIncomes
-            .where((e) => (e['date'] as DateTime).year == now.year && (e['date'] as DateTime).month == now.month)
+            .where((e) => _isWithinFilter(e['date'] as DateTime, selectedPeriod.value))
             .fold<double>(0, (sum, item) => sum + item['amount']);
 
         // Today calculation
@@ -320,10 +339,49 @@ class _ViewAllIncomeState extends State<ViewAllIncome>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "This Month",
-                      style:
-                          TextStyle(color: Colors.grey.shade500, fontSize: 9),
+                    PopupMenuButton<String>(
+                      initialValue: selectedPeriod.value,
+                      onSelected: (String value) {
+                        selectedPeriod.value = value;
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      itemBuilder: (BuildContext context) {
+                        return ['This Week', 'This Month', 'This Year']
+                            .map((String choice) {
+                          return PopupMenuItem<String>(
+                            value: choice,
+                            child: Text(
+                              choice,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }).toList();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectedPeriod.value,
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

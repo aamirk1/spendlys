@@ -16,10 +16,15 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  final controller = Get.find<InventoryController>();
+  late final InventoryController controller;
 
   @override
   void initState() {
+    if (Get.isRegistered<InventoryController>()) {
+      controller = Get.find<InventoryController>();
+    } else {
+      controller = Get.put(InventoryController());
+    }
     super.initState();
     // If not editing, clear controllers
     if (widget.productId == null) {
@@ -43,8 +48,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
-    final Color accentColor = const Color(0xFFF3EFFF); // Light Purple background
+    final Color primaryColor =
+        const Color(0xFF5F33E1); // Premium Deep Purple/Indigo
+    final Color accentColor =
+        const Color(0xFFF3EFFF); // Light Purple background
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
@@ -52,7 +59,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Column(
@@ -60,26 +68,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
           children: [
             Text(
               widget.productId == null ? "Add Product" : "Edit Product",
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
             ),
             const SizedBox(height: 2),
             Text(
-              widget.productId == null ? "Add a new product to your inventory" : "Update product information",
+              widget.productId == null
+                  ? "Add a new product to your inventory"
+                  : "Update product information",
               style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
             ),
           ],
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0, top: 10.0, bottom: 10.0),
+            padding:
+                const EdgeInsets.only(right: 16.0, top: 10.0, bottom: 10.0),
             child: ElevatedButton.icon(
-              onPressed: () => controller.saveProduct(productId: widget.productId),
-              icon: const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.white),
-              label: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              onPressed: () =>
+                  controller.saveProduct(productId: widget.productId),
+              icon: const Icon(Icons.check_circle_outline_rounded,
+                  size: 18, color: Colors.white),
+              label: const Text("Save",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
@@ -104,16 +123,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       flex: 4,
                       child: Obx(() {
                         final String imgPath = controller.imagePath.value;
-                        final bool hasImage = imgPath.isNotEmpty && File(imgPath).existsSync();
+                        final bool hasImage =
+                            imgPath.isNotEmpty && File(imgPath).existsSync();
 
                         return GestureDetector(
-                          onTap: () => _showImagePickerSourceSheet(context, controller),
+                          onTap: () =>
+                              _showImagePickerSourceSheet(context, controller),
                           child: Container(
                             height: 120,
                             decoration: BoxDecoration(
                               color: hasImage ? Colors.white : accentColor,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: primaryColor.withOpacity(0.15)),
+                              border: Border.all(
+                                  color: primaryColor.withOpacity(0.15)),
                               image: hasImage
                                   ? DecorationImage(
                                       image: FileImage(File(imgPath)),
@@ -137,7 +159,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                               color: Colors.red,
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                            child: const Icon(Icons.close,
+                                                color: Colors.white, size: 14),
                                           ),
                                         ),
                                       ),
@@ -146,11 +169,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 : Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.camera_alt_outlined, color: primaryColor, size: 28),
+                                      Icon(Icons.camera_alt_outlined,
+                                          color: primaryColor, size: 28),
                                       const SizedBox(height: 8),
-                                      Text("Upload Image", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 13)),
+                                      Text("Upload Image",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: primaryColor,
+                                              fontSize: 13)),
                                       const SizedBox(height: 4),
-                                      Text("JPG, PNG (Max 2MB)", style: TextStyle(color: Colors.grey.shade500, fontSize: 9)),
+                                      Text("JPG, PNG (Max 2MB)",
+                                          style: TextStyle(
+                                              color: Colors.grey.shade500,
+                                              fontSize: 9)),
                                     ],
                                   ),
                           ),
@@ -167,7 +198,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10, offset: const Offset(0, 4))
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.015),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4))
                           ],
                         ),
                         child: Column(
@@ -176,15 +210,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.lightbulb_outline_rounded, color: primaryColor, size: 16),
+                                Icon(Icons.lightbulb_outline_rounded,
+                                    color: primaryColor, size: 16),
                                 const SizedBox(width: 6),
-                                Text("Tip", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800, fontSize: 12)),
+                                Text("Tip",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade800,
+                                        fontSize: 12)),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(
                               "Add a product image to easily identify your product",
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11, height: 1.4),
+                              style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 11,
+                                  height: 1.4),
                             ),
                           ],
                         ),
@@ -204,7 +246,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     child: _buildTextField(
                       controller: controller.nameController,
                       hintText: "Enter product name",
-                      validator: (v) => Validators.requiredField(v, "Product Name"),
+                      validator: (v) =>
+                          Validators.requiredField(v, "Product Name"),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -227,10 +270,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             controller: controller.barcodeController,
                             hintText: "Scan or enter barcode",
                             suffixIcon: IconButton(
-                              icon: Icon(Icons.qr_code_scanner_rounded, color: primaryColor, size: 20),
+                              icon: Icon(Icons.qr_code_scanner_rounded,
+                                  color: primaryColor, size: 20),
                               onPressed: () async {
-                                final scanned = await Get.to(() => const BarcodeScannerScreen());
-                                if (scanned != null && scanned is String && scanned.isNotEmpty) {
+                                final scanned = await Get.to(
+                                    () => const BarcodeScannerScreen());
+                                if (scanned != null &&
+                                    scanned is String &&
+                                    scanned.isNotEmpty) {
                                   controller.barcodeController.text = scanned;
                                 }
                               },
@@ -246,7 +293,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     required: true,
                     child: _buildDropdownField(
                       controller: controller.categoryController,
-                      items: ["Electronics", "Clothing", "Food", "Groceries", "Services", "Utilities", "Other"],
+                      items: [
+                        "Electronics",
+                        "Clothing",
+                        "Food",
+                        "Groceries",
+                        "Services",
+                        "Utilities",
+                        "Other"
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -255,7 +310,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     required: true,
                     child: _buildDropdownField(
                       controller: controller.unitController,
-                      items: ["pcs", "kg", "box", "liter", "meter", "pack", "hours"],
+                      items: [
+                        "pcs",
+                        "kg",
+                        "box",
+                        "liter",
+                        "meter",
+                        "pack",
+                        "hours"
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -283,7 +346,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             controller: controller.purchasePriceController,
                             hintText: "0.00",
                             keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d*'))
+                            ],
                           ),
                         ),
                       ),
@@ -296,8 +362,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             controller: controller.priceController,
                             hintText: "0.00",
                             keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-                            validator: (v) => Validators.requiredField(v, "Selling Price"),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d*'))
+                            ],
+                            validator: (v) =>
+                                Validators.requiredField(v, "Selling Price"),
                           ),
                         ),
                       ),
@@ -311,7 +381,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           label: "Tax %",
                           child: _buildDropdownField(
                             controller: controller.taxController,
-                            items: ["GST 0%", "GST 5%", "GST 12%", "GST 18%", "GST 28%", "Exempted"],
+                            items: [
+                              "GST 0%",
+                              "GST 5%",
+                              "GST 12%",
+                              "GST 18%",
+                              "GST 28%",
+                              "Exempted"
+                            ],
                           ),
                         ),
                       ),
@@ -324,7 +401,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             controller: controller.qtyController,
                             hintText: "0",
                             keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                           ),
                         ),
                       ),
@@ -333,7 +412,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   const SizedBox(height: 16),
                   _buildLabeledField(
                     label: "Minimum Stock Alert",
-                    infoIcon: Icon(Icons.info_outline_rounded, color: primaryColor, size: 16),
+                    infoIcon: Icon(Icons.info_outline_rounded,
+                        color: primaryColor, size: 16),
                     child: _buildTextField(
                       controller: controller.minStockController,
                       hintText: "Enter minimum stock level",
@@ -356,10 +436,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       maxLength: 200,
                       decoration: InputDecoration(
                         hintText: "Enter product description",
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        hintStyle: TextStyle(
+                            color: Colors.grey.shade400, fontSize: 13),
                         filled: true,
                         fillColor: const Color(0xFFF9FAFC),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.all(16),
                       ),
                     ),
@@ -389,20 +472,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller.imagePath.value = "";
                         },
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: primaryColor.withOpacity(0.5)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side:
+                              BorderSide(color: primaryColor.withOpacity(0.5)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: Text("Reset", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 15)),
+                        child: Text("Reset",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                                fontSize: 15)),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => controller.saveProduct(productId: widget.productId),
+                        onPressed: () =>
+                            controller.saveProduct(productId: widget.productId),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           elevation: 2,
                           shadowColor: primaryColor.withOpacity(0.3),
@@ -410,9 +501,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.save_outlined, color: Colors.white, size: 18),
+                            Icon(Icons.save_outlined,
+                                color: Colors.white, size: 18),
                             SizedBox(width: 8),
-                            Text("Save Product", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                            Text("Save Product",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 15)),
                           ],
                         ),
                       ),
@@ -428,7 +524,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  void _showImagePickerSourceSheet(BuildContext context, InventoryController controller) {
+  void _showImagePickerSourceSheet(
+      BuildContext context, InventoryController controller) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -444,14 +541,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
             children: [
               const Text(
                 "Select Product Image",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
               const SizedBox(height: 16),
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF5F33E1)),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFF3EFFF),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.photo_library_rounded,
+                      color: Color(0xFF5F33E1)),
                 ),
                 title: const Text("Choose from Gallery"),
                 onTap: () {
@@ -462,8 +565,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF5F33E1)),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFF3EFFF),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: Color(0xFF5F33E1)),
                 ),
                 title: const Text("Take a Photo"),
                 onTap: () {
@@ -481,7 +587,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+      style: const TextStyle(
+          fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
     );
   }
 
@@ -493,7 +600,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 15, spreadRadius: 1, offset: const Offset(0, 5))
+          BoxShadow(
+              color: Colors.black.withOpacity(0.015),
+              blurRadius: 15,
+              spreadRadius: 1,
+              offset: const Offset(0, 5))
         ],
       ),
       child: Column(
@@ -525,7 +636,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
             if (required)
               const Text(
                 " *",
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             if (infoIcon != null) ...[
               const SizedBox(width: 4),
@@ -558,12 +670,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: const Color(0xFFF9FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
@@ -576,23 +691,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
       controller.text = items.first;
     }
     return DropdownButtonFormField<String>(
-      value: controller.text.isNotEmpty && items.contains(controller.text) ? controller.text : items.first,
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 14)))).toList(),
+      value: controller.text.isNotEmpty && items.contains(controller.text)
+          ? controller.text
+          : items.first,
+      items: items
+          .map((item) => DropdownMenuItem(
+              value: item,
+              child: Text(item, style: const TextStyle(fontSize: 14))))
+          .toList(),
       onChanged: (val) {
         if (val != null) {
           controller.text = val;
         }
       },
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
+      icon:
+          const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFF9FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

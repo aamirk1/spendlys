@@ -29,6 +29,7 @@ import 'package:spendly/screens/business/edit_invoice.dart';
 import 'package:spendly/screens/business/edit_quotation.dart';
 
 import 'package:spendly/screens/business/inventory/inventory_list_view.dart';
+import 'package:spendly/screens/business/inventory/add_product_screen.dart';
 import 'package:spendly/screens/premium/premium_screen.dart';
 import 'package:spendly/screens/premium/benefit_onboarding_screen.dart';
 import 'package:spendly/screens/splash_screen.dart';
@@ -303,6 +304,16 @@ class AppRoutes {
         GetPage(
             name: RoutesName.inventoryList,
             page: () => const InventoryListView(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.addProduct,
+            page: () => const AddProductScreen(),
+            transitionDuration: _kFast,
+            transition: _kTransition),
+        GetPage(
+            name: RoutesName.editProduct,
+            page: () => AddProductScreen(productId: Get.arguments as String?),
             transitionDuration: _kFast,
             transition: _kTransition),
         GetPage(

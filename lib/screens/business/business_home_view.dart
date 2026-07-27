@@ -23,6 +23,7 @@ class BusinessHomeController extends GetxController {
       'Invoices'.obs; // Invoices, Quotations, Customers, Products, Payments
   final activeInvoiceFilter = 'All'.obs; // All, Paid, Pending
   final activeQuotationFilter = 'All'.obs; // All, Accepted, Pending, Rejected
+  final selectedFilter = 'This Month'.obs;
 
   // Search
   final searchController = TextEditingController();
@@ -122,20 +123,56 @@ class BusinessHomeController extends GetxController {
     }
   }
 
+  bool _isWithinFilter(dynamic dateValue, String filter) {
+    if (dateValue == null) return false;
+    try {
+      final DateTime date = dateValue is DateTime
+          ? dateValue
+          : DateTime.parse(dateValue.toString());
+      final now = DateTime.now();
+      switch (filter) {
+        case 'This Week':
+          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
+          final startOfWeek = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: daysToSubtract));
+          final endOfWeek = startOfWeek.add(const Duration(days: 7));
+          return date
+                  .isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+              date.isBefore(endOfWeek);
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        case 'This Year':
+          return date.year == now.year;
+        default:
+          return true;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Dashboard calculations
-  double get totalSales => invoices.fold(
-      0.0,
-      (sum, inv) =>
-          sum + (double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0));
-  int get totalInvoicesCount => invoices.length;
+  double get totalSales => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .fold(
+          0.0,
+          (sum, inv) =>
+              sum + (double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0));
+  int get totalInvoicesCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .length;
   int get paidInvoicesCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
       .where((inv) => (inv['status']?.toString().toLowerCase() ?? '') == 'paid')
       .length;
   int get pendingInvoicesCount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
       .where((inv) => (inv['status']?.toString().toLowerCase() ?? '') != 'paid')
       .length;
 
-  double get pendingAmount => invoices.fold(0.0, (sum, inv) {
+  double get pendingAmount => invoices
+          .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+          .fold(0.0, (sum, inv) {
         final double total =
             double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
         final double paid =
@@ -143,11 +180,13 @@ class BusinessHomeController extends GetxController {
         return sum + (total - paid);
       });
 
-  double get receivedAmount => invoices.fold(
-      0.0,
-      (sum, inv) =>
-          sum +
-          (double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0));
+  double get receivedAmount => invoices
+      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
+      .fold(
+          0.0,
+          (sum, inv) =>
+              sum +
+              (double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0));
 
   // Filtered lists for display
   List get filteredInvoices {
@@ -395,29 +434,54 @@ class BusinessHomeView extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             color: Colors.black87),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
+                      PopupMenuButton<String>(
+                        initialValue: controller.selectedFilter.value,
+                        onSelected: (String value) {
+                          controller.selectedFilter.value = value;
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "This Month",
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade700),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down_rounded,
-                                size: 14, color: Colors.grey),
-                          ],
-                        ),
+                        itemBuilder: (BuildContext context) {
+                          return ['This Week', 'This Month', 'This Year']
+                              .map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice,
+                              child: Text(
+                                choice,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList();
+                        },
+                        child: Obx(() => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    controller.selectedFilter.value,
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade700),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.keyboard_arrow_down_rounded,
+                                      size: 14, color: Colors.grey),
+                                ],
+                              ),
+                            )),
                       )
                     ],
                   ),
@@ -538,7 +602,7 @@ class BusinessHomeView extends StatelessWidget {
             _summaryCard(
               title: "Received",
               value: receivedAmtStr,
-              subtitle: "This Month",
+              subtitle: controller.selectedFilter.value,
               subtitleColor: Colors.grey.shade600,
               icon: Icons.currency_rupee_rounded,
               iconColor: primaryColor,
@@ -1575,6 +1639,30 @@ class BusinessHomeView extends StatelessWidget {
               onTap: () {
                 Get.back();
                 _safeNavigate(RoutesName.createQuotation);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading:
+                  const Icon(Icons.inventory_2_rounded, color: Colors.orange),
+              title: const Text("Add Product",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text("Add a new product or service to inventory"),
+              onTap: () {
+                Get.back();
+                _safeNavigate(RoutesName.addProduct);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading:
+                  const Icon(Icons.person_add_rounded, color: Colors.green),
+              title: const Text("Add Customer",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text("Add a new customer details"),
+              onTap: () {
+                Get.back();
+                _safeNavigate(RoutesName.addCustomer);
               },
             ),
           ],
