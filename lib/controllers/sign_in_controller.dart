@@ -435,6 +435,18 @@ class SignInController extends GetxController {
       referralCount: userData['referral_count'] ?? 0,
     );
 
+    // Sync to Firestore using WriteBatch
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      final userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(myUser.userId);
+      batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
+      await batch.commit();
+    } catch (fe) {
+      debugPrint("Firestore sync failed: $fe");
+    }
+
     box.write("isLoggedIn", true);
     box.write("userId", myUser.userId);
     box.write("name", myUser.name);

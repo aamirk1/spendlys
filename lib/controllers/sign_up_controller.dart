@@ -97,33 +97,38 @@ class SignUpController extends GetxController {
     signUpRequired.value = true;
 
     try {
-      // Fetch Device Info & FCM Token
-      String deviceInfo = await getDeviceInfo();
-      String? fcmToken = await getFcmToken();
-
-      // Step 1: Request Registration & OTP from Backend
-      final response = await _apiClient.post(
-        ApiConstants.registerRequest,
-        data: {
-          'name': nameController.text.trim(),
-          'email': emailController.text.trim(),
-          'phone_number': phoneNumberController.text.trim(),
-          'password': passwordController.text.trim(),
-          'device_info': deviceInfo,
-          'fcm_token': fcmToken,
-          'referred_by_code': referredByController.text.trim().isEmpty ? null : referredByController.text.trim(),
-        },
-      );
-
-      if (response.statusCode == 200) {
-        signUpRequired.value = false;
-        // Step 2: Show OTP Dialog
-        startResendTimer();
-        _showOtpDialog(emailController.text.trim(), Get.context!);
-      } else {
-        throw Exception(
-            response.data['detail'] ?? 'Registration request failed');
+      String phoneNumberStr = phoneNumberController.text.trim();
+      String formattedPhone = phoneNumberStr.replaceAll(RegExp(r'[^0-9+]'), "");
+      if (!formattedPhone.startsWith("+")) {
+        formattedPhone = "+91$formattedPhone"; // Defaulting to +91 for India
       }
+
+      await _auth.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            UserCredential userCredential =
+                await _auth.signInWithCredential(credential);
+            if (userCredential.user != null) {
+              await syncSignUpWithBackend(userCredential.user!);
+            }
+          } catch (e) {
+            signUpRequired.value = false;
+            AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          signUpRequired.value = false;
+          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          signUpRequired.value = false;
+          startResendTimer();
+          _showMobileOtpDialog(formattedPhone, verificationId, Get.context!);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+        timeout: const Duration(seconds: 60),
+      );
     } catch (e) {
       signUpRequired.value = false;
       debugPrint('Signup Error: $e');
@@ -131,35 +136,44 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<void> resendOtp() async {
+  Future<void> resendOtp(String formattedPhone) async {
     signUpRequired.value = true;
     try {
-      final response = await _apiClient.post(
-        ApiConstants.registerRequest,
-        data: {
-          'name': nameController.text.trim(),
-          'email': emailController.text.trim(),
-          'phone_number': phoneNumberController.text.trim(),
-          'password': passwordController.text.trim(),
-          'referred_by_code': referredByController.text.trim().isEmpty ? null : referredByController.text.trim(),
+      await _auth.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            UserCredential userCredential =
+                await _auth.signInWithCredential(credential);
+            if (userCredential.user != null) {
+              await syncSignUpWithBackend(userCredential.user!);
+            }
+          } catch (e) {
+            signUpRequired.value = false;
+            AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
+          }
         },
+        verificationFailed: (FirebaseAuthException e) {
+          signUpRequired.value = false;
+          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          signUpRequired.value = false;
+          startResendTimer();
+          Utils.showSnackbar('Success', 'OTP resent successfully',
+              isError: false);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+        timeout: const Duration(seconds: 60),
       );
-
-      if (response.statusCode == 200) {
-        signUpRequired.value = false;
-        startResendTimer();
-        Utils.showSnackbar('Success', 'OTP resent successfully',
-            isError: false);
-      } else {
-        throw Exception(response.data['detail'] ?? 'Resend OTP failed');
-      }
     } catch (e) {
       signUpRequired.value = false;
       AppErrorHandler.handleError(e, customTitle: 'Resend Failed');
     }
   }
 
-  void _showOtpDialog(String email, BuildContext context) {
+  void _showMobileOtpDialog(
+      String formattedPhone, String verificationId, BuildContext context) {
     final otpController = TextEditingController();
 
     final defaultPinTheme = PinTheme(
@@ -257,7 +271,7 @@ class SignUpController extends GetxController {
                       const TextSpan(
                           text: 'Please enter the 6-digit code sent to\n'),
                       TextSpan(
-                        text: email,
+                        text: formattedPhone,
                         style: const TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
@@ -277,7 +291,7 @@ class SignUpController extends GetxController {
                 autofocus: true,
                 hapticFeedbackType: HapticFeedbackType.lightImpact,
                 onCompleted: (pin) {
-                  verifyOtp(email, pin);
+                  verifyMobileOtp(verificationId, pin);
                 },
                 cursor: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -316,7 +330,7 @@ class SignUpController extends GetxController {
                       if (canResend.value)
                         GestureDetector(
                           onTap: () {
-                            resendOtp();
+                            resendOtp(formattedPhone);
                           },
                           child: const Text(
                             "Resend",
@@ -339,7 +353,8 @@ class SignUpController extends GetxController {
                           ? null
                           : () {
                               if (otpController.text.length == 6) {
-                                verifyOtp(email, otpController.text);
+                                verifyMobileOtp(
+                                    verificationId, otpController.text);
                               } else {
                                 Utils.showSnackbar(
                                     'Error', 'Please enter a 6-digit OTP');
@@ -375,7 +390,7 @@ class SignUpController extends GetxController {
               TextButton(
                 onPressed: () => Get.back(),
                 child: Text(
-                  'Change Email',
+                  'Change Number',
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w600,
@@ -393,19 +408,47 @@ class SignUpController extends GetxController {
     );
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  Future<void> verifyMobileOtp(String verificationId, String smsCode) async {
+    signUpRequired.value = true;
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        await syncSignUpWithBackend(userCredential.user!);
+      } else {
+        throw Exception('Firebase authentication failed');
+      }
+    } catch (e) {
+      signUpRequired.value = false;
+      AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
+    }
+  }
+
+  Future<void> syncSignUpWithBackend(User firebaseUser) async {
     signUpRequired.value = true;
     try {
       String deviceInfo = await getDeviceInfo();
       String? fcmToken = await getFcmToken();
 
       final response = await _apiClient.post(
-        ApiConstants.registerVerify,
+        ApiConstants.syncUser,
         data: {
-          'email': email,
-          'otp': otp,
+          'id': firebaseUser.uid,
+          'email': emailController.text.trim(),
+          'name': nameController.text.trim(),
+          'phone_number':
+              firebaseUser.phoneNumber ?? phoneNumberController.text.trim(),
+          'password': passwordController.text.trim(),
           'device_info': deviceInfo,
           'fcm_token': fcmToken,
+          'referred_by_code': referredByController.text.trim().isEmpty
+              ? null
+              : referredByController.text.trim(),
         },
       );
 
@@ -413,21 +456,11 @@ class SignUpController extends GetxController {
         final data = response.data;
         final userData = data['user'];
         final accessToken = data['access_token'];
-        final customToken = data['firebase_custom_token'];
-
-        // Optional: Sign in to Firebase in background for Chat using Custom Token
-        if (customToken != null) {
-          try {
-            await _auth.signInWithCustomToken(customToken);
-          } catch (e) {
-            debugPrint("Firebase background auth failed: $e");
-          }
-        }
 
         // Save JWT for future API calls
         await _secureStorage.saveToken(accessToken);
         await _secureStorage.saveCredentials(
-            email, passwordController.text.trim());
+            emailController.text.trim(), passwordController.text.trim());
 
         MyUser myUser = MyUser(
           userId: userData['id'] ?? '',
@@ -440,6 +473,17 @@ class SignUpController extends GetxController {
           referredById: userData['referred_by_id'],
           referralCount: userData['referral_count'] ?? 0,
         );
+
+        // Sync to Firestore using WriteBatch
+        try {
+          final batch = FirebaseFirestore.instance.batch();
+          final userDocRef =
+              FirebaseFirestore.instance.collection('users').doc(myUser.userId);
+          batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
+          await batch.commit();
+        } catch (fe) {
+          debugPrint("Firestore sync failed: $fe");
+        }
 
         // Save locally
         final box = GetStorage();
@@ -460,69 +504,13 @@ class SignUpController extends GetxController {
 
         Get.offAllNamed(RoutesName.homeView, arguments: myUser);
       } else {
-        throw Exception(response.data['detail'] ?? 'OTP verification failed');
+        throw Exception(response.data['detail'] ?? 'Sync failed');
       }
     } catch (e) {
       signUpRequired.value = false;
       AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
     }
   }
-
-  /*
-  // FIREBASE MOBILE OTP LOGIC (Commented out as requested)
-  Future<void> signUpWithMobile() async {
-    if (phoneNumberController.text.isEmpty) {
-      Utils.showSnackbar('Error', 'Please enter phone number');
-      return;
-    }
-    
-    signUpRequired.value = true;
-    try {
-      await _auth.verifyPhoneNumber(
-        phoneNumber: '+91${phoneNumberController.text.trim()}',
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          await _auth.signInWithCredential(credential);
-          // Handle automatic verification
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          signUpRequired.value = false;
-          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          signUpRequired.value = false;
-          _showMobileOtpDialog(verificationId);
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {},
-      );
-    } catch (e) {
-      signUpRequired.value = false;
-      Utils.showSnackbar('Error', e.toString());
-    }
-  }
-
-  void _showMobileOtpDialog(String verificationId) {
-    // Similar to Email OTP Dialog but calls verifyMobileOtp
-  }
-
-  Future<void> verifyMobileOtp(String verificationId, String smsCode) async {
-    signUpRequired.value = true;
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: smsCode,
-      );
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
-      
-      if (userCredential.user != null) {
-        // After Firebase Mobile Auth is successful, sync with our backend
-        // await syncUserWithBackend(userCredential.user!);
-      }
-    } catch (e) {
-      signUpRequired.value = false;
-      Utils.showSnackbar('Error', 'Invalid Mobile OTP');
-    }
-  }
-  */
 
   Future<String> getDeviceInfo() async {
     final deviceInfo = DeviceInfoPlugin();
