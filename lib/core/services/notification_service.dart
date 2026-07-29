@@ -23,6 +23,8 @@ class NotificationService extends GetxService {
 
   final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
 
+  int get unreadCount => notifications.where((n) => !n.isRead).length;
+
   Future<NotificationService> init() async {
     _loadNotifications();
     await _initializeLocalNotifications();

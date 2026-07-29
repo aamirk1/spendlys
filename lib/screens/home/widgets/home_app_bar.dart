@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/res/routes/routes_name.dart';
+import 'package:spendly/core/services/notification_service.dart';
 import 'pressable_scale.dart';
 
 class HomeAppBar extends StatelessWidget {
@@ -115,21 +116,26 @@ class HomeAppBar extends StatelessWidget {
                   Positioned(
                     right: 2,
                     top: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        "3",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold,
+                    child: Obx(() {
+                      final notificationService = Get.find<NotificationService>();
+                      final unreadCount = notificationService.unreadCount;
+                      if (unreadCount == 0) return const SizedBox.shrink();
+                      return Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
                         ),
-                      ),
-                    ),
+                        child: Text(
+                          "$unreadCount",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),

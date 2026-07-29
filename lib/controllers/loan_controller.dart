@@ -69,6 +69,14 @@ class LoanController extends GetxController {
 
     loans.value = fetchedLoans;
     errorMsg.value = null;
+
+    try {
+      if (Get.isRegistered<ReminderNotificationService>()) {
+        Get.find<ReminderNotificationService>().checkAndRescheduleDailyReminder();
+      }
+    } catch (e) {
+      print("Error calling checkAndRescheduleDailyReminder in LoanController: $e");
+    }
   }
 
   List<Loan> get borrowed =>

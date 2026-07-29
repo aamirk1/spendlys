@@ -2,6 +2,10 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:spendly/services/auth_service.dart';
+import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/notification_service.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -64,6 +68,12 @@ class ReminderNotificationService extends GetxService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
+    }
+
+    try {
+      await checkAndRescheduleDailyReminder();
+    } catch (e) {
+      print("Error scheduling daily reminder on init: $e");
     }
 
     return this;
@@ -175,6 +185,112 @@ class ReminderNotificationService extends GetxService {
   Future<void> cancelInvoiceReminders(String invoiceId) async {
     await _plugin.cancel(_invoiceConfirmId(invoiceId));
     await _cancelDueDateReminders(_invoiceReminderBaseId(invoiceId));
+  }
+
+  /// Check cache for daily entries (expense, income, lent, borrow) and schedule/reschedule 
+  /// the daily reminder local notification at 7:30 PM.
+  Future<void> checkAndRescheduleDailyReminder() async {
+    final now = DateTime.now();
+    bool hasEntryToday = false;
+
+    try {
+      if (Get.isRegistered<AuthService>()) {
+        final userId = Get.find<AuthService>().currentUserId;
+        if (userId != null) {
+          final todayStr = DateFormat('yyyy-MM-dd').format(now);
+
+          bool isDateToday(String? dateStr) {
+            if (dateStr == null) return false;
+            try {
+              final date = DateTime.parse(dateStr);
+              return DateFormat('yyyy-MM-dd').format(date) == todayStr;
+            } catch (_) {
+              return false;
+            }
+          }
+
+          // Check expenses
+          final expenseCache = LocalCacheService.getCache('GET_/transactions/?user_id=$userId&type=expense');
+          if (expenseCache is List) {
+            for (var item in expenseCache) {
+              if (isDateToday(item['date'])) {
+                hasEntryToday = true;
+                break;
+              }
+            }
+          }
+
+          // Check incomes
+          if (!hasEntryToday) {
+            final incomeCache = LocalCacheService.getCache('GET_/transactions/?user_id=$userId&type=income');
+            if (incomeCache is List) {
+              for (var item in incomeCache) {
+                if (isDateToday(item['date'])) {
+                  hasEntryToday = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Check loans (lent/borrowed)
+          if (!hasEntryToday) {
+            final loanCache = LocalCacheService.getCache('GET_/loans/?user_id=$userId');
+            if (loanCache is List) {
+              for (var item in loanCache) {
+                if (isDateToday(item['date'])) {
+                  hasEntryToday = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print("Error checking local cache for entries: $e");
+    }
+
+    final local = tz.local;
+    const targetHour = 19;
+    const targetMinute = 30;
+    const baseId = 990000;
+
+    // Cancel all scheduled daily reminders first to prevent duplicates
+    for (int i = 0; i < 7; i++) {
+      await _plugin.cancel(baseId + i);
+    }
+
+    // Schedule reminders for the next 7 days
+    for (int i = 0; i < 7; i++) {
+      final dayDate = now.add(Duration(days: i));
+
+      // If user has already added an entry today, skip scheduling for today (Day 0)
+      if (i == 0 && hasEntryToday) {
+        continue;
+      }
+
+      final scheduledTime = DateTime(
+        dayDate.year,
+        dayDate.month,
+        dayDate.day,
+        targetHour,
+        targetMinute,
+      );
+
+      if (scheduledTime.isAfter(now)) {
+        await _scheduleAt(
+          id: baseId + i,
+          scheduledTime: tz.TZDateTime.from(scheduledTime, local),
+          title: '📝 Daily Reminder',
+          body: 'You haven\'t added any entry today. Add your expense, income, lent or borrow now to track your daily budget!',
+          payload: jsonEncode({
+            'target_screen': 'home',
+            'type': 'daily_reminder',
+          }),
+        );
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------

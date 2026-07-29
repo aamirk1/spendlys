@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/services/auth_service.dart';
 import 'package:spendly/core/services/api_service.dart';
+import 'package:spendly/core/services/reminder_notification_service.dart';
 import 'package:get/get.dart';
 import 'package:spendly/utils/utils.dart';
 
@@ -173,6 +174,14 @@ class IncomeController extends GetxController {
     categoryTotals.value = tempTotals;
     totalIncome.value = total;
     updateChartData();
+
+    try {
+      if (Get.isRegistered<ReminderNotificationService>()) {
+        Get.find<ReminderNotificationService>().checkAndRescheduleDailyReminder();
+      }
+    } catch (e) {
+      print("Error calling checkAndRescheduleDailyReminder in IncomeController: $e");
+    }
   }
 
   // Inside your IncomeController
