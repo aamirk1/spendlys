@@ -175,6 +175,18 @@ class SignInController extends GetxController {
   var isSigningUpFlow =
       false.obs; // To track if we are in signup or login flow for OTP
 
+  Future<String?> _getFcmToken() async {
+    try {
+      return await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => null,
+          );
+    } catch (e) {
+      debugPrint("Error fetching FCM token: $e");
+      return null;
+    }
+  }
+
   Future<void> signIn() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       Utils.showSnackbar("Error", "Please fill in all fields");
@@ -187,10 +199,7 @@ class SignInController extends GetxController {
     try {
       // Fetch Device Info & FCM Token
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken().timeout(
-            const Duration(seconds: 15),
-            onTimeout: () => null, // Proceed without FCM token if it times out
-          );
+      String? fcmToken = await _getFcmToken();
 
       final response = await _apiClient.post(ApiConstants.login, data: {
         'email': emailController.text.trim(),
@@ -378,7 +387,7 @@ class SignInController extends GetxController {
   Future<void> syncSignUpWithBackend(User firebaseUser) async {
     try {
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _getFcmToken();
 
       final response = await _apiClient.post(ApiConstants.syncUser, data: {
         'id': firebaseUser.uid,
@@ -404,7 +413,7 @@ class SignInController extends GetxController {
   Future<void> syncUserByFirebaseToken(User firebaseUser) async {
     try {
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _getFcmToken();
 
       // Sanitize phone number for email fallback (remove +)
       String safePhone = (firebaseUser.phoneNumber ?? "").replaceAll("+", "");
@@ -464,13 +473,15 @@ class SignInController extends GetxController {
       referralCount: userData['referral_count'] ?? 0,
     );
 
-    // Sync to Firestore using WriteBatch
+    // Sync to Firestore using WriteBatch (run in background)
     try {
       final batch = FirebaseFirestore.instance.batch();
       final userDocRef =
           FirebaseFirestore.instance.collection('users').doc(myUser.userId);
       batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
-      await batch.commit();
+      batch.commit().catchError((fe) {
+        debugPrint("Firestore sync failed: $fe");
+      });
     } catch (fe) {
       debugPrint("Firestore sync failed: $fe");
     }
@@ -529,7 +540,7 @@ class SignInController extends GetxController {
       final password = credentials['password'];
 
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _getFcmToken();
       dynamic userData;
       String? accessToken;
 

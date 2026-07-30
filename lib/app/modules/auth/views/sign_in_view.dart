@@ -684,7 +684,7 @@ class _PremiumButtonState extends State<_PremiumButton>
     super.initState();
     _shimCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1200),
     )..repeat();
   }
 

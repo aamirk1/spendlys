@@ -5,6 +5,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:spendly/app/routes/app_pages.dart';
 import 'package:spendly/app/utils/utils.dart';
 
+import 'package:spendly/app/data/services/api_constants.dart';
+
 class ApiClient {
   late Dio _dio;
   final String baseUrl;
@@ -27,9 +29,26 @@ class ApiClient {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _secureStorage.getToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
+        final path = options.path;
+        final publicEndpoints = {
+          ApiConstants.login,
+          ApiConstants.syncUser,
+          ApiConstants.registerRequest,
+          ApiConstants.registerVerify,
+          ApiConstants.sendOtp,
+          ApiConstants.verifyOtp,
+          ApiConstants.forgotPasswordRequest,
+          ApiConstants.forgotPasswordReset,
+          ApiConstants.appConfig,
+        };
+
+        final isPublic =
+            publicEndpoints.any((endpoint) => path.endsWith(endpoint));
+        if (!isPublic) {
+          final token = await _secureStorage.getToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
         }
         return handler.next(options);
       },

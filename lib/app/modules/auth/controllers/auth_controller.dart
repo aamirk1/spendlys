@@ -184,12 +184,24 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<String?> _getFcmToken() async {
+    try {
+      return await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => null,
+          );
+    } catch (e) {
+      debugPrint("Error fetching FCM token: $e");
+      return null;
+    }
+  }
+
   // Sync with Backend (FastAPI)
   Future<void> syncUserWithBackend(User user) async {
     try {
       // Fetch Device Info & FCM Token
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _getFcmToken();
 
       // Sanitize phone number for email fallback (remove +)
       String safePhone = (user.phoneNumber ?? "").replaceAll("+", "");

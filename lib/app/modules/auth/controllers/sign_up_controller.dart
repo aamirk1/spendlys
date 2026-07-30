@@ -202,9 +202,13 @@ class SignUpController extends GetxController {
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        color: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.05),
+        color:
+            Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.05),
         border: Border.all(
-            color: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.2)),
+            color: Theme.of(Get.context!)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.2)),
       ),
     );
 
@@ -474,13 +478,15 @@ class SignUpController extends GetxController {
           referralCount: userData['referral_count'] ?? 0,
         );
 
-        // Sync to Firestore using WriteBatch
+        // Sync to Firestore using WriteBatch (run in background)
         try {
           final batch = FirebaseFirestore.instance.batch();
           final userDocRef =
               FirebaseFirestore.instance.collection('users').doc(myUser.userId);
           batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
-          await batch.commit();
+          batch.commit().catchError((fe) {
+            debugPrint("Firestore sync failed: $fe");
+          });
         } catch (fe) {
           debugPrint("Firestore sync failed: $fe");
         }
