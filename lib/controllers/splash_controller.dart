@@ -14,11 +14,16 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkAuthStatus() async {
-    // 1. App Update Check (Triggered in the background, does not block the splash transition)
+    // 1. App Update Check (Awaited to block transitions if update is mandatory)
     final updateService = Get.find<AppUpdateService>();
-    updateService.checkForUpdate();
+    bool isUpdateRequired = await updateService.checkForUpdate();
 
-    // 2. Wait for the splash screen entrance and progress bar animations to complete (1.2s)
+    if (isUpdateRequired) {
+      // If a mandatory update dialog is showing, halt execution and block navigation
+      return;
+    }
+
+    // 2. Wait for the splash screen entrance animations to complete
     await Future.delayed(const Duration(milliseconds: 500));
 
     // 3. Check if user is logged in

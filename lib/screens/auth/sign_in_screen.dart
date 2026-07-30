@@ -67,17 +67,17 @@ class _SignInScreenState extends State<SignInScreen>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            CupertinoIcons.back,
-            color: isDark ? Colors.white : AppColors.textPrimary,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     icon: Icon(
+      //       CupertinoIcons.back,
+      //       color: isDark ? Colors.white : AppColors.textPrimary,
+      //     ),
+      //     onPressed: () => Get.back(),
+      //   ),
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      // ),
       body: Stack(
         children: [
           // Background ambient decoration
@@ -123,7 +123,7 @@ class _SignInScreenState extends State<SignInScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         // Top Header
                         Center(
                           child: Column(
@@ -136,8 +136,8 @@ class _SignInScreenState extends State<SignInScreen>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primary.withOpacity(
-                                          isDark ? 0.15 : 0.08),
+                                      color: AppColors.primary
+                                          .withOpacity(isDark ? 0.15 : 0.08),
                                       blurRadius: 20,
                                       spreadRadius: 2,
                                     ),
@@ -188,7 +188,7 @@ class _SignInScreenState extends State<SignInScreen>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 36),
+                        const SizedBox(height: 28),
 
                         // Form Card
                         Container(
@@ -206,7 +206,8 @@ class _SignInScreenState extends State<SignInScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                                color: Colors.black
+                                    .withOpacity(isDark ? 0.2 : 0.04),
                                 blurRadius: 30,
                                 offset: const Offset(0, 10),
                               ),
@@ -217,7 +218,7 @@ class _SignInScreenState extends State<SignInScreen>
                             children: [
                               // Toggle Login Mode (Email vs Phone)
                               _buildModeToggle(),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 20),
 
                               // Fields Section
                               Obx(() => AnimatedSwitcher(
@@ -228,7 +229,7 @@ class _SignInScreenState extends State<SignInScreen>
                                         ? _buildEmailFields(isDark)
                                         : _buildPhoneFields(isDark),
                                   )),
-                              const SizedBox(height: 28),
+                              const SizedBox(height: 24),
 
                               // Login/OTP CTA Button
                               Obx(() => _PremiumButton(
@@ -332,7 +333,8 @@ class _SignInScreenState extends State<SignInScreen>
               _buildToggleTab('Email', controller.isEmailLogin.value, () {
                 controller.isEmailLogin.value = true;
               }),
-              _buildToggleTab('Phone / OTP', !controller.isEmailLogin.value, () {
+              _buildToggleTab('Phone / OTP', !controller.isEmailLogin.value,
+                  () {
                 controller.isEmailLogin.value = false;
               }),
             ],

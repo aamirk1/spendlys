@@ -187,14 +187,17 @@ class SignInController extends GetxController {
     try {
       // Fetch Device Info & FCM Token
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 15),
+            onTimeout: () => null, // Proceed without FCM token if it times out
+          );
 
       final response = await _apiClient.post(ApiConstants.login, data: {
         'email': emailController.text.trim(),
         'password': passwordController.text.trim(),
         'device_info': deviceInfo,
         'fcm_token': fcmToken,
-      });
+      }).timeout(const Duration(seconds: 20));
 
       final data = response.data;
       final accessToken = data['access_token'];
@@ -205,10 +208,11 @@ class SignInController extends GetxController {
       if (customToken != null) {
         await auth
             .signInWithCustomToken(customToken)
-            .timeout(const Duration(seconds: 30));
+            .timeout(const Duration(seconds: 20));
       }
 
-      await _finalizeLogin(userData, accessToken, deviceInfo, fcmToken);
+      await _finalizeLogin(userData, accessToken, deviceInfo, fcmToken)
+          .timeout(const Duration(seconds: 20));
 
       // Save credentials for auto-login
       await _secureStorage.saveCredentials(
@@ -259,11 +263,29 @@ class SignInController extends GetxController {
     }
     phoneNumber.value = formattedPhone;
 
+    final completer = Completer<void>();
+    Timer? timeoutTimer;
+
+    // Timeout of 25 seconds for OTP sending
+    timeoutTimer = Timer(const Duration(seconds: 25), () {
+      if (!completer.isCompleted) {
+        isLoading.value = false;
+        signInRequired.value = false;
+        final error = TimeoutException(
+            "OTP request timed out. This could be due to network issues, "
+            "missing certificate hash (INVALID_CERT_HASH), or too many requests. "
+            "Please check your internet connection and try again.");
+        AppErrorHandler.handleError(error);
+        completer.completeError(error);
+      }
+    });
+
     try {
       await _authService.sendOTP(
         phoneNumber: formattedPhone,
         forceResendingToken: forceResendingToken.value,
         codeSent: (id, resendToken) {
+          timeoutTimer?.cancel();
           verificationId.value = id;
           box.write('verificationId', id); // Persist ID
           forceResendingToken.value = resendToken;
@@ -280,11 +302,14 @@ class SignInController extends GetxController {
             Utils.showSnackbar('Success', 'OTP resent successfully',
                 isError: false);
           }
+          if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (e) {
+          timeoutTimer?.cancel();
           isLoading.value = false;
           signInRequired.value = false;
           AppErrorHandler.handleError(e);
+          if (!completer.isCompleted) completer.completeError(e);
         },
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification on Android
@@ -311,10 +336,14 @@ class SignInController extends GetxController {
         },
       );
     } catch (e) {
+      timeoutTimer?.cancel();
       isLoading.value = false;
       signInRequired.value = false;
       AppErrorHandler.handleError(e);
+      if (!completer.isCompleted) completer.completeError(e);
     }
+
+    return completer.future;
   }
 
   Future<void> verifyOTP(String smsCode) async {
@@ -438,9 +467,8 @@ class SignInController extends GetxController {
     // Sync to Firestore using WriteBatch
     try {
       final batch = FirebaseFirestore.instance.batch();
-      final userDocRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(myUser.userId);
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(myUser.userId);
       batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
       await batch.commit();
     } catch (fe) {

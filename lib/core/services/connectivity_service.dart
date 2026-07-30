@@ -20,16 +20,13 @@ class ConnectivityService extends GetxService {
   }
 
   void _updateConnectionStatus(List<ConnectivityResult> results) {
-    // If ANY result is NOT .none, we consider the device online.
     bool online = !results.contains(ConnectivityResult.none);
     if (isOnline.value != online) {
       isOnline.value = online;
       if (online) {
-        // Internet واپس آیا — NoInternetScreen بند کریں اگر کھلی ہو
         if (Get.currentRoute == '/no-internet') {
           Get.back();
         }
-        // Back online, trigger sync
         Get.find<SyncService>().startSync();
       }
     }

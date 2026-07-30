@@ -1,28 +1,27 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/network/api_client.dart';
+import '../core/network/api_constants.dart';
 import '../utils/colors.dart';
 
 class AppUpdateService extends GetxService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   // Default store URL for the app
   static const String defaultStoreUrl =
       "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat";
 
   /// Main entry point to check for updates.
-  /// Tries native Play Store update first on Android, falls back to Firestore config.
+  /// Tries native Play Store update first on Android, falls back to API config.
   Future<bool> checkForUpdate() async {
     if (Platform.isAndroid) {
       bool nativeUpdateStarted = await _checkNativeUpdate();
       if (nativeUpdateStarted) return true;
     }
 
-    return await _checkFirestoreUpdate();
+    return await _checkApiUpdate();
   }
 
   /// Native Google Play In-App Update (Mandatory/Immediate)
@@ -52,17 +51,17 @@ class AppUpdateService extends GetxService {
     return false;
   }
 
-  /// Firestore-based update check (Fallback or for iOS)
-  Future<bool> _checkFirestoreUpdate() async {
+  /// API-based update check (Fallback or for iOS)
+  Future<bool> _checkApiUpdate() async {
     try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String currentVersion = packageInfo.version;
 
-      DocumentSnapshot config =
-          await _firestore.collection('app_config').doc('update').get();
+      final ApiClient apiClient = Get.find<ApiClient>();
+      final response = await apiClient.get(ApiConstants.appConfig);
 
-      if (config.exists) {
-        Map<String, dynamic> data = config.data() as Map<String, dynamic>;
+      if (response.statusCode == 200 && response.data != null) {
+        Map<String, dynamic> data = response.data as Map<String, dynamic>;
         String minVersion = data['min_version'] ?? '1.0.0';
         String storeUrl = data['store_url'] ?? defaultStoreUrl;
         bool forceUpdate = data['force_update'] ?? true;
@@ -75,12 +74,7 @@ class AppUpdateService extends GetxService {
         }
       }
     } catch (e) {
-      if (e is FirebaseException && e.code == 'not-found') {
-        debugPrint(
-            'AppUpdateService: Firestore database not found. Please create a "Cloud Firestore" database in your Firebase Console (project: dailybachat).');
-      } else {
-        debugPrint('AppUpdateService: Firestore check failed: $e');
-      }
+      debugPrint('AppUpdateService: API check failed: $e');
     }
     return false;
   }

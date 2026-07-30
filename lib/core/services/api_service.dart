@@ -9,6 +9,7 @@ import 'package:spendly/core/services/local_cache_service.dart';
 import 'package:spendly/core/services/connectivity_service.dart';
 import 'package:spendly/no_internet_screen.dart';
 import 'package:spendly/core/network/api_constants.dart';
+import 'package:spendly/res/routes/routes_name.dart';
 
 class ApiService {
   static final String _baseUrl = AppConstants.baseUrl;
@@ -28,6 +29,7 @@ class ApiService {
 
   static void _showNoInternetScreen() {
     if (Get.currentRoute == '/no-internet') return;
+    if (Get.currentRoute == RoutesName.homeView) return;
     Get.to(
       () => const NoInternetScreen(),
       routeName: '/no-internet',

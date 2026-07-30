@@ -67,17 +67,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            CupertinoIcons.back,
-            color: isDark ? Colors.white : AppColors.textPrimary,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: Stack(
         children: [
           // Background ambient decoration
@@ -154,7 +143,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
                         // Form Card
                         Container(
@@ -172,7 +161,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                                color: Colors.black
+                                    .withOpacity(isDark ? 0.2 : 0.04),
                                 blurRadius: 30,
                                 offset: const Offset(0, 10),
                               ),
@@ -192,7 +182,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 validator: (v) =>
                                     v!.isEmpty ? 'Enter your name' : null,
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 16),
 
                               // Mobile Number
                               _PremiumField(
@@ -212,7 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 16),
 
                               // Email Address
                               _PremiumField(
@@ -234,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 16),
 
                               // Referral Code (Optional)
                               _PremiumField(
@@ -245,7 +235,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 icon: CupertinoIcons.gift_fill,
                                 keyboardType: TextInputType.text,
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 16),
 
                               // Password
                               Obx(() => _PremiumField(
@@ -254,14 +244,16 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     label: 'Password',
                                     hint: 'Create a strong password',
                                     icon: CupertinoIcons.lock_fill,
-                                    obscureText: controller.obscurePassword.value,
+                                    obscureText:
+                                        controller.obscurePassword.value,
                                     keyboardType: TextInputType.visiblePassword,
                                     onChanged: (v) {
                                       controller.checkPasswordStrength(v ?? '');
                                       return null;
                                     },
                                     suffixWidget: GestureDetector(
-                                      onTap: controller.togglePasswordVisibility,
+                                      onTap:
+                                          controller.togglePasswordVisibility,
                                       child: Icon(
                                         controller.obscurePassword.value
                                             ? CupertinoIcons.eye_slash_fill
@@ -286,7 +278,7 @@ class _SignUpScreenState extends State<SignUpScreen>
 
                               // Password Strength Meter
                               Obx(() => _buildStrengthRow(isDark)),
-                              const SizedBox(height: 28),
+                              const SizedBox(height: 20),
 
                               // Submit Button
                               Obx(() => _PremiumButton(
@@ -300,7 +292,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     },
                                   )),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 16),
 
                               // Go to Login
                               Center(
@@ -335,7 +327,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
@@ -415,12 +407,16 @@ class _StrengthBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: isValid
             ? AppColors.green.withOpacity(isDark ? 0.15 : 0.08)
-            : (isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02)),
+            : (isDark
+                ? Colors.white.withOpacity(0.02)
+                : Colors.black.withOpacity(0.02)),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isValid
               ? AppColors.green.withOpacity(isDark ? 0.4 : 0.3)
-              : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
+              : (isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.05)),
           width: 1,
         ),
       ),

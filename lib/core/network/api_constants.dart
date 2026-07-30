@@ -4,6 +4,7 @@ class ApiConstants {
 
   // Auth
   static const String login = '/auth/login';
+  static const String appConfig = '/auth/app-config';
   static const String registerRequest = '/auth/register/request';
   static const String registerVerify = '/auth/register/verify';
   static const String sendOtp = '/auth/otp/send';
