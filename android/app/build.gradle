@@ -9,7 +9,7 @@ plugins {
 android {
     namespace = "com.technosolz.dailybachat"
     compileSdk = 36
-    ndkVersion = "29.0.14033849"
+    ndkVersion = "28.2.13676358"
 
     def keyProperties = new Properties()
     def keyPropertiesFile = rootProject.file("key.properties")
@@ -50,8 +50,8 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -69,6 +69,11 @@ android {
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0'
             force 'androidx.core:core:1.15.0'
             force 'androidx.core:core-ktx:1.15.0'
+            force 'com.google.mlkit:barcode-scanning:17.3.0'
+            force 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1'
+            force 'androidx.camera:camera-core:1.4.2'
+            force 'androidx.camera:camera-camera2:1.4.2'
+            force 'androidx.camera:camera-lifecycle:1.4.2'
         }
     }
 }
