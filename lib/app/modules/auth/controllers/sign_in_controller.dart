@@ -63,6 +63,21 @@ class SignInController extends GetxController {
   var canResend = false.obs;
   Timer? _timer;
 
+  // Cache for instant login submit
+  String? _cachedDeviceInfo;
+  String? _cachedFcmToken;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _preloadAuthMetadata();
+  }
+
+  void _preloadAuthMetadata() {
+    _getDeviceDetails();
+    _getFcmToken();
+  }
+
   void startResendTimer() {
     canResend.value = false;
     resendAfter.value = 60;
@@ -176,15 +191,16 @@ class SignInController extends GetxController {
       false.obs; // To track if we are in signup or login flow for OTP
 
   Future<String?> _getFcmToken() async {
+    if (_cachedFcmToken != null) return _cachedFcmToken;
     try {
-      return await _firebaseMessaging.getToken().timeout(
-            const Duration(seconds: 3),
+      _cachedFcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 2),
             onTimeout: () => null,
           );
     } catch (e) {
       debugPrint("Error fetching FCM token: $e");
-      return null;
     }
+    return _cachedFcmToken;
   }
 
   Future<void> signIn() async {
@@ -505,15 +521,22 @@ class SignInController extends GetxController {
   }
 
   Future<String> _getDeviceDetails() async {
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await _deviceInfoPlugin.androidInfo;
-      return 'Android ${androidInfo.version.release}, ${androidInfo.model}';
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await _deviceInfoPlugin.iosInfo;
-      return 'iOS ${iosInfo.systemVersion}, ${iosInfo.name}';
-    } else {
-      return 'Unknown Device';
+    if (_cachedDeviceInfo != null) return _cachedDeviceInfo!;
+    try {
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await _deviceInfoPlugin.androidInfo;
+        _cachedDeviceInfo =
+            'Android ${androidInfo.version.release}, ${androidInfo.model}';
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosInfo = await _deviceInfoPlugin.iosInfo;
+        _cachedDeviceInfo = 'iOS ${iosInfo.systemVersion}, ${iosInfo.name}';
+      } else {
+        _cachedDeviceInfo = 'Unknown Device';
+      }
+    } catch (e) {
+      _cachedDeviceInfo = 'Mobile Device';
     }
+    return _cachedDeviceInfo!;
   }
 
   Future<void> syncUserWithBackend(

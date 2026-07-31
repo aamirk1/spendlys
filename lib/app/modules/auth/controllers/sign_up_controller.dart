@@ -69,6 +69,20 @@ class SignUpController extends GetxController {
     });
   }
 
+  String? _cachedDeviceInfo;
+  String? _cachedFcmToken;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _preloadAuthMetadata();
+  }
+
+  void _preloadAuthMetadata() {
+    getDeviceInfo();
+    getFcmToken();
+  }
+
   @override
   void onClose() {
     _timer?.cancel();
@@ -119,7 +133,7 @@ class SignUpController extends GetxController {
         },
         verificationFailed: (FirebaseAuthException e) {
           signUpRequired.value = false;
-          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+          AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
         },
         codeSent: (String verificationId, int? resendToken) {
           signUpRequired.value = false;
@@ -155,7 +169,7 @@ class SignUpController extends GetxController {
         },
         verificationFailed: (FirebaseAuthException e) {
           signUpRequired.value = false;
-          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+          AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
         },
         codeSent: (String verificationId, int? resendToken) {
           signUpRequired.value = false;
@@ -519,23 +533,37 @@ class SignUpController extends GetxController {
   }
 
   Future<String> getDeviceInfo() async {
-    final deviceInfo = DeviceInfoPlugin();
-    String deviceData = 'Unknown Device';
-
-    if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      deviceData =
-          'Android - ${androidInfo.model} (SDK ${androidInfo.version.sdkInt})';
-    } else if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      deviceData =
-          'iOS - ${iosInfo.utsname.machine} (${iosInfo.systemVersion})';
+    if (_cachedDeviceInfo != null) return _cachedDeviceInfo!;
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        _cachedDeviceInfo =
+            'Android - ${androidInfo.model} (SDK ${androidInfo.version.sdkInt})';
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        _cachedDeviceInfo =
+            'iOS - ${iosInfo.utsname.machine} (${iosInfo.systemVersion})';
+      } else {
+        _cachedDeviceInfo = 'Unknown Device';
+      }
+    } catch (e) {
+      _cachedDeviceInfo = 'Mobile Device';
     }
-    return deviceData;
+    return _cachedDeviceInfo!;
   }
 
   Future<String?> getFcmToken() async {
-    final fcm = FirebaseMessaging.instance;
-    return await fcm.getToken();
+    if (_cachedFcmToken != null) return _cachedFcmToken;
+    try {
+      final fcm = FirebaseMessaging.instance;
+      _cachedFcmToken = await fcm.getToken().timeout(
+            const Duration(seconds: 2),
+            onTimeout: () => null,
+          );
+    } catch (e) {
+      debugPrint("Error fetching FCM token: $e");
+    }
+    return _cachedFcmToken;
   }
 }

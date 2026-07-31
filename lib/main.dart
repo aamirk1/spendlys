@@ -50,45 +50,56 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
+  // Initialize Storage, Local Cache & Firebase core in parallel for fastest startup
+  await Future.wait([
+    GetStorage.init(),
+    LocalCacheService.init(),
+    Firebase.initializeApp(),
+  ]);
+
   // Set timezone to India (IST) for correct reminder scheduling
   tz_data.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+  try {
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+  } catch (e) {
+    debugPrint("Timezone set error: $e");
+  }
 
-  await Firebase.initializeApp();
+  // Register core infrastructure services
+  Get.put(ConnectivityService(), permanent: true);
+  Get.put(SyncService(), permanent: true);
 
-  // Pass all uncaught "fatal" errors from the framework to Crashlytics
+  // Setup Crashlytics error handlers
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
-  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
-  // Initialize App Check & Firebase Messaging in background
-  FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.deviceCheck,
-  );
+  runApp(const MyApp());
 
+  // Non-blocking background initialization for heavy notification & security services
+  _initDeferredServices();
+}
+
+void _initDeferredServices() {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Initialize Storage & Basic Services
-  await Future.wait([
-    GetStorage.init(),
-    LocalCacheService.init(),
-  ]);
+  try {
+    FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.playIntegrity,
+      appleProvider: AppleProvider.deviceCheck,
+    );
+  } catch (e) {
+    debugPrint("AppCheck init warning: $e");
+  }
 
-  // Initialize Global Services in parallel
-  await Future.wait([
+  // Initialize notification & security services asynchronously without blocking UI mount
+  Future.wait([
     Get.putAsync(() => NotificationService().init()),
     Get.putAsync(() => ReminderNotificationService().init()),
     Get.putAsync(() => SecurityService().init()),
   ]);
-
-  Get.put(SyncService());
-  Get.put(ConnectivityService());
-
-  runApp(MyApp());
 }

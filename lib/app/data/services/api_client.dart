@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 import 'package:spendly/app/data/services/secure_storage_service.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
@@ -27,6 +31,8 @@ class ApiClient {
       ),
     );
 
+    _setupSSLPinning();
+
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final path = options.path;
@@ -53,10 +59,27 @@ class ApiClient {
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (e.response?.statusCode == 401 ||
-            (e.response?.data is Map &&
-                e.response?.data['detail'] ==
-                    'Could not validate credentials')) {
+        final path = e.requestOptions.path;
+        final publicEndpoints = {
+          ApiConstants.login,
+          ApiConstants.syncUser,
+          ApiConstants.registerRequest,
+          ApiConstants.registerVerify,
+          ApiConstants.sendOtp,
+          ApiConstants.verifyOtp,
+          ApiConstants.forgotPasswordRequest,
+          ApiConstants.forgotPasswordReset,
+          ApiConstants.appConfig,
+        };
+
+        final isPublic =
+            publicEndpoints.any((endpoint) => path.endsWith(endpoint));
+
+        if (!isPublic &&
+            (e.response?.statusCode == 401 ||
+                (e.response?.data is Map &&
+                    e.response?.data['detail'] ==
+                        'Could not validate credentials'))) {
           // Auto logout logic
           final box = GetStorage();
           await box.write("isLoggedIn", false);
@@ -113,5 +136,49 @@ class ApiClient {
     } catch (e) {
       rethrow;
     }
+  }
+
+  void _setupSSLPinning() {
+    if (kIsWeb) return;
+    _dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient(
+          context: SecurityContext(withTrustedRoots: true),
+        );
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
+          if (host == 'dailybachatapi.serwex.in' ||
+              host.endsWith('.serwex.in')) {
+            final certFingerprint =
+                sha256.convert(cert.der).toString().toUpperCase();
+            final isPinned =
+                ApiConstants.allowedSSLPins.contains(certFingerprint);
+            if (!isPinned) {
+              debugPrint(
+                  'SSL Pinning failed for $host. Fingerprint mismatch: $certFingerprint');
+            }
+            return isPinned;
+          }
+          return false;
+        };
+        return client;
+      },
+      validateCertificate: (cert, host, port) {
+        if (cert == null) return false;
+        if (host == 'dailybachatapi.serwex.in' ||
+            host.endsWith('.serwex.in')) {
+          final certFingerprint =
+              sha256.convert(cert.der).toString().toUpperCase();
+          final isPinned =
+              ApiConstants.allowedSSLPins.contains(certFingerprint);
+          if (!isPinned) {
+            debugPrint(
+                'SSL Pinning validateCertificate failed for $host: $certFingerprint');
+          }
+          return isPinned;
+        }
+        return true;
+      },
+    );
   }
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">dailybachatapi.serwex.in</domain>
+        <pin-set expiration="2028-12-31">
+            <pin digest="SHA-256">d409M7RcFSC1n7fi5UPthiK8sMvdz9pQAalpa8b7wqU=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

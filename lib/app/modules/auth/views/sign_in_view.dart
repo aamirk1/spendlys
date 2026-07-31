@@ -80,34 +80,40 @@ class _SignInScreenState extends State<SignInScreen>
       // ),
       body: Stack(
         children: [
-          // Background ambient decoration
-          Positioned(
-            top: -50,
-            right: -100,
-            child: Container(
-              width: size.width * 0.7,
-              height: size.width * 0.7,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.03),
-              ),
+          // Background ambient decoration cached with RepaintBoundary
+          RepaintBoundary(
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -50,
+                  right: -100,
+                  child: Container(
+                    width: size.width * 0.7,
+                    height: size.width * 0.7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.03),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 50,
+                  left: -100,
+                  child: Container(
+                    width: size.width * 0.7,
+                    height: size.width * 0.7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.secondary.withValues(alpha: isDark ? 0.05 : 0.02),
+                    ),
+                  ),
+                ),
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 60.0, sigmaY: 60.0),
+                  child: Container(color: Colors.transparent),
+                ),
+              ],
             ),
-          ),
-          Positioned(
-            bottom: 50,
-            left: -100,
-            child: Container(
-              width: size.width * 0.7,
-              height: size.width * 0.7,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondary.withValues(alpha: isDark ? 0.05 : 0.02),
-              ),
-            ),
-          ),
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 80.0, sigmaY: 80.0),
-            child: Container(color: Colors.transparent),
           ),
 
           SafeArea(

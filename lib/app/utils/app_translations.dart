@@ -210,10 +210,13 @@ class AppTranslations extends Translations {
           'contact_support': 'Contact Support',
           'security_alert': 'Security Alert',
           'dev_options_enabled': 'Developer Options Enabled',
+          'emulator_detected': 'Emulator Detected',
           'rooted_device_msg':
               'Your device appears to be rooted or jailbroken. For security reasons, this app cannot run on compromised devices.',
           'dev_options_msg':
-              'Developer options are enabled on your device. For security reasons, please disable Developer Options to continue using this app in release mode.',
+              'Developer options are enabled on your device. For security reasons, please disable Developer Options to continue using this app.',
+          'emulator_msg':
+              'For security reasons, this application cannot run on an emulator or virtual device.',
           'exit_app': 'Exit App',
           'payment_recorded_msg': 'Payment recorded successfully',
           'error': 'Error',
