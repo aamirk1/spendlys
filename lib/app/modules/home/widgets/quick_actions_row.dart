@@ -48,10 +48,11 @@ class QuickActionsRow extends StatelessWidget {
           _quickActionDivider(),
           _quickActionButton(
             icon: Icons.receipt_long_outlined,
-            label: "Create Invoice",
+            label: "Loans",
             color: Colors.orange,
             bgColor: Colors.orange.shade50,
-            onTap: () => Get.toNamed(RoutesName.createInvoice),
+            onTap: () => Get.toNamed(RoutesName.addLendBorrowView,
+                arguments: {'index': 0}),
           ),
           _quickActionDivider(),
           _quickActionButton(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/app/modules/business/views/customers_list_view.dart';
+import 'package:spendly/app/modules/business/controllers/customers_controller.dart';
 import 'package:spendly/app/utils/validators.dart';
+import 'package:spendly/app/common_widgets/custom_button.dart';
 
 class AddCustomerView extends StatefulWidget {
   const AddCustomerView({super.key});
@@ -48,12 +49,14 @@ class _AddCustomerViewState extends State<AddCustomerView> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Text(
           isEdit ? "Edit Customer" : "New Customer",
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -65,7 +68,8 @@ class _AddCustomerViewState extends State<AddCustomerView> {
               // Decorative header banner with premium design
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
@@ -134,9 +138,12 @@ class _AddCustomerViewState extends State<AddCustomerView> {
                         // 1. Full Name Input
                         TextFormField(
                           controller: controller.nameController,
-                          validator: (v) => Validators.requiredField(v, "Full Name"),
-                          decoration: _inputDeco("Full Name", Icons.person_rounded, primaryColor),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          validator: (v) =>
+                              Validators.requiredField(v, "Full Name"),
+                          decoration: _inputDeco(
+                              "Full Name", Icons.person_rounded, primaryColor),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 20),
 
@@ -144,8 +151,10 @@ class _AddCustomerViewState extends State<AddCustomerView> {
                         TextFormField(
                           controller: controller.phoneController,
                           keyboardType: TextInputType.phone,
-                          decoration: _inputDeco("Phone (Optional)", Icons.phone_rounded, primaryColor),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          decoration: _inputDeco("Phone (Optional)",
+                              Icons.phone_rounded, primaryColor),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 20),
 
@@ -153,8 +162,10 @@ class _AddCustomerViewState extends State<AddCustomerView> {
                         TextFormField(
                           controller: controller.emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: _inputDeco("Email (Optional)", Icons.email_rounded, primaryColor),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          decoration: _inputDeco("Email (Optional)",
+                              Icons.email_rounded, primaryColor),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 20),
 
@@ -162,8 +173,10 @@ class _AddCustomerViewState extends State<AddCustomerView> {
                         TextFormField(
                           controller: controller.addressController,
                           maxLines: 3,
-                          decoration: _inputDeco("Address (Optional)", Icons.location_on_rounded, primaryColor),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          decoration: _inputDeco("Address (Optional)",
+                              Icons.location_on_rounded, primaryColor),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 10),
                       ],
@@ -176,43 +189,27 @@ class _AddCustomerViewState extends State<AddCustomerView> {
               // Save Customer Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (isEdit) {
-                        controller.updateCustomer(customer!['id'].toString());
-                      } else {
-                        controller.addCustomer();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
+                child: Obx(() => CustomButton(
+                      text: isEdit ? "Update Details" : "Save Customer",
+                      onPressed: () {
+                        if (isEdit) {
+                          controller.updateCustomer(customer!['id'].toString());
+                        } else {
+                          controller.addCustomer();
+                        }
+                      },
+                      isLoading: controller.isLoading.value,
                       backgroundColor: primaryColor,
-                      elevation: 4,
-                      shadowColor: primaryColor.withValues(alpha: 0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      borderRadius: 16,
+                      height: 55,
+                      icon: Icon(
+                        isEdit
+                            ? Icons.edit_note_rounded
+                            : Icons.person_add_alt_1_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(isEdit ? Icons.edit_rounded : Icons.save_rounded, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          isEdit ? "UPDATE CUSTOMER" : "SAVE CUSTOMER",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                    )),
               ),
               const SizedBox(height: 40),
             ],
@@ -226,7 +223,8 @@ class _AddCustomerViewState extends State<AddCustomerView> {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-      prefixIcon: Icon(icon, color: primaryColor.withValues(alpha: 0.7), size: 20),
+      prefixIcon:
+          Icon(icon, color: primaryColor.withValues(alpha: 0.7), size: 20),
       filled: true,
       fillColor: const Color(0xFFF9FAFF),
       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

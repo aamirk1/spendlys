@@ -1,240 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/app/data/services/auth_service.dart';
-import 'package:spendly/app/data/services/api_service.dart';
-import 'package:spendly/app/data/services/local_cache_service.dart';
 import 'package:spendly/app/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/app/routes/app_pages.dart';
-import 'package:spendly/app/modules/profile/controllers/user_info_controller.dart';
-import 'package:spendly/app/modules/business/views/business_home_view.dart';
-
-class QuotationListController extends GetxController {
-  final quotations = [].obs;
-  final isLoading = true.obs;
-
-  // Search and Filter
-  final searchQuery = ''.obs;
-  final selectedStatus = 'All'.obs;
-  final selectedTab = 'All'.obs;
-  final dateRange = Rxn<DateTimeRange>();
-
-  final selectedFilter = 'This Month'.obs;
-
-  bool _isWithinFilter(dynamic dateValue, String filter) {
-    if (dateValue == null) return false;
-    try {
-      final DateTime date = dateValue is DateTime
-          ? dateValue
-          : DateTime.parse(dateValue.toString());
-      final now = DateTime.now();
-      switch (filter) {
-        case 'This Week':
-          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
-          final startOfWeek = DateTime(now.year, now.month, now.day)
-              .subtract(Duration(days: daysToSubtract));
-          final endOfWeek = startOfWeek.add(const Duration(days: 7));
-          return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
-              date.isBefore(endOfWeek);
-        case 'This Month':
-          return date.year == now.year && date.month == now.month;
-        case 'This Year':
-          return date.year == now.year;
-        default:
-          return true;
-      }
-    } catch (_) {
-      return false;
-    }
-  }
-
-  int get totalCount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .length;
-
-  int get acceptedCount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'converted' || status == 'accepted';
-      }).length;
-
-  double get acceptedAmount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'converted' || status == 'accepted';
-      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
-
-  int get pendingCount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'sent' || status == 'draft' || status == 'pending';
-      }).length;
-
-  double get pendingAmount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'sent' || status == 'draft' || status == 'pending';
-      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
-
-  int get rejectedCount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'expired' || status == 'rejected';
-      }).length;
-
-  double get rejectedAmount => quotations
-      .where((q) => _isWithinFilter(q['date'], selectedFilter.value))
-      .where((q) {
-        final status = (q['status'] ?? '').toString().toLowerCase();
-        return status == 'expired' || status == 'rejected';
-      }).fold(0.0, (sum, q) => sum + (double.tryParse(q['total']?.toString() ?? '0') ?? 0.0));
-
-  List get filteredQuotations {
-    return quotations.where((q) {
-      final matchesSearch = (q['quotation_number'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(searchQuery.value.toLowerCase()) ||
-          (q['customer']?['name'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(searchQuery.value.toLowerCase());
-
-      final rawStatus = (q['status'] ?? '').toString().toLowerCase();
-      bool matchesStatus = true;
-      if (selectedTab.value == 'Accepted') {
-        matchesStatus = rawStatus == 'converted' || rawStatus == 'accepted';
-      } else if (selectedTab.value == 'Pending') {
-        matchesStatus = rawStatus == 'sent' || rawStatus == 'draft' || rawStatus == 'pending';
-      } else if (selectedTab.value == 'Rejected') {
-        matchesStatus = rawStatus == 'expired' || rawStatus == 'rejected';
-      }
-
-      bool matchesDate = true;
-      if (dateRange.value != null && q['date'] != null) {
-        final d = DateTime.parse(q['date']);
-        matchesDate = d.isAfter(
-                dateRange.value!.start.subtract(const Duration(seconds: 1))) &&
-            d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
-      }
-
-      return matchesSearch && matchesStatus && matchesDate;
-    }).toList();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchQuotations();
-  }
-
-  Future<void> fetchQuotations({bool forceRefresh = false}) async {
-    String? userId = Get.find<AuthService>().currentUserId;
-    if (userId == null) return;
-
-    final cacheKey = 'GET_/business/quotations';
-    final cachedData = LocalCacheService.getCache(cacheKey);
-    if (!forceRefresh && cachedData != null && cachedData is List) {
-      quotations.value = List<Map<String, dynamic>>.from(cachedData);
-      return;
-    }
-
-    if (cachedData != null && cachedData is List) {
-      quotations.value = List<Map<String, dynamic>>.from(cachedData);
-    } else {
-      isLoading.value = true;
-    }
-
-    try {
-      final response = await ApiService.get('/business/quotations',
-          headers: {'x-user-id': userId});
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        if (response.statusCode == 200) {
-          quotations.value = jsonDecode(response.body);
-        }
-      }
-    } catch (e) {
-      Utils.showSnackbar("Error", "Failed to load quotations: $e");
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> deleteQuotation(String quotationId) async {
-    String? userId = Get.find<AuthService>().currentUserId;
-    if (userId == null) return;
-
-    isLoading.value = true;
-    try {
-      final response = await ApiService.delete(
-          '/business/quotations/$quotationId',
-          headers: {'x-user-id': userId});
-
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
-        final isOffline = response.statusCode == 202;
-        Utils.showSnackbar(
-            isOffline ? "Offline" : "Success",
-            isOffline ? "Quotation deletion scheduled offline. Will sync when online." : "Quotation deleted successfully",
-            isError: false);
-        quotations.removeWhere((q) => q['id'].toString() == quotationId);
-        fetchQuotations(forceRefresh: true);
-        if (Get.isRegistered<BusinessHomeController>()) {
-          Get.find<BusinessHomeController>().fetchSummary();
-        }
-      } else {
-        Utils.showSnackbar("Error", "Failed to delete quotation: ${response.body}");
-      }
-    } catch (e) {
-      Utils.showSnackbar("Error", "Failed to delete quotation: $e");
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Map<String, dynamic> getStatusDetails(String status) {
-    switch (status.toLowerCase()) {
-      case 'converted':
-      case 'accepted':
-        return {
-          'label': 'Accepted',
-          'color': const Color(0xFF4CAF50),
-          'bgColor': const Color(0xFFE8F5E9),
-          'iconColor': const Color(0xFF4CAF50),
-          'iconBgColor': const Color(0xFFE8F5E9),
-          'icon': Icons.check_circle_outline_rounded,
-        };
-      case 'expired':
-      case 'rejected':
-        return {
-          'label': 'Rejected',
-          'color': const Color(0xFFF44336),
-          'bgColor': const Color(0xFFFFEBEE),
-          'iconColor': const Color(0xFFF44336),
-          'iconBgColor': const Color(0xFFFFCDD2).withValues(alpha: 0.5),
-          'icon': Icons.cancel_outlined,
-        };
-      case 'sent':
-      case 'draft':
-      case 'pending':
-      default:
-        return {
-          'label': status.toLowerCase() == 'draft' ? 'Draft' : 'Pending',
-          'color': const Color(0xFFFF9800),
-          'bgColor': const Color(0xFFFFF3E0),
-          'iconColor': const Color(0xFF5F33E1),
-          'iconBgColor': const Color(0xFFF3EFFF),
-          'icon': Icons.description_rounded,
-        };
-    }
-  }
-}
+import 'package:spendly/app/modules/business/controllers/quotation_list_controller.dart';
 
 class QuotationListView extends StatelessWidget {
   const QuotationListView({super.key});
@@ -251,7 +21,8 @@ class QuotationListView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Column(
@@ -259,7 +30,10 @@ class QuotationListView extends StatelessWidget {
           children: [
             const Text(
               "Quotations",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
             ),
             const SizedBox(height: 2),
             Text(
@@ -271,11 +45,13 @@ class QuotationListView extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.search_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.filter_list_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () => _showFilterSheet(context, controller),
           ),
           Padding(
@@ -283,12 +59,18 @@ class QuotationListView extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () => Get.toNamed(RoutesName.createQuotation),
               icon: const Icon(Icons.add, size: 14, color: Colors.white),
-              label: const Text("Create", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+              label: const Text("Create",
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 elevation: 1,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           )
@@ -304,7 +86,7 @@ class QuotationListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                
+
                 // 1. Stats dashboard
                 Obx(() => _buildStatsSection(controller)),
                 const SizedBox(height: 20),
@@ -337,11 +119,15 @@ class QuotationListView extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Column(
                           children: [
-                            Icon(Icons.request_quote_rounded, size: 60, color: Colors.grey.shade300),
+                            Icon(Icons.request_quote_rounded,
+                                size: 60, color: Colors.grey.shade300),
                             const SizedBox(height: 12),
                             Text(
                               "No quotations found",
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -360,7 +146,8 @@ class QuotationListView extends StatelessWidget {
                             child: SlideAnimation(
                               verticalOffset: 30.0,
                               child: FadeInAnimation(
-                                child: _buildQuotationItemCard(context, quot, controller),
+                                child: _buildQuotationItemCard(
+                                    context, quot, controller),
                               ),
                             ),
                           );
@@ -511,13 +298,25 @@ class QuotationListView extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500)),
+          Text(title,
+              style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
+          Text(value,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87)),
           const SizedBox(height: 2),
           subtitle is Widget
               ? subtitle
-              : Text(subtitle.toString(), style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
+              : Text(subtitle.toString(),
+                  style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -545,8 +344,11 @@ class QuotationListView extends StatelessWidget {
                     tab,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? const Color(0xFF5F33E1) : Colors.grey.shade500,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected
+                          ? const Color(0xFF5F33E1)
+                          : Colors.grey.shade500,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -554,7 +356,9 @@ class QuotationListView extends StatelessWidget {
                     height: 3,
                     width: 32,
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF5F33E1) : Colors.transparent,
+                      color: isSelected
+                          ? const Color(0xFF5F33E1)
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -591,8 +395,10 @@ class QuotationListView extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, color: Colors.black87),
                 decoration: InputDecoration(
                   hintText: "Search by quotation no. or customer...",
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Colors.grey.shade400, size: 20),
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -606,7 +412,8 @@ class QuotationListView extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF5F33E1), width: 1.2),
                   ),
                 ),
               ),
@@ -618,7 +425,8 @@ class QuotationListView extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF3EFFF),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.1)),
+              border: Border.all(
+                  color: const Color(0xFF5F33E1).withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -644,23 +452,20 @@ class QuotationListView extends StatelessWidget {
     );
   }
 
-  Widget _buildQuotationItemCard(BuildContext context, Map<String, dynamic> quot, QuotationListController controller) {
-    String dateFormatted = "Unknown";
-    if (quot['date'] != null) {
-      try {
-        dateFormatted = DateFormat('dd Jul yyyy').format(DateTime.parse(quot['date']));
-      } catch (_) {}
-    }
-    
-    String expiryFormatted = "";
-    if (quot['expiry_date'] != null) {
-      try {
-        expiryFormatted = DateFormat('dd Jul yyyy').format(DateTime.parse(quot['expiry_date']));
-      } catch (_) {}
-    }
+  Widget _buildQuotationItemCard(
+      BuildContext context, Map quot, QuotationListController controller) {
+    String dateFormatted = quot['date'] != null
+        ? DateFormat('dd MMM yyyy').format(DateTime.parse(quot['date']))
+        : '';
 
-    final statusDetails = controller.getStatusDetails(quot['status'] ?? 'draft');
-    final totalAmount = double.tryParse(quot['total']?.toString() ?? '0') ?? 0.0;
+    String expiryFormatted = quot['expiry_date'] != null
+        ? DateFormat('dd MMM yyyy').format(DateTime.parse(quot['expiry_date']))
+        : '';
+
+    final statusDetails =
+        controller.getStatusDetails(quot['status'] ?? 'draft');
+    final totalAmount =
+        double.tryParse(quot['total']?.toString() ?? '0') ?? 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -733,7 +538,8 @@ class QuotationListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusDetails['bgColor'],
                     borderRadius: BorderRadius.circular(8),
@@ -782,7 +588,41 @@ class QuotationListView extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: Icon(Icons.delete_outline_rounded,
+                  color: Colors.red.shade400, size: 18),
+              onPressed: () {
+                Get.dialog(
+                  AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    title: const Text("Delete Quotation",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    content: const Text(
+                        "Are you sure you want to delete this quotation?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text("Cancel",
+                            style: TextStyle(color: Colors.grey.shade600)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.back();
+                          controller.deleteQuotation(quot['id'].toString());
+                        },
+                        child: const Text("Delete",
+                            style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
             Icon(
               Icons.arrow_forward_ios_rounded,
               color: Colors.grey.shade300,
@@ -828,7 +668,9 @@ class QuotationListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFE8F5E9),
                 label: "Share via WhatsApp",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select a quotation to share via WhatsApp", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select a quotation to share via WhatsApp",
+                      isError: false);
                 },
               ),
               const SizedBox(width: 10),
@@ -838,7 +680,9 @@ class QuotationListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFE3F2FD),
                 label: "Share via Email",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select a quotation to share via Email", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select a quotation to share via Email",
+                      isError: false);
                 },
               ),
               const SizedBox(width: 10),
@@ -848,7 +692,9 @@ class QuotationListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFFFF3E0),
                 label: "Convert to Invoice",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select a quotation from the list to convert", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select a quotation from the list to convert",
+                      isError: false);
                 },
               ),
             ],
@@ -924,7 +770,8 @@ class QuotationListView extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
@@ -1002,7 +849,8 @@ class QuotationListView extends StatelessWidget {
     }
   }
 
-  void _showFilterSheet(BuildContext context, QuotationListController controller) {
+  void _showFilterSheet(
+      BuildContext context, QuotationListController controller) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1022,19 +870,28 @@ class QuotationListView extends StatelessWidget {
                   .map((status) => Obx(() => ChoiceChip(
                         label: Text(status),
                         selected: controller.selectedStatus.value == status,
-                        selectedColor: const Color(0xFF5F33E1).withValues(alpha: 0.15),
+                        selectedColor:
+                            const Color(0xFF5F33E1).withValues(alpha: 0.15),
                         labelStyle: TextStyle(
-                          color: controller.selectedStatus.value == status ? const Color(0xFF5F33E1) : Colors.black87,
-                          fontWeight: controller.selectedStatus.value == status ? FontWeight.bold : FontWeight.normal,
+                          color: controller.selectedStatus.value == status
+                              ? const Color(0xFF5F33E1)
+                              : Colors.black87,
+                          fontWeight: controller.selectedStatus.value == status
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                         onSelected: (val) {
                           if (val) {
                             controller.selectedStatus.value = status;
                             // Map selectedStatus to selectedTab
-                            if (status == 'All') controller.selectedTab.value = 'All';
-                            if (status == 'Converted') controller.selectedTab.value = 'Accepted';
-                            if (status == 'Sent' || status == 'Draft') controller.selectedTab.value = 'Pending';
-                            if (status == 'Expired') controller.selectedTab.value = 'Rejected';
+                            if (status == 'All')
+                              controller.selectedTab.value = 'All';
+                            if (status == 'Converted')
+                              controller.selectedTab.value = 'Accepted';
+                            if (status == 'Sent' || status == 'Draft')
+                              controller.selectedTab.value = 'Pending';
+                            if (status == 'Expired')
+                              controller.selectedTab.value = 'Rejected';
                           }
                         },
                       )))
@@ -1078,7 +935,8 @@ class QuotationListView extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12))),
                 child: const Text("APPLY FILTERS",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             )
           ],

@@ -1,284 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:spendly/app/data/services/auth_service.dart';
-import 'package:spendly/app/data/services/api_service.dart';
-import 'package:spendly/app/data/services/local_cache_service.dart';
 import 'package:spendly/app/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:spendly/app/routes/app_pages.dart';
-import 'package:spendly/app/modules/profile/controllers/user_info_controller.dart';
-import 'package:spendly/app/modules/business/views/business_home_view.dart';
-
-class InvoiceListController extends GetxController {
-  final invoices = [].obs;
-  final isLoading = true.obs;
-  final isMoreLoading = false.obs;
-
-  // Pagination
-  int currentPage = 1;
-  final int limit = 10;
-  bool hasMoreData = true;
-  final scrollController = ScrollController();
-
-  // Search and Filter
-  final searchQuery = ''.obs;
-  final selectedStatus = 'All'.obs;
-  final selectedTab = 'All'.obs;
-  final dateRange = Rxn<DateTimeRange>();
-
-  final selectedFilter = 'This Month'.obs;
-
-  bool _isWithinFilter(dynamic dateValue, String filter) {
-    if (dateValue == null) return false;
-    try {
-      final DateTime date = dateValue is DateTime
-          ? dateValue
-          : DateTime.parse(dateValue.toString());
-      final now = DateTime.now();
-      switch (filter) {
-        case 'This Week':
-          final daysToSubtract = now.weekday == 7 ? 0 : now.weekday;
-          final startOfWeek = DateTime(now.year, now.month, now.day)
-              .subtract(Duration(days: daysToSubtract));
-          final endOfWeek = startOfWeek.add(const Duration(days: 7));
-          return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
-              date.isBefore(endOfWeek);
-        case 'This Month':
-          return date.year == now.year && date.month == now.month;
-        case 'This Year':
-          return date.year == now.year;
-        default:
-          return true;
-      }
-    } catch (_) {
-      return false;
-    }
-  }
-
-  int get totalCount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .length;
-
-  int get paidCount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'paid')
-      .length;
-
-  double get paidAmount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .fold(0.0, (sum, inv) => sum + (double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0));
-
-  int get pendingCount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'pending' || (inv['status'] ?? '').toString().toLowerCase() == 'partially_paid')
-      .length;
-
-  double get pendingAmount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'pending' || (inv['status'] ?? '').toString().toLowerCase() == 'partially_paid')
-      .fold(0.0, (sum, inv) {
-        final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
-        final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
-        return sum + (total - paid);
-      });
-
-  int get overdueCount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'overdue')
-      .length;
-
-  double get overdueAmount => invoices
-      .where((inv) => _isWithinFilter(inv['date'], selectedFilter.value))
-      .where((inv) => (inv['status'] ?? '').toString().toLowerCase() == 'overdue')
-      .fold(0.0, (sum, inv) {
-        final total = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
-        final paid = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
-        return sum + (total - paid);
-      });
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchInvoices();
-    setupScrollListener();
-  }
-
-  void setupScrollListener() {
-    scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
-        if (hasMoreData && !isMoreLoading.value && !isLoading.value) {
-          fetchInvoices(loadMore: true);
-        }
-      }
-    });
-  }
-
-  Future<void> fetchInvoices({bool loadMore = false, bool refresh = false}) async {
-    String? userId = Get.find<AuthService>().currentUserId;
-    if (userId == null) return;
-
-    if (refresh) {
-      currentPage = 1;
-      hasMoreData = true;
-    }
-
-    final endpoint = '/business/invoices?page=$currentPage&limit=$limit';
-    final cacheKey = 'GET_$endpoint';
-
-    if (!loadMore && !refresh) {
-      final cachedData = LocalCacheService.getCache(cacheKey);
-      if (cachedData != null && cachedData is List) {
-        invoices.assignAll(cachedData);
-        return;
-      }
-    }
-
-    if (!loadMore) {
-      final cachedData = LocalCacheService.getCache(cacheKey);
-      if (cachedData != null && cachedData is List) {
-        invoices.assignAll(cachedData);
-      } else {
-        isLoading.value = true;
-      }
-    } else {
-      isMoreLoading.value = true;
-    }
-
-    try {
-      final response = await ApiService.get(endpoint, headers: {'x-user-id': userId});
-
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        if (response.statusCode == 200) {
-          final List newData = jsonDecode(response.body);
-
-          if (refresh || !loadMore) {
-            invoices.assignAll(newData);
-          } else {
-            invoices.addAll(newData);
-          }
-
-          if (newData.length < limit) {
-            hasMoreData = false;
-          } else {
-            currentPage++;
-          }
-        }
-      }
-    } catch (e) {
-      Utils.showSnackbar("Error", "Failed to load invoices: $e");
-    } finally {
-      isLoading.value = false;
-      isMoreLoading.value = false;
-    }
-  }
-
-  List get filteredInvoices {
-    return invoices.where((inv) {
-      final matchesSearch = (inv['invoice_number'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(searchQuery.value.toLowerCase()) ||
-          (inv['customer']?['name'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(searchQuery.value.toLowerCase());
-
-      final rawStatus = (inv['status'] ?? '').toString().toLowerCase();
-      bool matchesStatus = true;
-      if (selectedTab.value == 'Paid') {
-        matchesStatus = rawStatus == 'paid';
-      } else if (selectedTab.value == 'Pending') {
-        matchesStatus = rawStatus == 'pending' || rawStatus == 'partially_paid';
-      } else if (selectedTab.value == 'Overdue') {
-        matchesStatus = rawStatus == 'overdue';
-      }
-
-      bool matchesDate = true;
-      if (dateRange.value != null && inv['date'] != null) {
-        final d = DateTime.parse(inv['date']);
-        matchesDate = d.isAfter(
-                dateRange.value!.start.subtract(const Duration(seconds: 1))) &&
-            d.isBefore(dateRange.value!.end.add(const Duration(days: 1)));
-      }
-
-      return matchesSearch && matchesStatus && matchesDate;
-    }).toList();
-  }
-
-  Future<void> deleteInvoice(String invoiceId) async {
-    String? userId = Get.find<AuthService>().currentUserId;
-    if (userId == null) return;
-
-    isLoading.value = true;
-    try {
-      final response = await ApiService.delete('/business/invoices/$invoiceId',
-          headers: {'x-user-id': userId});
-
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 202) {
-        final isOffline = response.statusCode == 202;
-        Utils.showSnackbar(
-            isOffline ? "Offline" : "Success",
-            isOffline ? "Invoice deletion scheduled offline. Will sync when online." : "Invoice deleted successfully",
-            isError: false);
-        invoices.removeWhere((inv) => inv['id'].toString() == invoiceId);
-        fetchInvoices(refresh: true);
-        if (Get.isRegistered<BusinessHomeController>()) {
-          Get.find<BusinessHomeController>().fetchSummary();
-        }
-      } else {
-        Utils.showSnackbar("Error", "Failed to delete invoice: ${response.body}");
-      }
-    } catch (e) {
-      Utils.showSnackbar("Error", "Failed to delete invoice: $e");
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Map<String, dynamic> getStatusDetails(String status) {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return {
-          'label': 'Paid',
-          'color': const Color(0xFF4CAF50),
-          'bgColor': const Color(0xFFE8F5E9),
-          'iconColor': const Color(0xFF4CAF50),
-          'iconBgColor': const Color(0xFFE8F5E9),
-          'icon': Icons.check_circle_outline_rounded,
-        };
-      case 'overdue':
-        return {
-          'label': 'Overdue',
-          'color': const Color(0xFFF44336),
-          'bgColor': const Color(0xFFFFEBEE),
-          'iconColor': const Color(0xFFF44336),
-          'iconBgColor': const Color(0xFFFFCDD2).withValues(alpha: 0.5),
-          'icon': Icons.warning_amber_rounded,
-        };
-      case 'partially_paid':
-        return {
-          'label': 'Partially Paid',
-          'color': const Color(0xFF2196F3),
-          'bgColor': const Color(0xFFE3F2FD),
-          'iconColor': const Color(0xFF2196F3),
-          'iconBgColor': const Color(0xFFE3F2FD),
-          'icon': Icons.hourglass_bottom_rounded,
-        };
-      case 'pending':
-      default:
-        return {
-          'label': 'Pending',
-          'color': const Color(0xFFFF9800),
-          'bgColor': const Color(0xFFFFF3E0),
-          'iconColor': const Color(0xFF5F33E1),
-          'iconBgColor': const Color(0xFFF3EFFF),
-          'icon': Icons.description_rounded,
-        };
-    }
-  }
-}
+import 'package:spendly/app/modules/business/controllers/invoice_list_controller.dart';
 
 class InvoiceListView extends StatelessWidget {
   const InvoiceListView({super.key});
@@ -294,7 +20,8 @@ class InvoiceListView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Column(
@@ -302,7 +29,10 @@ class InvoiceListView extends StatelessWidget {
           children: [
             const Text(
               "Invoices",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 18),
             ),
             const SizedBox(height: 2),
             Text(
@@ -314,11 +44,13 @@ class InvoiceListView extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.search_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list_rounded, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.filter_list_rounded,
+                color: Colors.black87, size: 22),
             onPressed: () => _showFilterSheet(context, controller),
           ),
           Padding(
@@ -326,12 +58,18 @@ class InvoiceListView extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () => Get.toNamed(RoutesName.createInvoice),
               icon: const Icon(Icons.add, size: 14, color: Colors.white),
-              label: const Text("Create", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+              label: const Text("Create",
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 elevation: 1,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           )
@@ -348,7 +86,7 @@ class InvoiceListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                
+
                 // 1. Stats dashboard
                 Obx(() => _buildStatsSection(controller)),
                 const SizedBox(height: 20),
@@ -381,11 +119,15 @@ class InvoiceListView extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Column(
                           children: [
-                            Icon(Icons.receipt_long_rounded, size: 60, color: Colors.grey.shade300),
+                            Icon(Icons.receipt_long_rounded,
+                                size: 60, color: Colors.grey.shade300),
                             const SizedBox(height: 12),
                             Text(
                               "No invoices found",
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -395,13 +137,15 @@ class InvoiceListView extends StatelessWidget {
                       child: ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: items.length + (controller.isMoreLoading.value ? 1 : 0),
+                        itemCount: items.length +
+                            (controller.isMoreLoading.value ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == items.length) {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(15.0),
-                                child: CircularProgressIndicator(color: primaryColor),
+                                child: CircularProgressIndicator(
+                                    color: primaryColor),
                               ),
                             );
                           }
@@ -412,7 +156,8 @@ class InvoiceListView extends StatelessWidget {
                             child: SlideAnimation(
                               verticalOffset: 30.0,
                               child: FadeInAnimation(
-                                child: _buildInvoiceItemCard(context, inv, controller),
+                                child: _buildInvoiceItemCard(
+                                    context, inv, controller),
                               ),
                             ),
                           );
@@ -563,13 +308,25 @@ class InvoiceListView extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500)),
+          Text(title,
+              style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
+          Text(value,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87)),
           const SizedBox(height: 2),
           subtitle is Widget
               ? subtitle
-              : Text(subtitle.toString(), style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.w500)),
+              : Text(subtitle.toString(),
+                  style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -597,8 +354,11 @@ class InvoiceListView extends StatelessWidget {
                     tab,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? const Color(0xFF5F33E1) : Colors.grey.shade500,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected
+                          ? const Color(0xFF5F33E1)
+                          : Colors.grey.shade500,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -606,7 +366,9 @@ class InvoiceListView extends StatelessWidget {
                     height: 3,
                     width: 32,
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF5F33E1) : Colors.transparent,
+                      color: isSelected
+                          ? const Color(0xFF5F33E1)
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -643,8 +405,10 @@ class InvoiceListView extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, color: Colors.black87),
                 decoration: InputDecoration(
                   hintText: "Search by invoice no. or customer...",
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Colors.grey.shade400, size: 20),
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -658,7 +422,8 @@ class InvoiceListView extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF5F33E1), width: 1.2),
                   ),
                 ),
               ),
@@ -670,7 +435,8 @@ class InvoiceListView extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF3EFFF),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.1)),
+              border: Border.all(
+                  color: const Color(0xFF5F33E1).withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -696,24 +462,21 @@ class InvoiceListView extends StatelessWidget {
     );
   }
 
-  Widget _buildInvoiceItemCard(BuildContext context, Map<String, dynamic> inv, InvoiceListController controller) {
-    String dateFormatted = "Unknown";
-    if (inv['date'] != null) {
-      try {
-        dateFormatted = DateFormat('dd Jul yyyy').format(DateTime.parse(inv['date']));
-      } catch (_) {}
-    }
-    
-    String dueFormatted = "";
-    if (inv['due_date'] != null) {
-      try {
-        dueFormatted = DateFormat('dd Jul yyyy').format(DateTime.parse(inv['due_date']));
-      } catch (_) {}
-    }
+  Widget _buildInvoiceItemCard(
+      BuildContext context, Map inv, InvoiceListController controller) {
+    String dateFormatted = inv['date'] != null
+        ? DateFormat('dd MMM yyyy').format(DateTime.parse(inv['date']))
+        : '';
 
-    final statusDetails = controller.getStatusDetails(inv['status'] ?? 'pending');
+    String dueFormatted = inv['due_date'] != null
+        ? DateFormat('dd MMM yyyy').format(DateTime.parse(inv['due_date']))
+        : '';
+
+    final statusDetails =
+        controller.getStatusDetails(inv['status'] ?? 'pending');
     final totalAmount = double.tryParse(inv['total']?.toString() ?? '0') ?? 0.0;
-    final paidAmount = double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
+    final paidAmount =
+        double.tryParse(inv['paid_amount']?.toString() ?? '0') ?? 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -771,14 +534,6 @@ class InvoiceListView extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    dateFormatted,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey.shade400,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -786,7 +541,8 @@ class InvoiceListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusDetails['bgColor'],
                     borderRadius: BorderRadius.circular(8),
@@ -800,17 +556,13 @@ class InvoiceListView extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (dueFormatted.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    "Due till $dueFormatted",
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
+                Text(
+                  "Sent on\n$dateFormatted",
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade400,
                   ),
-                ],
+                ),
               ],
             ),
             const SizedBox(width: 14),
@@ -837,16 +589,20 @@ class InvoiceListView extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 2),
-                Text(
-                  "Sent on $dateFormatted",
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.grey.shade400,
+                if (dueFormatted.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    "Due till\n$dueFormatted",
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Icon(
               Icons.arrow_forward_ios_rounded,
               color: Colors.grey.shade300,
@@ -892,7 +648,9 @@ class InvoiceListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFE8F5E9),
                 label: "Share via WhatsApp",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select an invoice to share via WhatsApp", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select an invoice to share via WhatsApp",
+                      isError: false);
                 },
               ),
               const SizedBox(width: 10),
@@ -902,7 +660,9 @@ class InvoiceListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFE3F2FD),
                 label: "Share via Email",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select an invoice to share via Email", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select an invoice to share via Email",
+                      isError: false);
                 },
               ),
               const SizedBox(width: 10),
@@ -912,7 +672,9 @@ class InvoiceListView extends StatelessWidget {
                 iconBgColor: const Color(0xFFFFF3E0),
                 label: "Record Payment",
                 onTap: () {
-                  Utils.showSnackbar("Info", "Select an unpaid invoice to record payment", isError: false);
+                  Utils.showSnackbar(
+                      "Info", "Select an unpaid invoice to record payment",
+                      isError: false);
                 },
               ),
             ],
@@ -988,7 +750,8 @@ class InvoiceListView extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFF5F33E1).withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
@@ -1066,7 +829,8 @@ class InvoiceListView extends StatelessWidget {
     }
   }
 
-  void _showFilterSheet(BuildContext context, InvoiceListController controller) {
+  void _showFilterSheet(
+      BuildContext context, InvoiceListController controller) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1086,18 +850,31 @@ class InvoiceListView extends StatelessWidget {
                   .map((status) => Obx(() => ChoiceChip(
                         label: Text(status),
                         selected: controller.selectedStatus.value == status,
-                        selectedColor: const Color(0xFF5F33E1).withValues(alpha: 0.15),
+                        selectedColor:
+                            const Color(0xFF5F33E1).withValues(alpha: 0.15),
                         labelStyle: TextStyle(
-                          color: controller.selectedStatus.value == status ? const Color(0xFF5F33E1) : Colors.black87,
-                          fontWeight: controller.selectedStatus.value == status ? FontWeight.bold : FontWeight.normal,
+                          color: controller.selectedStatus.value == status
+                              ? const Color(0xFF5F33E1)
+                              : Colors.black87,
+                          fontWeight: controller.selectedStatus.value == status
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                         onSelected: (val) {
                           if (val) {
                             controller.selectedStatus.value = status;
-                            if (status == 'All') controller.selectedTab.value = 'All';
-                            if (status == 'Paid') controller.selectedTab.value = 'Paid';
-                            if (status == 'Pending') controller.selectedTab.value = 'Pending';
-                            if (status == 'Overdue') controller.selectedTab.value = 'Overdue';
+                            if (status == 'All') {
+                              controller.selectedTab.value = 'All';
+                            }
+                            if (status == 'Paid') {
+                              controller.selectedTab.value = 'Paid';
+                            }
+                            if (status == 'Pending') {
+                              controller.selectedTab.value = 'Pending';
+                            }
+                            if (status == 'Overdue') {
+                              controller.selectedTab.value = 'Overdue';
+                            }
                           }
                         },
                       )))
@@ -1141,7 +918,8 @@ class InvoiceListView extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12))),
                 child: const Text("APPLY FILTERS",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             )
           ],

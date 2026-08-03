@@ -11,6 +11,7 @@ import 'package:spendly/app/utils/utils.dart';
 import 'package:spendly/app/modules/group_split/widgets/bill_details_card.dart';
 import 'package:spendly/app/modules/group_split/widgets/split_type_selector.dart';
 import 'package:spendly/app/modules/group_split/widgets/member_form_card.dart';
+import 'package:spendly/app/common_widgets/custom_button.dart';
 
 class AddGroupSplitScreen extends StatefulWidget {
   const AddGroupSplitScreen({super.key});
@@ -647,25 +648,14 @@ class _AddGroupSplitScreenState extends State<AddGroupSplitScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          'Save Split Group',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                      child: Obx(() => CustomButton(
+                            text: 'Save Split Group',
+                            onPressed: _submit,
+                            isLoading: Get.find<GroupSplitController>().isLoading.value,
+                            backgroundColor: AppColors.primary,
+                            borderRadius: 12,
+                            height: 48,
+                          )),
                     ),
                   ],
                 ),

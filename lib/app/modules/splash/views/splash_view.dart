@@ -55,7 +55,7 @@ class _DailyBachatSplashScreenState extends State<DailyBachatSplashScreen>
     // Entry animations
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 400),
     );
     _logoFade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -84,10 +84,10 @@ class _DailyBachatSplashScreenState extends State<DailyBachatSplashScreen>
           curve: const Interval(0.65, 1.0, curve: Curves.easeOut)),
     );
 
-    // Progress bar fills over splash duration (~1.2 s)
+    // Progress bar fills over splash duration (~0.6 s)
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 500),
     )..forward();
 
     // Start entry animation
@@ -198,7 +198,8 @@ class _DailyBachatSplashScreenState extends State<DailyBachatSplashScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.55),
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.55),
                                 blurRadius: 32,
                                 spreadRadius: 4,
                               ),

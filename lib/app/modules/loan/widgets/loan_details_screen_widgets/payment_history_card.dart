@@ -35,8 +35,8 @@ class PaymentHistoryCard extends StatelessWidget {
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    border:
-                        Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2)),
                   ),
                   child: Text(
                     "${loan.paymentHistory.length} ${"payments_count".tr}",
@@ -59,7 +59,8 @@ class PaymentHistoryCard extends StatelessWidget {
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.02),
@@ -73,13 +74,16 @@ class PaymentHistoryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                      color: Theme.of(context)
+                          .dividerColor
+                          .withValues(alpha: 0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.history_toggle_off_rounded,
                         size: 40,
-                        color:
-                            Theme.of(context).disabledColor.withValues(alpha: 0.4)),
+                        color: Theme.of(context)
+                            .disabledColor
+                            .withValues(alpha: 0.4)),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -105,7 +109,10 @@ class PaymentHistoryCard extends StatelessWidget {
             itemBuilder: (context, index) {
               final payment = reversedHistory[index];
               final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
+              final isTopUp = amount < 0;
+              final absAmount = amount.abs();
               final timestamp = payment['timestamp'];
+              final String? note = payment['note']?.toString();
 
               String formattedDate = "na".tr;
               if (timestamp != null) {
@@ -134,7 +141,8 @@ class PaymentHistoryCard extends StatelessWidget {
                     ),
                   ],
                   border: Border.all(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.05),
                   ),
                 ),
                 child: Row(
@@ -145,16 +153,23 @@ class PaymentHistoryCard extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Colors.green.withValues(alpha: 0.2),
-                            Colors.green.withValues(alpha: 0.05),
-                          ],
+                          colors: isTopUp
+                              ? [
+                                  Colors.orange.withValues(alpha: 0.2),
+                                  Colors.orange.withValues(alpha: 0.05),
+                                ]
+                              : [
+                                  Colors.green.withValues(alpha: 0.2),
+                                  Colors.green.withValues(alpha: 0.05),
+                                ],
                         ),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.payments_rounded,
-                        color: Colors.green,
+                      child: Icon(
+                        isTopUp
+                            ? Icons.add_circle_outline_rounded
+                            : Icons.payments_rounded,
+                        color: isTopUp ? Colors.orange : Colors.green,
                         size: 22,
                       ),
                     ),
@@ -164,7 +179,12 @@ class PaymentHistoryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "payment_received".tr,
+                            isTopUp
+                                ? (note ??
+                                    (loan.type == 'lent'
+                                        ? 'Additional Lent'
+                                        : 'Additional Borrowed'))
+                                : "payment_received".tr,
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 15,
@@ -190,20 +210,20 @@ class PaymentHistoryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "₹${NumberFormat('#,##,###').format(amount)}",
-                          style: const TextStyle(
+                          "${isTopUp ? '+' : ''}₹${NumberFormat('#,##,###').format(absAmount)}",
+                          style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 18,
-                            color: Colors.green,
+                            color: isTopUp ? Colors.orange : Colors.green,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "SUCCESS".tr,
-                          style: const TextStyle(
+                          isTopUp ? "ADDED" : "SUCCESS".tr,
+                          style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
-                            color: Colors.green,
+                            color: isTopUp ? Colors.orange : Colors.green,
                             letterSpacing: 0.5,
                           ),
                         ),

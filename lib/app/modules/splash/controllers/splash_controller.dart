@@ -24,7 +24,7 @@ class SplashController extends GetxController {
     }
 
     // 2. Wait for the splash screen entrance animations to complete
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 200));
 
     // 3. Check if user is logged in
     bool isLoggedIn = _box.read("isLoggedIn") ?? false;

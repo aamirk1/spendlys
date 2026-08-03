@@ -153,6 +153,52 @@ class LoanController extends GetxController {
       return;
     }
 
+    // Check if an existing unpaid loan exists for the same person and same type (lent/borrowed)
+    final String cleanPhone = (loan.personPhone ?? '').replaceAll(RegExp(r'\D'), '');
+    final String cleanName = loan.personName.trim().toLowerCase();
+
+    Loan? existingLoan;
+    try {
+      existingLoan = loans.firstWhere((l) {
+        if (l.type != loan.type) return false;
+        if (l.status.value == 'paid') return false;
+
+        final lPhone = (l.personPhone ?? '').replaceAll(RegExp(r'\D'), '');
+        final lName = l.personName.trim().toLowerCase();
+
+        bool phoneMatches = cleanPhone.isNotEmpty && lPhone.isNotEmpty && cleanPhone == lPhone;
+        bool nameMatches = cleanName.isNotEmpty && lName.isNotEmpty && cleanName == lName;
+
+        return phoneMatches || nameMatches;
+      });
+    } catch (_) {
+      existingLoan = null;
+    }
+
+    if (existingLoan != null) {
+      // Merge into existing loan by updating its total amount and appending history
+      final newTotalAmount = existingLoan.amount + loan.amount;
+
+      // Append transaction to payment history with a negative amount (or top-up record indicator)
+      final topUpRecord = {
+        'amount': -loan.amount, // Negative amount represents added principal loan amount
+        'timestamp': DateTime.now().toIso8601String(),
+        'note': loan.reason ?? 'Additional ${loan.type}',
+      };
+
+      final updatedPaymentHistory = List<Map<String, dynamic>>.from(existingLoan.paymentHistory);
+      updatedPaymentHistory.add(topUpRecord);
+
+      existingLoan.amount = newTotalAmount;
+      existingLoan.paymentHistory.value = updatedPaymentHistory;
+      if (loan.expectedReturnDate != null) {
+        existingLoan.expectedReturnDate = loan.expectedReturnDate;
+      }
+
+      await updateLoan(existingLoan);
+      return;
+    }
+
     isLoading.value = true;
     try {
       final uuid = const Uuid().v4();

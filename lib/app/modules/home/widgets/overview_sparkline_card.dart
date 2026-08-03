@@ -31,7 +31,7 @@ class OverviewSparklineCard extends StatelessWidget {
         } else if (title.contains("Expense")) {
           Get.toNamed(RoutesName.viewAllExpenses);
         } else if (title.contains("Invoice")) {
-          Get.toNamed(RoutesName.businessHome);
+          Get.toNamed(RoutesName.invoiceList);
         } else {
           Get.toNamed(RoutesName.addLendBorrowView, arguments: {'index': 0});
         }

@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:spendly/app/modules/business/views/inventory/inventory_list_view.dart';
+import 'package:spendly/app/modules/business/controllers/inventory_controller.dart';
 import 'package:spendly/app/modules/business/views/inventory/barcode_scanner_view.dart';
 import 'package:spendly/app/utils/validators.dart';
+import 'package:spendly/app/common_widgets/custom_button.dart';
 
 class AddProductScreen extends StatefulWidget {
   final String? productId;
@@ -487,31 +488,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            controller.saveProduct(productId: widget.productId),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 2,
-                          shadowColor: primaryColor.withValues(alpha: 0.3),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save_outlined,
-                                color: Colors.white, size: 18),
-                            SizedBox(width: 8),
-                            Text("Save Product",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 15)),
-                          ],
-                        ),
-                      ),
+                      child: Obx(() => CustomButton(
+                            text: "Save Product",
+                            onPressed: () =>
+                                controller.saveProduct(productId: widget.productId),
+                            isLoading: controller.isLoading.value,
+                            backgroundColor: primaryColor,
+                            borderRadius: 16,
+                            height: 52,
+                            icon: const Icon(
+                              Icons.save_outlined,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          )),
                     ),
                   ],
                 ),

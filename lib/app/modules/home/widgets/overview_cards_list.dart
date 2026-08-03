@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spendly/app/modules/business/controllers/business_home_controller.dart';
 import 'package:spendly/app/modules/expense/controllers/expense_controller.dart';
 import 'package:spendly/app/modules/expense/controllers/income_controller.dart';
 import 'package:spendly/app/modules/loan/controllers/loan_controller.dart';
@@ -13,7 +14,8 @@ class OverviewCardsList extends StatelessWidget {
   final ExpenseController expenseController = Get.find<ExpenseController>();
   final IncomeController incomeController = Get.find<IncomeController>();
   final LoanController loanController = Get.find<LoanController>();
-  final BusinessHomeController businessController = Get.find<BusinessHomeController>();
+  final BusinessHomeController businessController =
+      Get.find<BusinessHomeController>();
 
   bool isToday(DateTime date) {
     final now = DateTime.now();

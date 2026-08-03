@@ -116,12 +116,13 @@ class ChangePasswordDialog extends StatelessWidget {
                       },
                     )),
                 const SizedBox(height: 32),
-                CustomButton(
-                  onPressed: () async => await controller.changePassword(),
-                  text: "Update Password",
-                  backgroundColor: Colors.purple,
-                  height: 54,
-                ),
+                Obx(() => CustomButton(
+                      onPressed: () async => await controller.changePassword(),
+                      text: "Update Password",
+                      backgroundColor: Colors.purple,
+                      height: 54,
+                      isLoading: controller.isLoading.value,
+                    )),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {

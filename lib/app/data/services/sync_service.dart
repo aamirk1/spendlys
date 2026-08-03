@@ -7,10 +7,10 @@ import 'package:spendly/app/modules/expense/controllers/income_controller.dart';
 import 'package:spendly/app/modules/expense/controllers/expense_controller.dart';
 import 'package:spendly/app/modules/loan/controllers/loan_controller.dart';
 import 'package:spendly/app/modules/category/controllers/category_controller.dart';
-import 'package:spendly/app/modules/business/views/invoice_list_view.dart';
-import 'package:spendly/app/modules/business/views/quotation_list_view.dart';
-import 'package:spendly/app/modules/business/views/inventory/inventory_list_view.dart';
-import 'package:spendly/app/modules/business/views/customers_list_view.dart';
+import 'package:spendly/app/modules/business/controllers/invoice_list_controller.dart';
+import 'package:spendly/app/modules/business/controllers/quotation_list_controller.dart';
+import 'package:spendly/app/modules/business/controllers/inventory_controller.dart';
+import 'package:spendly/app/modules/business/controllers/customers_controller.dart';
 import 'package:spendly/app/modules/group_split/controllers/group_split_controller.dart';
 import 'dart:async';
 

@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:spendly/app/modules/expense/controllers/expense_controller.dart';
 import 'package:spendly/app/modules/expense/controllers/income_controller.dart';
 import 'package:spendly/app/modules/loan/controllers/loan_controller.dart';
-import 'package:spendly/app/modules/business/views/invoice_list_view.dart';
-import 'package:spendly/app/modules/business/views/customers_list_view.dart';
+import 'package:spendly/app/modules/business/controllers/invoice_list_controller.dart';
+import 'package:spendly/app/modules/business/controllers/customers_controller.dart';
 
 enum LedgerType { business, loan, expense }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spendly/app/modules/profile/controllers/feedback_controller.dart';
+import 'package:spendly/app/common_widgets/custom_button.dart';
 
 class FeedbackScreen extends StatelessWidget {
   const FeedbackScreen({super.key});
@@ -112,25 +113,14 @@ class FeedbackScreen extends StatelessWidget {
             const SizedBox(height: 40),
 
             // Submit Button
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                onPressed: () => controller.submitFeedback(),
-                style: ElevatedButton.styleFrom(
+            Obx(() => CustomButton(
+                  text: 'Submit Feedback',
+                  onPressed: () => controller.submitFeedback(),
+                  isLoading: controller.isLoading.value,
                   backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  'Submit Feedback',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+                  borderRadius: 12,
+                  height: 55,
+                )),
           ],
         ),
       )),

@@ -5,6 +5,7 @@ import 'package:spendly/app/modules/expense/controllers/expense_controller.dart'
 import 'package:spendly/app/routes/app_pages.dart';
 import 'package:spendly/app/modules/auth/widgets/my_text_field.dart';
 import 'package:spendly/app/modules/home/widgets/pressable_scale.dart';
+import 'package:spendly/app/common_widgets/custom_button.dart';
 
 class AddExpense extends StatelessWidget {
   AddExpense({super.key});
@@ -121,40 +122,19 @@ class AddExpense extends StatelessWidget {
                                 },
                               )),
                           const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: PressableScale(
-                              onTap: () async {
-                                if (controller.formKey.currentState!
-                                    .validate()) {
-                                  await controller.addExpense();
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.redAccent.withValues(alpha: 0.2),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'save_expense'.tr,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          Obx(() => CustomButton(
+                                text: 'save_expense'.tr,
+                                backgroundColor: Colors.redAccent,
+                                borderRadius: 16,
+                                height: 52,
+                                isLoading: controller.isLoading.value,
+                                onPressed: () async {
+                                  if (controller.formKey.currentState!
+                                      .validate()) {
+                                    await controller.addExpense();
+                                  }
+                                },
+                              )),
                         ],
                       ),
                     ),

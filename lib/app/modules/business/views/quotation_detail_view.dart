@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:spendly/app/data/services/api_service.dart';
 import 'package:spendly/app/utils/utils.dart';
 import 'package:spendly/app/data/services/auth_service.dart';
-import 'package:spendly/app/modules/business/views/quotation_list_view.dart';
+import 'package:spendly/app/modules/business/controllers/quotation_list_controller.dart';
 import 'package:spendly/app/routes/app_pages.dart';
 import 'dart:convert';
 import 'package:spendly/app/utils/business_pdf_helper.dart';

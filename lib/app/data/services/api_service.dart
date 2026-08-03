@@ -38,13 +38,20 @@ class ApiService {
     );
   }
 
+  static bool _isInvoiceOrQuotation(String endpoint) {
+    final lower = endpoint.toLowerCase();
+    return lower.contains('/business/invoices') ||
+        lower.contains('/business/quotations');
+  }
+
   static Future<http.Response> get(String endpoint,
       {Map<String, String>? headers, bool useCache = true}) async {
     final cacheKey = 'GET_$endpoint';
+    final isInvoiceOrQuot = _isInvoiceOrQuotation(endpoint);
 
     // Offline check
     if (!_conn.isOnline.value) {
-      if (useCache) {
+      if (useCache && !isInvoiceOrQuot) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) {
           return http.Response(jsonEncode(cachedData), 200);
@@ -69,12 +76,12 @@ class ApiService {
         }
       }
 
-      if (resp.statusCode == 200 && useCache) {
+      if (resp.statusCode == 200 && useCache && !isInvoiceOrQuot) {
         await LocalCacheService.setCache(cacheKey, jsonDecode(resp.body));
       }
       return resp;
     } catch (e) {
-      if (useCache) {
+      if (useCache && !isInvoiceOrQuot) {
         final cachedData = LocalCacheService.getCache(cacheKey);
         if (cachedData != null) {
           return http.Response(jsonEncode(cachedData), 200);
@@ -90,23 +97,31 @@ class ApiService {
       {Map<String, String>? headers,
       dynamic body,
       bool bypassCache = false}) async {
-    if (!_conn.isOnline.value && !bypassCache) {
-      await LocalCacheService.updateMatchingListCaches(
-        endpoint: endpoint,
-        method: 'POST',
-        body: body,
-      );
+    if (!_conn.isOnline.value) {
+      if (_isInvoiceOrQuotation(endpoint)) {
+        _showNoInternetScreen();
+        return http.Response(
+            '{"error": "Offline", "message": "This action requires an active internet connection"}',
+            503);
+      }
+      if (!bypassCache) {
+        await LocalCacheService.updateMatchingListCaches(
+          endpoint: endpoint,
+          method: 'POST',
+          body: body,
+        );
 
-      await LocalCacheService.addPendingRequest(
-        endpoint: endpoint,
-        method: 'POST',
-        headers: headers,
-        body: body,
-      );
+        await LocalCacheService.addPendingRequest(
+          endpoint: endpoint,
+          method: 'POST',
+          headers: headers,
+          body: body,
+        );
 
-      return http.Response(
-          '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
-          202);
+        return http.Response(
+            '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
+            202);
+      }
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
@@ -150,26 +165,34 @@ class ApiService {
       {Map<String, String>? headers,
       dynamic body,
       bool bypassCache = false}) async {
-    if (!_conn.isOnline.value && !bypassCache) {
-      final uriParts = endpoint.split('/');
-      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+    if (!_conn.isOnline.value) {
+      if (_isInvoiceOrQuotation(endpoint)) {
+        _showNoInternetScreen();
+        return http.Response(
+            '{"error": "Offline", "message": "This action requires an active internet connection"}',
+            503);
+      }
+      if (!bypassCache) {
+        final uriParts = endpoint.split('/');
+        final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
 
-      await LocalCacheService.updateMatchingListCaches(
-        endpoint: endpoint,
-        method: 'PUT',
-        body: body,
-        id: itemId,
-      );
+        await LocalCacheService.updateMatchingListCaches(
+          endpoint: endpoint,
+          method: 'PUT',
+          body: body,
+          id: itemId,
+        );
 
-      await LocalCacheService.addPendingRequest(
-        endpoint: endpoint,
-        method: 'PUT',
-        headers: headers,
-        body: body,
-      );
-      return http.Response(
-          '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
-          202);
+        await LocalCacheService.addPendingRequest(
+          endpoint: endpoint,
+          method: 'PUT',
+          headers: headers,
+          body: body,
+        );
+        return http.Response(
+            '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
+            202);
+      }
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
@@ -196,26 +219,34 @@ class ApiService {
       {Map<String, String>? headers,
       dynamic body,
       bool bypassCache = false}) async {
-    if (!_conn.isOnline.value && !bypassCache) {
-      final uriParts = endpoint.split('/');
-      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+    if (!_conn.isOnline.value) {
+      if (_isInvoiceOrQuotation(endpoint)) {
+        _showNoInternetScreen();
+        return http.Response(
+            '{"error": "Offline", "message": "This action requires an active internet connection"}',
+            503);
+      }
+      if (!bypassCache) {
+        final uriParts = endpoint.split('/');
+        final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
 
-      await LocalCacheService.updateMatchingListCaches(
-        endpoint: endpoint,
-        method: 'PATCH',
-        body: body,
-        id: itemId,
-      );
+        await LocalCacheService.updateMatchingListCaches(
+          endpoint: endpoint,
+          method: 'PATCH',
+          body: body,
+          id: itemId,
+        );
 
-      await LocalCacheService.addPendingRequest(
-        endpoint: endpoint,
-        method: 'PATCH',
-        headers: headers,
-        body: body,
-      );
-      return http.Response(
-          '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
-          202);
+        await LocalCacheService.addPendingRequest(
+          endpoint: endpoint,
+          method: 'PATCH',
+          headers: headers,
+          body: body,
+        );
+        return http.Response(
+            '{"message": "Offline: Data queued for sync", "status": "pending_sync"}',
+            202);
+      }
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
@@ -240,24 +271,32 @@ class ApiService {
 
   static Future<http.Response> delete(String endpoint,
       {Map<String, String>? headers, bool bypassCache = false}) async {
-    if (!_conn.isOnline.value && !bypassCache) {
-      final uriParts = endpoint.split('/');
-      final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
+    if (!_conn.isOnline.value) {
+      if (_isInvoiceOrQuotation(endpoint)) {
+        _showNoInternetScreen();
+        return http.Response(
+            '{"error": "Offline", "message": "This action requires an active internet connection"}',
+            503);
+      }
+      if (!bypassCache) {
+        final uriParts = endpoint.split('/');
+        final itemId = uriParts.isNotEmpty ? uriParts.last.split('?')[0] : null;
 
-      await LocalCacheService.updateMatchingListCaches(
-        endpoint: endpoint,
-        method: 'DELETE',
-        id: itemId,
-      );
+        await LocalCacheService.updateMatchingListCaches(
+          endpoint: endpoint,
+          method: 'DELETE',
+          id: itemId,
+        );
 
-      await LocalCacheService.addPendingRequest(
-        endpoint: endpoint,
-        method: 'DELETE',
-        headers: headers,
-      );
-      return http.Response(
-          '{"message": "Offline: Item scheduled for deletion", "status": "pending_sync"}',
-          202);
+        await LocalCacheService.addPendingRequest(
+          endpoint: endpoint,
+          method: 'DELETE',
+          headers: headers,
+        );
+        return http.Response(
+            '{"message": "Offline: Item scheduled for deletion", "status": "pending_sync"}',
+            202);
+      }
     }
 
     final url = Uri.parse('$_baseUrl$endpoint');
