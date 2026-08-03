@@ -5,6 +5,7 @@ import 'package:spendly/app/routes/app_pages.dart';
 import 'package:spendly/app/utils/utils.dart';
 import 'package:spendly/app/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/app/data/services/business_service.dart';
 import 'package:spendly/app/modules/business/models/quotation_item.dart';
 import 'package:spendly/app/modules/business/controllers/create_quotation_controller.dart';
 
@@ -238,32 +239,59 @@ class CreateQuotationView extends StatelessWidget {
                               }),
                             const SizedBox(height: 24),
                             _buildSectionTitle("Summary"),
-                            _buildCard(
-                              children: [
-                                _summaryRow("Subtotal", controller.subtotal),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                        "Tax (${controller.taxPercent.value.toInt()}%) ",
-                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                                    Expanded(
-                                      child: Slider(
-                                        value: controller.taxPercent.value,
-                                        min: 0,
-                                        max: 28,
-                                        divisions: 28,
-                                        activeColor: primaryColor,
-                                        inactiveColor: accentColor,
-                                        label: "${controller.taxPercent.value.toInt()}%",
-                                        onChanged: (v) => controller.taxPercent.value = v,
-                                      ),
-                                    ),
-                                    Text(
-                                        "₹${controller.calculatedTax.toStringAsFixed(2)}",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
-                                  ],
-                                ),
+                             _buildCard(
+                               children: [
+                                 _summaryRow("Subtotal", controller.subtotal),
+                                 const SizedBox(height: 12),
+                                 Builder(builder: (_) {
+                                   final hasGst = Get.find<BusinessService>().hasGstNumber.value;
+                                   return Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Row(
+                                         children: [
+                                           Text(
+                                               "Tax (${controller.taxPercent.value.toInt()}%) ",
+                                               style: TextStyle(
+                                                   color: hasGst ? Colors.grey.shade600 : Colors.grey.shade400,
+                                                   fontSize: 13,
+                                                   fontWeight: FontWeight.w500)),
+                                           Expanded(
+                                             child: Slider(
+                                               value: hasGst ? controller.taxPercent.value : 0.0,
+                                               min: 0,
+                                               max: 28,
+                                               divisions: 28,
+                                               activeColor: hasGst ? primaryColor : Colors.grey.shade300,
+                                               inactiveColor: hasGst ? accentColor : Colors.grey.shade200,
+                                               label: "${controller.taxPercent.value.toInt()}%",
+                                               onChanged: hasGst
+                                                   ? (v) => controller.taxPercent.value = v
+                                                   : null,
+                                             ),
+                                           ),
+                                           Text(
+                                               "₹${controller.calculatedTax.toStringAsFixed(2)}",
+                                               style: TextStyle(
+                                                   fontWeight: FontWeight.bold,
+                                                   fontSize: 13,
+                                                   color: hasGst ? Colors.black87 : Colors.grey.shade400)),
+                                         ],
+                                       ),
+                                       if (!hasGst)
+                                         const Padding(
+                                           padding: EdgeInsets.only(top: 2.0),
+                                           child: Text(
+                                             "* GST number required in business profile to add tax",
+                                             style: TextStyle(
+                                                 color: Colors.redAccent,
+                                                 fontSize: 11,
+                                                 fontWeight: FontWeight.w400),
+                                           ),
+                                         ),
+                                     ],
+                                   );
+                                 }),
                                 const Divider(height: 24),
                                 _summaryRow("Estimated Total", controller.total, isTotal: true),
                               ],

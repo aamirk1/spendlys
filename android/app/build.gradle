@@ -13,6 +13,9 @@ android {
 
     def keyProperties = new Properties()
     def keyPropertiesFile = rootProject.file("key.properties")
+    if (!keyPropertiesFile.exists()) {
+        keyPropertiesFile = rootProject.file("app/key.properties")
+    }
     if (keyPropertiesFile.exists()) {
         keyProperties.load(new FileInputStream(keyPropertiesFile))
     }
@@ -41,7 +44,10 @@ android {
             if (keyPropertiesFile.exists()) {
                 keyAlias keyProperties['keyAlias']
                 keyPassword keyProperties['keyPassword']
-                storeFile file(keyProperties['storeFile'])
+                def sFile = keyProperties['storeFile']
+                if (sFile != null) {
+                    storeFile file(keyPropertiesFile.parentFile.path + "/" + sFile)
+                }
                 storePassword keyProperties['storePassword']
             }
         }

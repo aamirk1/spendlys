@@ -5,6 +5,7 @@ import 'package:spendly/app/routes/app_pages.dart';
 import 'package:spendly/app/utils/utils.dart';
 import 'package:spendly/app/utils/validators.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:spendly/app/data/services/business_service.dart';
 import 'package:spendly/app/modules/business/models/invoice_item.dart';
 import 'package:spendly/app/modules/business/controllers/create_invoice_controller.dart';
 
@@ -23,12 +24,14 @@ class CreateInvoiceView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           "New Invoice",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
@@ -37,9 +40,13 @@ class CreateInvoiceView extends StatelessWidget {
               controller.fetchQuotations();
               _showQuotationPicker(context, controller);
             },
-            icon: const Icon(Icons.file_download_outlined, color: primaryColor, size: 18),
+            icon: const Icon(Icons.file_download_outlined,
+                color: primaryColor, size: 18),
             label: const Text("Import",
-                style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 14)),
+                style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14)),
           ),
           const SizedBox(width: 8),
         ],
@@ -66,9 +73,12 @@ class CreateInvoiceView extends StatelessWidget {
                             _buildCard(children: [
                               TextFormField(
                                 controller: controller.invoiceNumberController,
-                                validator: (v) => Validators.requiredField(v, "Invoice #"),
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
-                                decoration: _inputDeco("Invoice Number", Icons.receipt_rounded),
+                                validator: (v) =>
+                                    Validators.requiredField(v, "Invoice #"),
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.black87),
+                                decoration: _inputDeco(
+                                    "Invoice Number", Icons.receipt_rounded),
                               ),
                               const SizedBox(height: 16),
                               // Due Date picker
@@ -78,32 +88,38 @@ class CreateInvoiceView extends StatelessWidget {
                                     final picked = await showDatePicker(
                                       context: ctx,
                                       initialDate: controller.selectedDueDate ??
-                                          DateTime.now().add(const Duration(days: 30)),
+                                          DateTime.now()
+                                              .add(const Duration(days: 30)),
                                       firstDate: DateTime.now(),
                                       lastDate: DateTime(2030),
                                       helpText: 'Select Invoice Due Date',
                                     );
                                     if (picked != null) {
-                                      setSt(() => controller.selectedDueDate = picked);
+                                      setSt(() =>
+                                          controller.selectedDueDate = picked);
                                       controller.dueDateController.text =
                                           '${picked.day}/${picked.month}/${picked.year}';
                                     }
                                   },
                                   borderRadius: BorderRadius.circular(14),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 15),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                          color: controller.selectedDueDate != null
-                                              ? primaryColor.withValues(alpha: 0.3)
-                                              : Colors.grey.shade200),
+                                          color:
+                                              controller.selectedDueDate != null
+                                                  ? primaryColor.withValues(
+                                                      alpha: 0.3)
+                                                  : Colors.grey.shade200),
                                     ),
                                     child: Row(
                                       children: [
                                         Icon(Icons.calendar_today_rounded,
-                                            color: controller.selectedDueDate != null
+                                            color: controller.selectedDueDate !=
+                                                    null
                                                 ? primaryColor
                                                 : Colors.grey.shade400,
                                             size: 20),
@@ -115,13 +131,15 @@ class CreateInvoiceView extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
-                                            color: controller.selectedDueDate != null
+                                            color: controller.selectedDueDate !=
+                                                    null
                                                 ? Colors.black87
                                                 : Colors.black54,
                                           ),
                                         ),
                                         const Spacer(),
-                                        const Icon(Icons.chevron_right, color: Colors.black38, size: 18),
+                                        const Icon(Icons.chevron_right,
+                                            color: Colors.black38, size: 18),
                                       ],
                                     ),
                                   ),
@@ -129,51 +147,71 @@ class CreateInvoiceView extends StatelessWidget {
                               }),
                               const SizedBox(height: 16),
                               InkWell(
-                                onTap: () => _showCustomerPicker(context, controller),
+                                onTap: () =>
+                                    _showCustomerPicker(context, controller),
                                 borderRadius: BorderRadius.circular(14),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 15),
                                   decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: Colors.grey.shade200)),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200)),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.person_rounded, color: primaryColor, size: 20),
+                                      const Icon(Icons.person_rounded,
+                                          color: primaryColor, size: 20),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
                                           controller.customers.firstWhere(
-                                              (c) => c['id'].toString() == controller.selectedCustomerId.value,
-                                              orElse: () => {'name': 'Select Customer'})['name'] ??
+                                                  (c) =>
+                                                      c['id'].toString() ==
+                                                      controller
+                                                          .selectedCustomerId
+                                                          .value,
+                                                  orElse: () => {
+                                                        'name':
+                                                            'Select Customer'
+                                                      })['name'] ??
                                               'Select Customer',
                                           style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
-                                              color: controller.selectedCustomerId.value == null
+                                              color: controller
+                                                          .selectedCustomerId
+                                                          .value ==
+                                                      null
                                                   ? Colors.black54
                                                   : Colors.black87),
                                         ),
                                       ),
-                                      const Icon(Icons.arrow_drop_down, color: Colors.black54),
+                                      const Icon(Icons.arrow_drop_down,
+                                          color: Colors.black54),
                                     ],
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 16),
                               Obx(() => Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: Colors.grey.shade200),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200),
                                     ),
                                     child: DropdownButtonHideUnderline(
                                       child: DropdownButton<String>(
                                         value: controller.paymentMode.value,
                                         isExpanded: true,
-                                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black54),
-                                        items: controller.paymentModes.map((String mode) {
+                                        icon: const Icon(
+                                            Icons.keyboard_arrow_down_rounded,
+                                            color: Colors.black54),
+                                        items: controller.paymentModes
+                                            .map((String mode) {
                                           return DropdownMenuItem<String>(
                                             value: mode,
                                             child: Row(
@@ -182,25 +220,35 @@ class CreateInvoiceView extends StatelessWidget {
                                                   mode == 'Cash'
                                                       ? Icons.money_rounded
                                                       : mode == 'Bank Transfer'
-                                                          ? Icons.account_balance_rounded
-                                                          : mode == 'Credit Card'
-                                                              ? Icons.credit_card_rounded
+                                                          ? Icons
+                                                              .account_balance_rounded
+                                                          : mode ==
+                                                                  'Credit Card'
+                                                              ? Icons
+                                                                  .credit_card_rounded
                                                               : mode == 'UPI'
-                                                                  ? Icons.qr_code_rounded
-                                                                  : Icons.payment_rounded,
+                                                                  ? Icons
+                                                                      .qr_code_rounded
+                                                                  : Icons
+                                                                      .payment_rounded,
                                                   color: primaryColor,
                                                   size: 20,
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Text(mode,
-                                                    style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500)),
+                                                    style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black87,
+                                                        fontWeight:
+                                                            FontWeight.w500)),
                                               ],
                                             ),
                                           );
                                         }).toList(),
                                         onChanged: (String? newValue) {
                                           if (newValue != null) {
-                                            controller.paymentMode.value = newValue;
+                                            controller.paymentMode.value =
+                                                newValue;
                                           }
                                         },
                                       ),
@@ -213,8 +261,10 @@ class CreateInvoiceView extends StatelessWidget {
                               children: [
                                 _buildSectionTitle("Line Items"),
                                 TextButton.icon(
-                                  onPressed: () => _showAddItemSheet(context, controller),
-                                  icon: const Icon(Icons.add_circle_outline, color: primaryColor, size: 18),
+                                  onPressed: () =>
+                                      _showAddItemSheet(context, controller),
+                                  icon: const Icon(Icons.add_circle_outline,
+                                      color: primaryColor, size: 18),
                                   label: const Text("Add Item",
                                       style: TextStyle(
                                           color: primaryColor,
@@ -230,14 +280,19 @@ class CreateInvoiceView extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.grey.shade100),
+                                  border:
+                                      Border.all(color: Colors.grey.shade100),
                                 ),
                                 child: Column(
                                   children: [
-                                    Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade300),
+                                    Icon(Icons.inventory_2_outlined,
+                                        size: 48, color: Colors.grey.shade300),
                                     const SizedBox(height: 10),
                                     Text("No items added yet.",
-                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500)),
+                                        style: TextStyle(
+                                            color: Colors.grey.shade500,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               )
@@ -251,10 +306,12 @@ class CreateInvoiceView extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.grey.shade100),
+                                    border:
+                                        Border.all(color: Colors.grey.shade100),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.01),
+                                          color: Colors.black
+                                              .withValues(alpha: 0.01),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4))
                                     ],
@@ -263,7 +320,8 @@ class CreateInvoiceView extends StatelessWidget {
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(item.description,
                                                 style: const TextStyle(
@@ -280,16 +338,19 @@ class CreateInvoiceView extends StatelessWidget {
                                           ],
                                         ),
                                       ),
-                                      Text(
-                                          "₹${item.amount.toStringAsFixed(2)}",
+                                      Text("₹${item.amount.toStringAsFixed(2)}",
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
                                               color: primaryColor)),
                                       const SizedBox(width: 8),
                                       IconButton(
-                                        icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
-                                        onPressed: () => controller.removeItem(idx),
+                                        icon: const Icon(
+                                            Icons.remove_circle_outline,
+                                            color: Colors.redAccent,
+                                            size: 20),
+                                        onPressed: () =>
+                                            controller.removeItem(idx),
                                       )
                                     ],
                                   ),
@@ -301,30 +362,73 @@ class CreateInvoiceView extends StatelessWidget {
                               children: [
                                 _summaryRow("Subtotal", controller.subtotal),
                                 const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                        "Tax (${controller.taxPercent.value.toInt()}%) ",
-                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                                    Expanded(
-                                      child: Slider(
-                                        value: controller.taxPercent.value,
-                                        min: 0,
-                                        max: 28,
-                                        divisions: 28,
-                                        activeColor: primaryColor,
-                                        inactiveColor: accentColor,
-                                        label: "${controller.taxPercent.value.toInt()}%",
-                                        onChanged: (v) => controller.taxPercent.value = v,
+                                Builder(builder: (_) {
+                                  final hasGst = Get.find<BusinessService>()
+                                      .hasGstNumber
+                                      .value;
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                              "Tax (${controller.taxPercent.value.toInt()}%) ",
+                                              style: TextStyle(
+                                                  color: hasGst
+                                                      ? Colors.grey.shade600
+                                                      : Colors.grey.shade400,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500)),
+                                          Expanded(
+                                            child: Slider(
+                                              value: hasGst
+                                                  ? controller.taxPercent.value
+                                                  : 0.0,
+                                              min: 0,
+                                              max: 28,
+                                              divisions: 28,
+                                              activeColor: hasGst
+                                                  ? primaryColor
+                                                  : Colors.grey.shade300,
+                                              inactiveColor: hasGst
+                                                  ? accentColor
+                                                  : Colors.grey.shade200,
+                                              label:
+                                                  "${controller.taxPercent.value.toInt()}%",
+                                              onChanged: hasGst
+                                                  ? (v) => controller
+                                                      .taxPercent.value = v
+                                                  : null,
+                                            ),
+                                          ),
+                                          Text(
+                                              "₹${controller.calculatedTax.toStringAsFixed(2)}",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                  color: hasGst
+                                                      ? Colors.black87
+                                                      : Colors.grey.shade400)),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                        "₹${controller.calculatedTax.toStringAsFixed(2)}",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
-                                  ],
-                                ),
+                                      if (!hasGst)
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 2.0),
+                                          child: Text(
+                                            "* GST number required in business profile to add tax",
+                                            style: TextStyle(
+                                                color: Colors.redAccent,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                }),
                                 const Divider(height: 24),
-                                _summaryRow("Total", controller.total, isTotal: true),
+                                _summaryRow("Total", controller.total,
+                                    isTotal: true),
                               ],
                             ),
                             const SizedBox(height: 32),
@@ -332,10 +436,13 @@ class CreateInvoiceView extends StatelessWidget {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: controller.isLoading.value ? null : controller.createInvoice,
+                                onPressed: controller.isLoading.value
+                                    ? null
+                                    : controller.createInvoice,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primaryColor,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14)),
                                   elevation: 0,
                                 ),
                                 child: const Text("GENERATE INVOICE",
@@ -355,7 +462,8 @@ class CreateInvoiceView extends StatelessWidget {
                 if (controller.isLoading.value)
                   const Center(
                       child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(primaryColor))),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(primaryColor))),
               ],
             )),
       ),
@@ -408,7 +516,8 @@ class CreateInvoiceView extends StatelessWidget {
               offset: const Offset(0, 4))
         ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
   }
 
@@ -421,16 +530,19 @@ class CreateInvoiceView extends StatelessWidget {
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFF5F33E1), width: 1.5)),
     );
   }
 
-  void _showAddItemSheet(BuildContext context, CreateInvoiceController controller) {
+  void _showAddItemSheet(
+      BuildContext context, CreateInvoiceController controller) {
     final tDesc = TextEditingController();
     final tQty = TextEditingController(text: "1");
     final tPrice = TextEditingController();
@@ -449,7 +561,8 @@ class CreateInvoiceView extends StatelessWidget {
                   top: 20),
               decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(22))),
               child: SingleChildScrollView(
                 child: Form(
                   key: k,
@@ -465,8 +578,10 @@ class CreateInvoiceView extends StatelessWidget {
                       const SizedBox(height: 16),
                       if (controller.products.isNotEmpty) ...[
                         TextFormField(
-                          decoration: _inputDeco("Search Items...", Icons.search),
-                          onChanged: (v) => controller.productSearchQuery.value = v,
+                          decoration:
+                              _inputDeco("Search Items...", Icons.search),
+                          onChanged: (v) =>
+                              controller.productSearchQuery.value = v,
                         ),
                         const SizedBox(height: 10),
                         SizedBox(
@@ -481,15 +596,23 @@ class CreateInvoiceView extends StatelessWidget {
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: ActionChip(
-                                    label: Text(p['name'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                                    label: Text(p['name'],
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500)),
                                     onPressed: () {
                                       tDesc.text = p['name'];
                                       tPrice.text = p['price'].toString();
                                     },
-                                    avatar: const Icon(Icons.inventory_2_outlined, size: 14, color: primaryColor),
+                                    avatar: const Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 14,
+                                        color: primaryColor),
                                     backgroundColor: const Color(0xFFF3EFFF),
                                     side: BorderSide.none,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
                                   ),
                                 );
                               },
@@ -502,8 +625,10 @@ class CreateInvoiceView extends StatelessWidget {
                       ],
                       TextFormField(
                         controller: tDesc,
-                        validator: (v) => Validators.requiredField(v, "Description"),
-                        decoration: _inputDeco("Item Description", Icons.edit_rounded),
+                        validator: (v) =>
+                            Validators.requiredField(v, "Description"),
+                        decoration:
+                            _inputDeco("Item Description", Icons.edit_rounded),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -513,10 +638,13 @@ class CreateInvoiceView extends StatelessWidget {
                               controller: tQty,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d*'))
                               ],
-                              validator: (v) => Validators.requiredField(v, "Qty"),
-                              decoration: _inputDeco("Qty", Icons.numbers_rounded),
+                              validator: (v) =>
+                                  Validators.requiredField(v, "Qty"),
+                              decoration:
+                                  _inputDeco("Qty", Icons.numbers_rounded),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -525,10 +653,13 @@ class CreateInvoiceView extends StatelessWidget {
                               controller: tPrice,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d*'))
                               ],
-                              validator: (v) => Validators.requiredField(v, "Price"),
-                              decoration: _inputDeco("Unit Price (₹)", Icons.currency_rupee_rounded),
+                              validator: (v) =>
+                                  Validators.requiredField(v, "Price"),
+                              decoration: _inputDeco("Unit Price (₹)",
+                                  Icons.currency_rupee_rounded),
                             ),
                           ),
                         ],
@@ -537,10 +668,14 @@ class CreateInvoiceView extends StatelessWidget {
                       Obx(() => CheckboxListTile(
                             contentPadding: EdgeInsets.zero,
                             title: const Text("Save to Inventory",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87)),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87)),
                             value: controller.saveToInventory.value,
                             activeColor: primaryColor,
-                            onChanged: (v) => controller.saveToInventory.value = v ?? false,
+                            onChanged: (v) =>
+                                controller.saveToInventory.value = v ?? false,
                             controlAffinity: ListTileControlAffinity.leading,
                           )),
                       const SizedBox(height: 16),
@@ -560,10 +695,13 @@ class CreateInvoiceView extends StatelessWidget {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
                           ),
                           child: const Text("ADD TO INVOICE",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -574,7 +712,8 @@ class CreateInvoiceView extends StatelessWidget {
             ));
   }
 
-  void _showCustomerPicker(BuildContext context, CreateInvoiceController controller) {
+  void _showCustomerPicker(
+      BuildContext context, CreateInvoiceController controller) {
     controller.customerSearchQuery.value = '';
     final searchCtrl = TextEditingController();
     const Color primaryColor = Color(0xFF5F33E1);
@@ -594,7 +733,9 @@ class CreateInvoiceView extends StatelessWidget {
             Container(
               width: 36,
               height: 4,
-              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4)),
             ),
             const SizedBox(height: 16),
             Padding(
@@ -603,10 +744,15 @@ class CreateInvoiceView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text("Select Customer",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87)),
                   IconButton(
-                      onPressed: () => _showAddCustomerForm(context, controller),
-                      icon: const Icon(Icons.person_add_alt_1_rounded, color: primaryColor)),
+                      onPressed: () =>
+                          _showAddCustomerForm(context, controller),
+                      icon: const Icon(Icons.person_add_alt_1_rounded,
+                          color: primaryColor)),
                 ],
               ),
             ),
@@ -628,11 +774,17 @@ class CreateInvoiceView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("No customers found", style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                        Text("No customers found",
+                            style: TextStyle(
+                                color: Colors.grey.shade500, fontSize: 13)),
                         const SizedBox(height: 8),
                         TextButton(
-                            onPressed: () => _showAddCustomerForm(context, controller),
-                            child: const Text("Add New Customer", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor))),
+                            onPressed: () =>
+                                _showAddCustomerForm(context, controller),
+                            child: const Text("Add New Customer",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor))),
                       ],
                     ),
                   );
@@ -646,13 +798,19 @@ class CreateInvoiceView extends StatelessWidget {
                       leading: CircleAvatar(
                         backgroundColor: const Color(0xFFF3EFFF),
                         child: Text((cust['name'] ?? 'U')[0].toUpperCase(),
-                            style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold)),
                       ),
                       title: Text(cust['name'] ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      subtitle: Text(cust['phone'] ?? '', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14)),
+                      subtitle: Text(cust['phone'] ?? '',
+                          style: TextStyle(
+                              color: Colors.grey.shade500, fontSize: 12)),
                       onTap: () {
-                        controller.selectedCustomerId.value = cust['id'].toString();
+                        controller.selectedCustomerId.value =
+                            cust['id'].toString();
                         Get.back();
                       },
                     );
@@ -666,20 +824,24 @@ class CreateInvoiceView extends StatelessWidget {
     );
   }
 
-  void _showAddCustomerForm(BuildContext context, CreateInvoiceController controller) {
+  void _showAddCustomerForm(
+      BuildContext context, CreateInvoiceController controller) {
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text("Add New Customer", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Text("Add New Customer",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
                     controller: nameCtrl,
-                    decoration: _inputDeco("Customer Name", Icons.person_rounded),
+                    decoration:
+                        _inputDeco("Customer Name", Icons.person_rounded),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -692,37 +854,50 @@ class CreateInvoiceView extends StatelessWidget {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
+                    child: const Text("Cancel",
+                        style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
                     onPressed: () {
                       if (nameCtrl.text.isNotEmpty) {
-                        controller.quickAddCustomer(nameCtrl.text.trim(), phoneCtrl.text.trim());
+                        controller.quickAddCustomer(
+                            nameCtrl.text.trim(), phoneCtrl.text.trim());
                         Navigator.pop(ctx);
                         Navigator.pop(context); // Close picker
                       }
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5F33E1)),
-                    child: const Text("Add", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF5F33E1)),
+                    child: const Text("Add",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold))),
               ],
             ));
   }
 
-  void _showQuotationPicker(BuildContext context, CreateInvoiceController controller) {
+  void _showQuotationPicker(
+      BuildContext context, CreateInvoiceController controller) {
     const Color primaryColor = Color(0xFF5F33E1);
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             const Text("Import from Quotation",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87)),
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
                 if (controller.quotations.isEmpty) {
-                  return Center(child: Text("No quotations found", style: TextStyle(color: Colors.grey.shade500, fontSize: 13)));
+                  return Center(
+                      child: Text("No quotations found",
+                          style: TextStyle(
+                              color: Colors.grey.shade500, fontSize: 13)));
                 }
                 return ListView.builder(
                   itemCount: controller.quotations.length,
@@ -730,9 +905,13 @@ class CreateInvoiceView extends StatelessWidget {
                     final q = controller.quotations[i];
                     return ListTile(
                       title: Text(q['quotation_number'] ?? "QTN-???",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      subtitle: Text("Total: ₹${q['total']} | ${q['date']}", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      trailing: const Icon(Icons.chevron_right_rounded, color: primaryColor, size: 20),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14)),
+                      subtitle: Text("Total: ₹${q['total']} | ${q['date']}",
+                          style: TextStyle(
+                              color: Colors.grey.shade500, fontSize: 12)),
+                      trailing: const Icon(Icons.chevron_right_rounded,
+                          color: primaryColor, size: 20),
                       onTap: () {
                         controller.importFromQuotation(q);
                         Get.back();

@@ -54,6 +54,22 @@ class Validators {
     }
     return null;
   }
+
+  static String? gstValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // GST is optional in business profile, but if provided, must be valid
+    }
+    final gstTrimmed = value.trim().toUpperCase();
+    if (gstTrimmed.length != 15) {
+      return 'GST number must be exactly 15 characters';
+    }
+    final gstRegex =
+        RegExp(r'^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$');
+    if (!gstRegex.hasMatch(gstTrimmed)) {
+      return 'Enter a valid 15-digit GST number (e.g., 22AAAAA0000A1Z5)';
+    }
+    return null;
+  }
 }
 
 class UpperCaseTextFormatter extends TextInputFormatter {

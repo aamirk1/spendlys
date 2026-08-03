@@ -157,6 +157,11 @@ class BusinessProfileView extends StatelessWidget {
                                     controller: controller.gstController,
                                     label: "GST Number (Optional)",
                                     icon: Icons.receipt_long_rounded,
+                                    inputFormatters: [
+                                      LengthLimitingTextInputFormatter(15),
+                                      UpperCaseTextFormatter(),
+                                    ],
+                                    validator: Validators.gstValidator,
                                   ),
                                 ],
                               ),

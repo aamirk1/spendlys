@@ -63,6 +63,8 @@ class BusinessProfileController extends GetxController {
             data['name'].toString().isNotEmpty) {
           Get.find<BusinessService>().setProfileCreated(true);
         }
+        final gst = data != null ? data['gst_number']?.toString().trim() : null;
+        Get.find<BusinessService>().setHasGstNumber(gst != null && gst.isNotEmpty);
         debugPrint("Fetched Profile: logo_url = ${logoUrl.value}");
 
         if (data['payment_details'] != null &&
@@ -186,6 +188,8 @@ class BusinessProfileController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.find<BusinessService>().setProfileCreated(true);
+        final gstStr = gstController.text.trim();
+        Get.find<BusinessService>().setHasGstNumber(gstStr.isNotEmpty);
         Get.back();
         Utils.showSnackbar("Success", "Business Profile Updated",
             isError: false);
