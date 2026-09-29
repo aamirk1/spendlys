@@ -41,7 +41,18 @@ android {
             if (keyPropertiesFile.exists()) {
                 keyAlias keyProperties['keyAlias']
                 keyPassword keyProperties['keyPassword']
-                storeFile file(keyProperties['storeFile'])
+                def keystorePath = keyProperties['storeFile']
+                def keystoreFile = file(keystorePath)
+                if (!keystoreFile.exists()) {
+                    keystoreFile = rootProject.file(keystorePath)
+                }
+                if (!keystoreFile.exists()) {
+                    keystoreFile = file("my-release-key.jks")
+                }
+                if (!keystoreFile.exists()) {
+                    keystoreFile = rootProject.file("my-release-key.jks")
+                }
+                storeFile keystoreFile
                 storePassword keyProperties['storePassword']
             }
         }
@@ -58,7 +69,7 @@ android {
 
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
     }
 
@@ -69,6 +80,10 @@ android {
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0'
             force 'androidx.core:core:1.15.0'
             force 'androidx.core:core-ktx:1.15.0'
+            force 'androidx.camera:camera-core:1.4.2'
+            force 'androidx.camera:camera-camera2:1.4.2'
+            force 'androidx.camera:camera-lifecycle:1.4.2'
+            force 'androidx.camera:camera-view:1.4.2'
         }
     }
 }
