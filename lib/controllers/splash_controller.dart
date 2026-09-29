@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/myuser.dart';
 import 'package:spendly/services/app_update_service.dart';
+import 'package:spendly/core/services/security_service.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 
 class SplashController extends GetxController {
@@ -15,6 +16,15 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkAuthStatus() async {
+    // 1. In release mode, check developer mode / root security
+    if (kReleaseMode) {
+      final isSecure = await SecurityService.to.checkSecurity();
+      if (!isSecure) {
+        // If developer options or root detected, halt execution and block navigation
+        return;
+      }
+    }
+
     if (!kDebugMode) {
       final updateService = Get.find<AppUpdateService>();
       bool isUpdateRequired = await updateService.checkForUpdate();
