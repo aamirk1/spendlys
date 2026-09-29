@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:spendly/models/myuser.dart';
@@ -14,13 +15,13 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkAuthStatus() async {
-    // 1. App Update Check (Awaited to block transitions if update is mandatory)
-    final updateService = Get.find<AppUpdateService>();
-    bool isUpdateRequired = await updateService.checkForUpdate();
-
-    if (isUpdateRequired) {
-      // If a mandatory update dialog is showing, halt execution and block navigation
-      return;
+    if (!kDebugMode) {
+      final updateService = Get.find<AppUpdateService>();
+      bool isUpdateRequired = await updateService.checkForUpdate();
+      if (isUpdateRequired) {
+        // If a mandatory update dialog is showing, halt execution and block navigation
+        return;
+      }
     }
 
     // 2. Wait for the splash screen entrance animations to complete

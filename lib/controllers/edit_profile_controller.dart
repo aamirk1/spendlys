@@ -42,7 +42,7 @@ class EditProfileController extends GetxController {
           "name": newName,
           "email": newEmail,
         },
-      );
+      ).timeout(const Duration(seconds: 20));
 
       // 2. Update Local Storage for immediate UI update
       box.write("name", newName);

@@ -29,14 +29,16 @@ class ForgotPasswordController extends GetxController {
       final response = await _apiClient.post(
         ApiConstants.forgotPasswordRequest,
         data: {'phone_number': phoneController.text.trim()},
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         showOtpField.value = true;
         Utils.showSnackbar('Success', 'Reset OTP sent to your phone.',
             isError: false);
       } else {
-        throw Exception(response.data['detail'] ?? 'Failed to request reset');
+        throw Exception(response.data is Map
+            ? (response.data['detail'] ?? 'Failed to request reset')
+            : 'Failed to request reset');
       }
     } catch (e) {
       AppErrorHandler.handleError(e);
@@ -62,14 +64,16 @@ class ForgotPasswordController extends GetxController {
           'otp': otpController.text.trim(),
           'new_password': newPasswordController.text.trim(),
         },
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         Utils.showSnackbar('Success', 'Password reset successfully!',
             isError: false);
         Get.back(); // Return to Login
       } else {
-        throw Exception(response.data['detail'] ?? 'Reset failed');
+        throw Exception(response.data is Map
+            ? (response.data['detail'] ?? 'Reset failed')
+            : 'Reset failed');
       }
     } catch (e) {
       AppErrorHandler.handleError(e);

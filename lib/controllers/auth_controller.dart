@@ -12,6 +12,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io';
 import 'package:spendly/core/storage/secure_storage_service.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -98,18 +99,7 @@ class AuthController extends GetxController {
         },
         verificationFailed: (e) {
           isLoading.value = false;
-          String errorMsg = e.message ?? "Verification failed";
-          if (e.code == 'billing-not-enabled') {
-            errorMsg =
-                "Firebase billing not enabled. Please upgrade to Blaze plan.";
-          }
-          Fluttertoast.showToast(
-            msg: errorMsg,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-          );
+          AppErrorHandler.handleError(e, customTitle: "Verification Failed");
         },
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification on Android
@@ -118,16 +108,18 @@ class AuthController extends GetxController {
             if (isLoading.value) return;
             isLoading.value = true;
 
-            UserCredential userCredential =
-                await FirebaseAuth.instance.signInWithCredential(credential);
+            UserCredential userCredential = await FirebaseAuth.instance
+                .signInWithCredential(credential)
+                .timeout(const Duration(seconds: 20));
             User? user = userCredential.user;
             if (user != null) {
-              await syncUserWithBackend(user);
+              await syncUserWithBackend(user)
+                  .timeout(const Duration(seconds: 20));
               box.write("isLoggedIn", true);
               Get.offAllNamed(RoutesName.homeView);
             }
           } catch (e) {
-            Fluttertoast.showToast(msg: e.toString());
+            AppErrorHandler.handleError(e);
           } finally {
             isLoading.value = false;
           }
@@ -135,7 +127,7 @@ class AuthController extends GetxController {
       );
     } catch (e) {
       isLoading.value = false;
-      Fluttertoast.showToast(msg: e.toString());
+      AppErrorHandler.handleError(e);
     }
   }
 
@@ -148,10 +140,12 @@ class AuthController extends GetxController {
         verificationId.value = box.read('verificationId') ?? "";
       }
 
-      UserCredential userCredential = await _authService.verifyOTP(
-        verificationId: verificationId.value,
-        smsCode: smsCode,
-      );
+      UserCredential userCredential = await _authService
+          .verifyOTP(
+            verificationId: verificationId.value,
+            smsCode: smsCode,
+          )
+          .timeout(const Duration(seconds: 20));
 
       User? user = userCredential.user;
       if (user != null) {
@@ -159,7 +153,7 @@ class AuthController extends GetxController {
         // Check if user is new from Firebase perspective
         bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
-        await syncUserWithBackend(user);
+        await syncUserWithBackend(user).timeout(const Duration(seconds: 20));
         box.write("isLoggedIn", true);
 
         if (isNewUser) {
@@ -170,15 +164,7 @@ class AuthController extends GetxController {
         Get.offAllNamed(RoutesName.homeView);
       }
     } catch (e) {
-      String msg = "Invalid OTP. Please try again.";
-      if (e is FirebaseAuthException && e.message != null) {
-        msg = e.message!;
-      }
-      Fluttertoast.showToast(
-        msg: msg,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
+      AppErrorHandler.handleError(e, customTitle: "Verification Failed");
     } finally {
       isLoading.value = false;
     }
@@ -189,7 +175,10 @@ class AuthController extends GetxController {
     try {
       // Fetch Device Info & FCM Token
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
 
       // Sanitize phone number for email fallback (remove +)
       String safePhone = (user.phoneNumber ?? "").replaceAll("+", "");
@@ -207,7 +196,7 @@ class AuthController extends GetxController {
           "device_info": deviceInfo,
           "fcm_token": fcmToken,
         },
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;

@@ -57,14 +57,16 @@ class ChangePasswordController extends GetxController {
           'old_password': currentPasswordController.text.trim(),
           'new_password': newPasswordController.text.trim(),
         },
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         Get.back();
         Utils.showSnackbar("Success", "Password changed successfully!",
             isError: false);
       } else {
-        throw Exception(response.data['detail'] ?? 'Password change failed');
+        throw Exception(response.data is Map
+            ? (response.data['detail'] ?? 'Password change failed')
+            : 'Password change failed');
       }
     } catch (e) {
       AppErrorHandler.handleError(e);

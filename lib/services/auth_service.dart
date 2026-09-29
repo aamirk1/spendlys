@@ -47,11 +47,13 @@ class AuthService extends GetxService {
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    return await _auth.signInWithCredential(credential);
+    return await _auth
+        .signInWithCredential(credential)
+        .timeout(const Duration(seconds: 20));
   }
 
   // Sign Out
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _auth.signOut().timeout(const Duration(seconds: 10));
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
@@ -6,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:spendly/controllers/sign_in_controller.dart';
 import 'package:spendly/res/routes/routes_name.dart';
 import 'package:spendly/utils/colors.dart';
+import 'package:spendly/core/error/app_error_handler.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -25,6 +27,7 @@ class _SignInScreenState extends State<SignInScreen>
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
   final _phoneFocus = FocusNode();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -119,7 +122,7 @@ class _SignInScreenState extends State<SignInScreen>
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Form(
-                    key: controller.formKey,
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -484,6 +487,9 @@ class _SignInScreenState extends State<SignInScreen>
   }
 
   Future<void> _handleMainAction() async {
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      return;
+    }
     if (controller.isEmailLogin.value) {
       await controller.signIn();
     } else {
@@ -700,7 +706,17 @@ class _PremiumButtonState extends State<_PremiumButton>
 
     setState(() => _innerLoading = true);
     try {
-      await widget.onPressed!();
+      await widget.onPressed!().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          AppErrorHandler.handleError(
+            TimeoutException(
+                "The request timed out. Please check your connection and try again."),
+          );
+        },
+      );
+    } catch (e) {
+      AppErrorHandler.handleError(e);
     } finally {
       if (mounted) setState(() => _innerLoading = false);
     }

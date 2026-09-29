@@ -107,8 +107,9 @@ class SignUpController extends GetxController {
         phoneNumber: formattedPhone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           try {
-            UserCredential userCredential =
-                await _auth.signInWithCredential(credential);
+            UserCredential userCredential = await _auth
+                .signInWithCredential(credential)
+                .timeout(const Duration(seconds: 20));
             if (userCredential.user != null) {
               await syncSignUpWithBackend(userCredential.user!);
             }
@@ -119,7 +120,7 @@ class SignUpController extends GetxController {
         },
         verificationFailed: (FirebaseAuthException e) {
           signUpRequired.value = false;
-          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+          AppErrorHandler.handleError(e, customTitle: 'Verification Failed');
         },
         codeSent: (String verificationId, int? resendToken) {
           signUpRequired.value = false;
@@ -143,8 +144,9 @@ class SignUpController extends GetxController {
         phoneNumber: formattedPhone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           try {
-            UserCredential userCredential =
-                await _auth.signInWithCredential(credential);
+            UserCredential userCredential = await _auth
+                .signInWithCredential(credential)
+                .timeout(const Duration(seconds: 20));
             if (userCredential.user != null) {
               await syncSignUpWithBackend(userCredential.user!);
             }
@@ -155,7 +157,7 @@ class SignUpController extends GetxController {
         },
         verificationFailed: (FirebaseAuthException e) {
           signUpRequired.value = false;
-          Utils.showSnackbar('Error', e.message ?? 'Verification failed');
+          AppErrorHandler.handleError(e, customTitle: 'Resend Failed');
         },
         codeSent: (String verificationId, int? resendToken) {
           signUpRequired.value = false;
@@ -415,11 +417,13 @@ class SignUpController extends GetxController {
         verificationId: verificationId,
         smsCode: smsCode,
       );
-      UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      UserCredential userCredential = await _auth
+          .signInWithCredential(credential)
+          .timeout(const Duration(seconds: 20));
 
       if (userCredential.user != null) {
-        await syncSignUpWithBackend(userCredential.user!);
+        await syncSignUpWithBackend(userCredential.user!)
+            .timeout(const Duration(seconds: 20));
       } else {
         throw Exception('Firebase authentication failed');
       }
@@ -433,7 +437,10 @@ class SignUpController extends GetxController {
     signUpRequired.value = true;
     try {
       String deviceInfo = await getDeviceInfo();
-      String? fcmToken = await getFcmToken();
+      String? fcmToken = await getFcmToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
 
       final response = await _apiClient.post(
         ApiConstants.syncUser,
@@ -450,7 +457,7 @@ class SignUpController extends GetxController {
               ? null
               : referredByController.text.trim(),
         },
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -480,7 +487,7 @@ class SignUpController extends GetxController {
           final userDocRef =
               FirebaseFirestore.instance.collection('users').doc(myUser.userId);
           batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
-          await batch.commit();
+          await batch.commit().timeout(const Duration(seconds: 10));
         } catch (fe) {
           debugPrint("Firestore sync failed: $fe");
         }

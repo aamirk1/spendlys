@@ -16,8 +16,9 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 20),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -27,27 +28,44 @@ class ApiClient {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _secureStorage.getToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
+        final path = options.path;
+        final isPublicAuth = path.contains('/auth/login') ||
+            path.contains('/auth/register') ||
+            path.contains('/auth/otp') ||
+            path.contains('/auth/forgot-password');
+
+        if (!isPublicAuth) {
+          final token = await _secureStorage.getToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
         }
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (e.response?.statusCode == 401 ||
-            (e.response?.data is Map &&
-                e.response?.data['detail'] ==
-                    'Could not validate credentials')) {
-          // Auto logout logic
+        final path = e.requestOptions.path;
+        final isAuthRequest = path.contains('/auth/login') ||
+            path.contains('/auth/register') ||
+            path.contains('/auth/otp') ||
+            path.contains('/auth/forgot-password');
+
+        if (!isAuthRequest &&
+            (e.response?.statusCode == 401 ||
+                (e.response?.data is Map &&
+                    e.response?.data['detail'] ==
+                        'Could not validate credentials'))) {
+          // Auto logout logic only for authenticated session expiration
           final box = GetStorage();
+          final bool wasLoggedIn = box.read("isLoggedIn") ?? false;
           await box.write("isLoggedIn", false);
           await _secureStorage.deleteToken();
 
-          // Redirect to login
-          Get.offAllNamed(RoutesName.loginView);
-
-          Utils.showSnackbar("Session Expired", "Please login again",
-              isError: true);
+          // Only redirect if user was logged in and not already on login page
+          if (wasLoggedIn && Get.currentRoute != RoutesName.loginView) {
+            Get.offAllNamed(RoutesName.loginView);
+            Utils.showSnackbar("Session Expired", "Please login again",
+                isError: true);
+          }
         }
         return handler.next(e);
       },
@@ -64,33 +82,39 @@ class ApiClient {
   }
 
   Future<Response> get(String path,
-      {Map<String, dynamic>? queryParameters}) async {
+      {Map<String, dynamic>? queryParameters,
+      Duration timeout = const Duration(seconds: 20)}) async {
     try {
-      return await _dio.get(path, queryParameters: queryParameters);
+      return await _dio
+          .get(path, queryParameters: queryParameters)
+          .timeout(timeout);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Response> post(String path, {dynamic data}) async {
+  Future<Response> post(String path,
+      {dynamic data, Duration timeout = const Duration(seconds: 20)}) async {
     try {
-      return await _dio.post(path, data: data);
+      return await _dio.post(path, data: data).timeout(timeout);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Response> put(String path, {dynamic data}) async {
+  Future<Response> put(String path,
+      {dynamic data, Duration timeout = const Duration(seconds: 20)}) async {
     try {
-      return await _dio.put(path, data: data);
+      return await _dio.put(path, data: data).timeout(timeout);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Response> delete(String path) async {
+  Future<Response> delete(String path,
+      {Duration timeout = const Duration(seconds: 20)}) async {
     try {
-      return await _dio.delete(path);
+      return await _dio.delete(path).timeout(timeout);
     } catch (e) {
       rethrow;
     }

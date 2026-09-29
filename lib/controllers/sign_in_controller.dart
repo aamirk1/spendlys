@@ -131,7 +131,7 @@ class SignInController extends GetxController {
       await _apiClient.post(ApiConstants.deleteRequest, data: {
         'user_id': user.uid,
         'reason': reason,
-      });
+      }).timeout(const Duration(seconds: 20));
 
       Get.back(); // Close loading dialog
       Utils.showSnackbar(
@@ -139,7 +139,7 @@ class SignInController extends GetxController {
           isError: false);
     } catch (e) {
       Get.back(); // Close loading dialog
-      Utils.showSnackbar("Error", "Failed to submit request: $e");
+      AppErrorHandler.handleError(e, customTitle: "Request Failed");
     }
   }
 
@@ -148,10 +148,12 @@ class SignInController extends GetxController {
       Utils.showLoadingDialog();
 
       // 1. Call the backend to delete data
-      await _apiClient.delete(ApiConstants.deleteAccount);
+      await _apiClient
+          .delete(ApiConstants.deleteAccount)
+          .timeout(const Duration(seconds: 20));
 
       // 2. Sign out from Firebase
-      await auth.signOut();
+      await auth.signOut().timeout(const Duration(seconds: 10));
 
       // 3. Clear local storage
       await _secureStorage.clearAll();
@@ -167,8 +169,7 @@ class SignInController extends GetxController {
       Get.offAllNamed(RoutesName.loginView);
     } catch (e) {
       Get.back(); // Close loading dialog
-      Utils.showSnackbar("Error", "Failed to delete account: $e");
-      AppErrorHandler.handleError(e);
+      AppErrorHandler.handleError(e, customTitle: "Delete Failed");
     }
   }
 
@@ -272,9 +273,7 @@ class SignInController extends GetxController {
         isLoading.value = false;
         signInRequired.value = false;
         final error = TimeoutException(
-            "OTP request timed out. This could be due to network issues, "
-            "missing certificate hash (INVALID_CERT_HASH), or too many requests. "
-            "Please check your internet connection and try again.");
+            "OTP request timed out. Please check your internet connection and try again.");
         AppErrorHandler.handleError(error);
         completer.completeError(error);
       }
@@ -314,8 +313,9 @@ class SignInController extends GetxController {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification on Android
           try {
-            UserCredential userCredential =
-                await auth.signInWithCredential(credential);
+            UserCredential userCredential = await auth
+                .signInWithCredential(credential)
+                .timeout(const Duration(seconds: 20));
             User? user = userCredential.user;
             if (user != null) {
               // Ensure we are not already processing another sync
@@ -323,9 +323,11 @@ class SignInController extends GetxController {
               isLoading.value = true;
 
               if (isSigningUpFlow.value) {
-                await syncSignUpWithBackend(user);
+                await syncSignUpWithBackend(user)
+                    .timeout(const Duration(seconds: 20));
               } else {
-                await syncUserByFirebaseToken(user);
+                await syncUserByFirebaseToken(user)
+                    .timeout(const Duration(seconds: 20));
               }
             }
           } catch (e) {
@@ -354,18 +356,22 @@ class SignInController extends GetxController {
         verificationId.value = box.read('verificationId') ?? "";
       }
 
-      UserCredential userCredential = await _authService.verifyOTP(
-        verificationId: verificationId.value,
-        smsCode: smsCode,
-      );
+      UserCredential userCredential = await _authService
+          .verifyOTP(
+            verificationId: verificationId.value,
+            smsCode: smsCode,
+          )
+          .timeout(const Duration(seconds: 20));
 
       User? user = userCredential.user;
       if (user != null) {
         box.remove('verificationId'); // Clear storage on success
         if (isSigningUpFlow.value) {
-          await syncSignUpWithBackend(user);
+          await syncSignUpWithBackend(user)
+              .timeout(const Duration(seconds: 20));
         } else {
-          await syncUserByFirebaseToken(user);
+          await syncUserByFirebaseToken(user)
+              .timeout(const Duration(seconds: 20));
         }
       }
     } catch (e) {
@@ -378,7 +384,10 @@ class SignInController extends GetxController {
   Future<void> syncSignUpWithBackend(User firebaseUser) async {
     try {
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
 
       final response = await _apiClient.post(ApiConstants.syncUser, data: {
         'id': firebaseUser.uid,
@@ -388,10 +397,11 @@ class SignInController extends GetxController {
         'password': passwordController.text.trim(),
         'device_info': deviceInfo,
         'fcm_token': fcmToken,
-      });
+      }).timeout(const Duration(seconds: 20));
 
       await _finalizeLogin(response.data['user'], response.data['access_token'],
-          deviceInfo, fcmToken);
+              deviceInfo, fcmToken)
+          .timeout(const Duration(seconds: 20));
 
       await _secureStorage.saveCredentials(
           emailController.text.trim(), passwordController.text.trim());
@@ -404,7 +414,10 @@ class SignInController extends GetxController {
   Future<void> syncUserByFirebaseToken(User firebaseUser) async {
     try {
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
 
       // Sanitize phone number for email fallback (remove +)
       String safePhone = (firebaseUser.phoneNumber ?? "").replaceAll("+", "");
@@ -427,11 +440,12 @@ class SignInController extends GetxController {
                 : "User"),
         'device_info': deviceInfo,
         'fcm_token': fcmToken,
-      });
+      }).timeout(const Duration(seconds: 20));
 
       if (response.data != null && response.data['user'] != null) {
         await _finalizeLogin(response.data['user'],
-            response.data['access_token'], deviceInfo, fcmToken);
+                response.data['access_token'], deviceInfo, fcmToken)
+            .timeout(const Duration(seconds: 20));
       } else {
         throw Exception("Invalid response from server during sync");
       }
@@ -470,7 +484,7 @@ class SignInController extends GetxController {
       final userDocRef =
           FirebaseFirestore.instance.collection('users').doc(myUser.userId);
       batch.set(userDocRef, myUser.toMap(), SetOptions(merge: true));
-      await batch.commit();
+      await batch.commit().timeout(const Duration(seconds: 10));
     } catch (fe) {
       debugPrint("Firestore sync failed: $fe");
     }
@@ -515,7 +529,7 @@ class SignInController extends GetxController {
         'phone_number': user.phoneNumber,
         'device_info': deviceInfo,
         'fcm_token': fcmToken,
-      });
+      }).timeout(const Duration(seconds: 20));
       print("User synced with backend successfully.");
     } catch (e) {
       print("Warning: Failed to sync user with backend: $e");
@@ -529,7 +543,10 @@ class SignInController extends GetxController {
       final password = credentials['password'];
 
       String deviceInfo = await _getDeviceDetails();
-      String? fcmToken = await _firebaseMessaging.getToken();
+      String? fcmToken = await _firebaseMessaging.getToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
       dynamic userData;
       String? accessToken;
 
@@ -542,7 +559,7 @@ class SignInController extends GetxController {
           'password': password.trim(),
           'device_info': deviceInfo,
           'fcm_token': fcmToken,
-        });
+        }).timeout(const Duration(seconds: 20));
 
         final data = response.data;
         accessToken = data['access_token'];
@@ -552,7 +569,7 @@ class SignInController extends GetxController {
         if (customToken != null) {
           await auth
               .signInWithCustomToken(customToken)
-              .timeout(const Duration(seconds: 30));
+              .timeout(const Duration(seconds: 20));
         }
       } else {
         final firebaseUser = auth.currentUser;
@@ -569,7 +586,7 @@ class SignInController extends GetxController {
             'name': firebaseUser.displayName ?? "User",
             'device_info': deviceInfo,
             'fcm_token': fcmToken,
-          });
+          }).timeout(const Duration(seconds: 20));
 
           if (response.data != null && response.data['user'] != null) {
             userData = response.data['user'];
@@ -613,7 +630,11 @@ class SignInController extends GetxController {
 
   Future<void> logout() async {
     _timer?.cancel();
-    await auth.signOut();
+    try {
+      await auth.signOut().timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint("Auth sign out error: $e");
+    }
     await _secureStorage.clearAll();
     box.erase();
     Get.deleteAll(); // Dispose non-permanent controllers
